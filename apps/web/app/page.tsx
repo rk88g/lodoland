@@ -2,7 +2,7 @@
 
 import { InfluencerCollage } from "../components/influencer-collage";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type SocialLink = {
   label: string;
@@ -27,7 +27,6 @@ type MenuSponsorPanel = {
   name: string;
   websiteUrl: string;
   socials: SocialLink[];
-  pageLabel: string;
 };
 
 const officialSponsor = {
@@ -152,7 +151,6 @@ const menuSponsorPanels: MenuSponsorPanel[] = [
   {
     name: "Monster Energy",
     websiteUrl: "https://example.com",
-    pageLabel: "Publicidad 1",
     socials: [
       { label: "Instagram", href: "https://instagram.com" },
       { label: "Facebook", href: "https://facebook.com" }
@@ -161,7 +159,6 @@ const menuSponsorPanels: MenuSponsorPanel[] = [
   {
     name: "Fox Racing",
     websiteUrl: "https://example.com",
-    pageLabel: "Publicidad 2",
     socials: [
       { label: "Instagram", href: "https://instagram.com" },
       { label: "TikTok", href: "https://tiktok.com" }
@@ -170,7 +167,6 @@ const menuSponsorPanels: MenuSponsorPanel[] = [
   {
     name: "Oakley",
     websiteUrl: "https://example.com",
-    pageLabel: "Publicidad 3",
     socials: [
       { label: "Instagram", href: "https://instagram.com" },
       { label: "YouTube", href: "https://youtube.com" }
@@ -179,15 +175,17 @@ const menuSponsorPanels: MenuSponsorPanel[] = [
 ];
 
 export default function HomePage() {
+  const menuCollapsesRef = useRef<HTMLDivElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [sponsorModalOpen, setSponsorModalOpen] = useState(true);
   const [influencerModalOpen, setInfluencerModalOpen] = useState(false);
   const [merchModalOpen, setMerchModalOpen] = useState(false);
   const [activeSale, setActiveSale] = useState(0);
   const [saleModalIndex, setSaleModalIndex] = useState<number | null>(null);
-  const [activeMenuPanel, setActiveMenuPanel] = useState(3);
+  const [activeMenuPanel, setActiveMenuPanel] = useState(0);
   const isOverlayOpen = sponsorModalOpen || menuOpen || influencerModalOpen || merchModalOpen || saleModalIndex !== null;
   const currentYear = new Date().getFullYear();
+  const menuPageCount = menuSponsorPanels.length + 1;
 
   const closeOverlay = () => {
     if (saleModalIndex !== null) {
@@ -245,6 +243,54 @@ export default function HomePage() {
     };
   }, [isOverlayOpen, saleModalIndex, merchModalOpen, influencerModalOpen, menuOpen, sponsorModalOpen]);
 
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    const menuPages = menuCollapsesRef.current;
+
+    if (!menuPages || typeof window === "undefined" || !window.matchMedia("(max-width: 780px)").matches) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      menuPages.scrollTo({
+        left: activeMenuPanel * menuPages.clientWidth,
+        behavior: "auto"
+      });
+    });
+  }, [menuOpen, activeMenuPanel]);
+
+  const goToMenuPanel = (index: number) => {
+    setActiveMenuPanel(index);
+
+    const menuPages = menuCollapsesRef.current;
+
+    if (!menuPages || typeof window === "undefined" || !window.matchMedia("(max-width: 780px)").matches) {
+      return;
+    }
+
+    menuPages.scrollTo({
+      left: index * menuPages.clientWidth,
+      behavior: "smooth"
+    });
+  };
+
+  const handleMenuScroll = () => {
+    const menuPages = menuCollapsesRef.current;
+
+    if (!menuPages || typeof window === "undefined" || !window.matchMedia("(max-width: 780px)").matches) {
+      return;
+    }
+
+    const nextPanel = Math.round(menuPages.scrollLeft / Math.max(menuPages.clientWidth, 1));
+
+    if (nextPanel !== activeMenuPanel) {
+      setActiveMenuPanel(nextPanel);
+    }
+  };
+
   return (
     <main className="ll-home">
       <div className="page-noise" />
@@ -300,17 +346,23 @@ export default function HomePage() {
           </button>
 
           <div className="menu-overlay-inner">
-            <div className="menu-collapses" role="tablist" aria-label="Menu colapsable principal">
+            <div
+              className="menu-collapses"
+              onScroll={handleMenuScroll}
+              ref={menuCollapsesRef}
+              role="tablist"
+              aria-label="Menu colapsable principal"
+            >
               {menuSponsorPanels.map((panel, index) => (
                 <article
                   className={`menu-collapse sponsor-collapse ${activeMenuPanel === index ? "is-open" : ""}`}
                   key={panel.name}
                   onMouseEnter={() => setActiveMenuPanel(index)}
-                  onClick={() => setActiveMenuPanel(index)}
+                  onClick={() => goToMenuPanel(index)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      setActiveMenuPanel(index);
+                      goToMenuPanel(index);
                     }
                   }}
                   role="button"
@@ -318,7 +370,6 @@ export default function HomePage() {
                 >
                   <div className="menu-collapse-visual">
                     <div className={`menu-sponsor-art sponsor-art-${index + 1}`} />
-                    <span className="menu-page-indicator">{panel.pageLabel}</span>
                   </div>
                   <div className="menu-collapse-info">
                     <strong>{panel.name}</strong>
@@ -336,14 +387,13 @@ export default function HomePage() {
                 </article>
               ))}
 
-              <div className={`menu-collapse menu-links-collapse ${activeMenuPanel === 3 ? "is-open" : ""}`}>
+              <div className={`menu-collapse menu-links-collapse ${activeMenuPanel === menuSponsorPanels.length ? "is-open" : ""}`}>
                 <button
                   className="menu-collapse-trigger"
-                  onMouseEnter={() => setActiveMenuPanel(3)}
-                  onClick={() => setActiveMenuPanel(3)}
+                  onMouseEnter={() => setActiveMenuPanel(menuSponsorPanels.length)}
+                  onClick={() => goToMenuPanel(menuSponsorPanels.length)}
                   type="button"
                 >
-                  <span className="menu-page-indicator">Menu</span>
                   Secciones
                 </button>
                 <nav className="menu-links-list" aria-label="Secciones del sitio">
@@ -370,6 +420,18 @@ export default function HomePage() {
                   </Link>
                 </nav>
               </div>
+            </div>
+
+            <div className="menu-page-dots" aria-label="Indicador de paginas del menu">
+              {Array.from({ length: menuPageCount }, (_, index) => (
+                <button
+                  aria-label={`Ir a pagina ${index + 1}`}
+                  className={`menu-page-dot ${activeMenuPanel === index ? "is-active" : ""}`}
+                  key={index}
+                  onClick={() => goToMenuPanel(index)}
+                  type="button"
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -481,7 +543,10 @@ export default function HomePage() {
 
         <button
           className="tire-menu-button"
-          onClick={() => setMenuOpen(true)}
+          onClick={() => {
+            setActiveMenuPanel(0);
+            setMenuOpen(true);
+          }}
           type="button"
           aria-label="Abrir menu principal"
         >

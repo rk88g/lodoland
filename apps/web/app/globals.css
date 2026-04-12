@@ -442,6 +442,32 @@ main {
   backdrop-filter: blur(10px);
 }
 
+.menu-page-dots {
+  display: none;
+}
+
+.menu-page-dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: width 180ms ease, transform 180ms ease, background 180ms ease, opacity 180ms ease;
+}
+
+.menu-page-dot:hover {
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.menu-page-dot.is-active {
+  width: 32px;
+  background: linear-gradient(90deg, rgba(255, 186, 87, 0.95), rgba(255, 107, 159, 0.95));
+  transform: scale(1.02);
+}
+
 .menu-sponsor-art {
   position: absolute;
   inset: 0;
@@ -2493,6 +2519,19 @@ main {
 
   .menu-links-collapse {
     min-width: initial;
+  }
+
+  .menu-page-dots {
+    position: sticky;
+    bottom: 2px;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px 0 4px;
+    background: linear-gradient(180deg, rgba(6, 8, 15, 0), rgba(6, 8, 15, 0.74) 46%, rgba(6, 8, 15, 0.94));
   }
 
   .menu-links-list a {
