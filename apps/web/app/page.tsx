@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type SocialLink = {
   label: string;
@@ -147,6 +147,20 @@ export default function HomePage() {
   const [merchModalOpen, setMerchModalOpen] = useState(false);
   const [activeSale, setActiveSale] = useState(0);
   const [saleModalIndex, setSaleModalIndex] = useState<number | null>(null);
+  const isOverlayOpen = sponsorModalOpen || menuOpen || influencerModalOpen || merchModalOpen || saleModalIndex !== null;
+  const currentYear = new Date().getFullYear();
+
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+
+    if (isOverlayOpen) {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOverlayOpen]);
 
   return (
     <main className="ll-home">
@@ -198,15 +212,6 @@ export default function HomePage() {
           </button>
 
           <div className="menu-overlay-inner">
-            <div className="menu-overlay-copy">
-              <span className="eyebrow-chip">Navegacion</span>
-              <h2>Explora LODO LAND</h2>
-              <p>
-                Menu fullscreen animado con rutas a cada seccion del home y acceso a tu cuenta
-                para compras, boletos, rifas, quinielas y promociones.
-              </p>
-            </div>
-
             <nav className="menu-grid" aria-label="Secciones del sitio">
               <a href="#evento" onClick={() => setMenuOpen(false)}>
                 Evento reciente
@@ -426,10 +431,8 @@ export default function HomePage() {
           <div className="social-frames">
             {socialProfiles.map((profile) => (
               <a className="social-frame" href={profile.url} key={profile.platform} target="_blank" rel="noreferrer">
-                <span>{profile.platform}</span>
-                <strong>{profile.account}</strong>
-                <small>{profile.handle}</small>
-                <div className="social-preview">
+                <div className="phone-shell">
+                  <div className="phone-notch" />
                   <div className="preview-bar" />
                   <div className="preview-hero" />
                   <div className="preview-grid">
@@ -437,8 +440,12 @@ export default function HomePage() {
                     <div />
                     <div />
                   </div>
+                  <div className="phone-meta">
+                    <span>{profile.platform}</span>
+                    <strong>{profile.account}</strong>
+                    <small>{profile.handle}</small>
+                  </div>
                 </div>
-                <p>{profile.teaser}</p>
               </a>
             ))}
           </div>
@@ -487,35 +494,22 @@ export default function HomePage() {
             <div className="collage-photo photo-d" />
             <div className="collage-photo photo-e" />
             <div className="collage-photo photo-f" />
+            <div className="collage-photo photo-g" />
+            <div className="collage-photo photo-h" />
+            <div className="collage-photo photo-i" />
+            <div className="collage-photo photo-j" />
           </div>
 
-          <div className="scene-copy right-copy">
-            <span className="eyebrow-chip">Influencers</span>
-            <h2 className="scene-title">Un Collage De Fotos Como Fondo Vivo</h2>
-            <p>
-              Toda la seccion funciona como collage visual de colaboradores. El boton abre un modal
-              con lista completa, descripcion y links a redes principales.
-            </p>
-            <div className="scene-actions">
-              <button className="cta-solid" onClick={() => setInfluencerModalOpen(true)} type="button">
-                Ver colaboradores
-              </button>
-            </div>
+          <div className="influencer-floating-action">
+            <button className="cta-solid" onClick={() => setInfluencerModalOpen(true)} type="button">
+              Ver colaboradores
+            </button>
           </div>
         </div>
       </section>
 
       <section className="full-section section-sales" id="ventas">
         <div className="sticky-scene">
-          <div className="scene-copy sales-copy">
-            <span className="eyebrow-chip">Ventas</span>
-            <h2 className="scene-title">Bloques Que Se Abren Para Mostrar La Oferta</h2>
-            <p>
-              Cada promo vive como panel vertical expandible. Al abrirse revela la oferta y te
-              lleva al login o a un flujo de compra en modal si el usuario ya tiene sesion.
-            </p>
-          </div>
-
           <div className="sales-panels" role="tablist" aria-label="Ofertas disponibles">
             {salesOffers.map((offer, index) => (
               <button
@@ -583,7 +577,7 @@ export default function HomePage() {
         <div className="footer-bottom">
           <div>
             <strong>LODO LAND</strong>
-            <p>Footer preparado para aviso de privacidad, contacto y datos legales.</p>
+            <p>{currentYear} | Footer preparado para aviso de privacidad, contacto y datos legales.</p>
           </div>
 
           <div className="footer-links">
@@ -596,4 +590,3 @@ export default function HomePage() {
     </main>
   );
 }
-
