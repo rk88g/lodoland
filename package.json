@@ -1,0 +1,16 @@
+{
+  "name": "lodoland",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @lodoland/web\" \"npm run dev -w @lodoland/api\"",
+    "build": "npm run build -w @lodoland/web && npm run build -w @lodoland/api",
+    "lint": "npm run lint -w @lodoland/web && npm run lint -w @lodoland/api"
+  },
+  "devDependencies": {
+    "concurrently": "9.0.1"
+  }
+}
