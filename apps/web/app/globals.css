@@ -1015,7 +1015,7 @@ main {
   position: absolute;
   left: 6vw;
   right: 6vw;
-  top: 22vh;
+  top: 16vh;
   z-index: 3;
   display: flex;
   justify-content: center;
@@ -1026,8 +1026,8 @@ main {
   position: relative;
   display: grid;
   gap: 10px;
-  width: min(100%, 520px);
-  padding: 28px 34px;
+  width: min(100%, 640px);
+  padding: 34px 42px;
   border-radius: 42px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background:
@@ -1060,7 +1060,7 @@ main {
 
 .sponsor-centerpiece strong {
   font-family: var(--font-heading), sans-serif;
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(2.4rem, 4.8vw, 3.8rem);
   line-height: 0.9;
   text-transform: uppercase;
 }
@@ -1069,7 +1069,7 @@ main {
   position: absolute;
   left: 6vw;
   right: 6vw;
-  top: 43vh;
+  top: 46vh;
   z-index: 4;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1212,6 +1212,8 @@ main {
 .collage-photo {
   position: absolute;
   --tilt: 0deg;
+  --float-duration: 16s;
+  --float-delay: 0s;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background:
     radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.1), transparent 20%),
@@ -1219,71 +1221,84 @@ main {
     rgba(8, 10, 18, 0.4);
   box-shadow: var(--shadow);
   transform: rotate(var(--tilt));
-  animation: float-one 16s ease-in-out infinite;
+  animation: float-one var(--float-duration) ease-in-out infinite;
+  animation-delay: var(--float-delay);
 }
 
 .photo-a {
-  left: 5vw;
-  top: 16vh;
-  width: 18vw;
-  min-width: 140px;
-  height: 34vh;
+  left: 4vw;
+  top: 14vh;
+  width: 20vw;
+  min-width: 180px;
+  height: 36vh;
   border-radius: 34px;
   --tilt: -6deg;
+  --float-duration: 21s;
+  --float-delay: -3s;
 }
 
 .photo-b {
-  left: 21vw;
-  top: 12vh;
-  width: 14vw;
-  min-width: 120px;
-  height: 26vh;
+  left: 24vw;
+  top: 10vh;
+  width: 16vw;
+  min-width: 140px;
+  height: 28vh;
   border-radius: 22px;
   --tilt: 4deg;
   animation-name: float-two;
+  --float-duration: 17s;
+  --float-delay: -7s;
 }
 
 .photo-c {
-  left: 15vw;
-  bottom: 14vh;
-  width: 20vw;
-  min-width: 160px;
-  height: 30vh;
+  left: 14vw;
+  bottom: 10vh;
+  width: 22vw;
+  min-width: 190px;
+  height: 32vh;
   border-radius: 28px;
   --tilt: 8deg;
   animation-name: float-three;
+  --float-duration: 22s;
+  --float-delay: -5s;
 }
 
 .photo-d {
-  right: 10vw;
-  top: 20vh;
-  width: 16vw;
-  min-width: 130px;
-  height: 40vh;
+  right: 6vw;
+  top: 16vh;
+  width: 18vw;
+  min-width: 170px;
+  height: 42vh;
   border-radius: 34px;
   --tilt: -7deg;
   animation-name: float-four;
+  --float-duration: 19s;
+  --float-delay: -8s;
 }
 
 .photo-e {
-  right: 28vw;
-  top: 16vh;
-  width: 12vw;
-  min-width: 110px;
-  height: 22vh;
+  right: 30vw;
+  top: 8vh;
+  width: 14vw;
+  min-width: 130px;
+  height: 24vh;
   border-radius: 18px;
   --tilt: 9deg;
   animation-name: float-five;
+  --float-duration: 14s;
+  --float-delay: -2s;
 }
 
 .photo-f {
   right: 18vw;
-  bottom: 12vh;
-  width: 22vw;
-  min-width: 180px;
-  height: 26vh;
+  bottom: 8vh;
+  width: 24vw;
+  min-width: 210px;
+  height: 28vh;
   border-radius: 30px;
   --tilt: -3deg;
+  --float-duration: 20s;
+  --float-delay: -6s;
 }
 
 .photo-g {
@@ -1323,220 +1338,263 @@ main {
 }
 
 .photo-k {
-  left: 34vw;
+  left: 42vw;
   top: 2vh;
-  width: 12vw;
-  min-width: 100px;
-  height: 18vh;
+  width: 13vw;
+  min-width: 116px;
+  height: 19vh;
   border-radius: 20px;
   --tilt: -7deg;
   animation-name: float-two;
+  --float-duration: 15s;
+  --float-delay: -4s;
 }
 
 .photo-l {
   left: 42vw;
-  top: 20vh;
-  width: 10vw;
-  min-width: 90px;
-  height: 16vh;
+  top: 24vh;
+  width: 11vw;
+  min-width: 100px;
+  height: 17vh;
   border-radius: 16px;
   --tilt: 8deg;
   animation-name: float-four;
+  --float-duration: 12s;
+  --float-delay: -9s;
 }
 
 .photo-m {
   left: 38vw;
-  bottom: 12vh;
-  width: 12vw;
-  min-width: 100px;
-  height: 18vh;
+  bottom: 14vh;
+  width: 13vw;
+  min-width: 112px;
+  height: 19vh;
   border-radius: 22px;
   --tilt: -10deg;
   animation-name: float-five;
+  --float-duration: 18s;
+  --float-delay: -1s;
 }
 
 .photo-n {
-  right: 38vw;
+  right: 40vw;
   top: 10vh;
-  width: 14vw;
-  min-width: 110px;
-  height: 18vh;
+  width: 15vw;
+  min-width: 126px;
+  height: 19vh;
   border-radius: 24px;
   --tilt: 6deg;
   animation-name: float-three;
+  --float-duration: 23s;
+  --float-delay: -11s;
 }
 
 .photo-o {
   right: 34vw;
-  bottom: 14vh;
-  width: 12vw;
-  min-width: 100px;
-  height: 16vh;
+  bottom: 18vh;
+  width: 13vw;
+  min-width: 114px;
+  height: 18vh;
   border-radius: 20px;
   --tilt: 10deg;
   animation-name: float-two;
+  --float-duration: 13s;
+  --float-delay: -6s;
 }
 
 .photo-p {
-  left: 50vw;
-  top: 42vh;
-  width: 8vw;
-  min-width: 80px;
-  height: 12vh;
+  left: 54vw;
+  top: 46vh;
+  width: 9vw;
+  min-width: 88px;
+  height: 13vh;
   border-radius: 18px;
   --tilt: -12deg;
   animation-name: float-four;
+  --float-duration: 11s;
+  --float-delay: -7s;
 }
 
 .photo-q {
   left: 58vw;
-  bottom: 8vh;
-  width: 10vw;
-  min-width: 90px;
-  height: 14vh;
+  bottom: 10vh;
+  width: 11vw;
+  min-width: 100px;
+  height: 15vh;
   border-radius: 18px;
   --tilt: 7deg;
   animation-name: float-five;
+  --float-duration: 16s;
+  --float-delay: -12s;
 }
 
 .photo-r {
-  right: 50vw;
-  top: 8vh;
-  width: 8vw;
-  min-width: 80px;
-  height: 12vh;
+  right: 52vw;
+  top: 4vh;
+  width: 9vw;
+  min-width: 88px;
+  height: 13vh;
   border-radius: 18px;
   --tilt: 11deg;
   animation-name: float-three;
+  --float-duration: 14s;
+  --float-delay: -10s;
 }
 
 .photo-s {
-  left: 46vw;
-  top: 8vh;
-  width: 16vw;
-  min-width: 120px;
-  height: 22vh;
+  left: 60vw;
+  top: 18vh;
+  width: 17vw;
+  min-width: 150px;
+  height: 24vh;
   border-radius: 28px;
   --tilt: -5deg;
+  animation-name: float-six;
+  --float-duration: 24s;
+  --float-delay: -13s;
 }
 
 .photo-t {
-  right: 22vw;
-  top: 40vh;
-  width: 14vw;
-  min-width: 110px;
-  height: 18vh;
+  right: 24vw;
+  top: 44vh;
+  width: 16vw;
+  min-width: 136px;
+  height: 20vh;
   border-radius: 20px;
   --tilt: 8deg;
   animation-name: float-two;
+  --float-duration: 12s;
+  --float-delay: -14s;
 }
 
 .photo-u {
-  left: 8vw;
-  top: 48vh;
-  width: 12vw;
-  min-width: 100px;
-  height: 18vh;
-  border-radius: 26px;
-  --tilt: 10deg;
-  animation-name: float-four;
-}
-
-.photo-v {
-  left: 28vw;
-  bottom: 28vh;
-  width: 10vw;
-  min-width: 86px;
-  height: 12vh;
-  border-radius: 16px;
-  --tilt: -8deg;
-}
-
-.photo-w {
-  right: 8vw;
-  top: 48vh;
-  width: 12vw;
-  min-width: 96px;
-  height: 16vh;
-  border-radius: 22px;
-  --tilt: 7deg;
-  animation-name: float-three;
-}
-
-.photo-x {
-  left: 62vw;
-  top: 22vh;
-  width: 9vw;
-  min-width: 82px;
-  height: 12vh;
-  border-radius: 16px;
-  --tilt: -10deg;
-  animation-name: float-five;
-}
-
-.photo-y {
-  left: 52vw;
-  bottom: 26vh;
+  left: 2vw;
+  top: 44vh;
   width: 14vw;
   min-width: 116px;
   height: 20vh;
+  border-radius: 26px;
+  --tilt: 10deg;
+  animation-name: float-four;
+  --float-duration: 18s;
+  --float-delay: -4s;
+}
+
+.photo-v {
+  left: 30vw;
+  bottom: 32vh;
+  width: 11vw;
+  min-width: 98px;
+  height: 13vh;
+  border-radius: 16px;
+  --tilt: -8deg;
+  animation-name: float-six;
+  --float-duration: 17s;
+  --float-delay: -15s;
+}
+
+.photo-w {
+  right: 4vw;
+  top: 52vh;
+  width: 13vw;
+  min-width: 108px;
+  height: 18vh;
+  border-radius: 22px;
+  --tilt: 7deg;
+  animation-name: float-three;
+  --float-duration: 15s;
+  --float-delay: -5s;
+}
+
+.photo-x {
+  left: 68vw;
+  top: 36vh;
+  width: 10vw;
+  min-width: 92px;
+  height: 13vh;
+  border-radius: 16px;
+  --tilt: -10deg;
+  animation-name: float-five;
+  --float-duration: 10s;
+  --float-delay: -8s;
+}
+
+.photo-y {
+  left: 48vw;
+  bottom: 30vh;
+  width: 16vw;
+  min-width: 144px;
+  height: 22vh;
   border-radius: 24px;
   --tilt: 12deg;
   animation-name: float-four;
+  --float-duration: 21s;
+  --float-delay: -9s;
 }
 
 .photo-z {
   right: 30vw;
-  bottom: 30vh;
-  width: 9vw;
-  min-width: 80px;
-  height: 12vh;
+  bottom: 34vh;
+  width: 10vw;
+  min-width: 90px;
+  height: 13vh;
   border-radius: 16px;
   --tilt: -9deg;
   animation-name: float-two;
+  --float-duration: 11s;
+  --float-delay: -3s;
 }
 
 .photo-aa {
-  left: 2vw;
-  top: 34vh;
-  width: 8vw;
-  min-width: 78px;
-  height: 12vh;
+  left: 10vw;
+  top: 30vh;
+  width: 9vw;
+  min-width: 88px;
+  height: 13vh;
   border-radius: 18px;
   --tilt: 15deg;
   animation-name: float-three;
+  --float-duration: 13s;
+  --float-delay: -16s;
 }
 
 .photo-ab {
-  right: 2vw;
-  top: 34vh;
-  width: 10vw;
-  min-width: 84px;
-  height: 14vh;
+  right: 12vw;
+  top: 32vh;
+  width: 11vw;
+  min-width: 94px;
+  height: 15vh;
   border-radius: 20px;
   --tilt: -14deg;
   animation-name: float-five;
+  --float-duration: 19s;
+  --float-delay: -2s;
 }
 
 .photo-ac {
-  left: 40vw;
-  bottom: 4vh;
-  width: 18vw;
-  min-width: 130px;
-  height: 18vh;
+  left: 36vw;
+  bottom: 2vh;
+  width: 20vw;
+  min-width: 176px;
+  height: 20vh;
   border-radius: 30px;
   --tilt: -4deg;
+  animation-name: float-six;
+  --float-duration: 25s;
+  --float-delay: -12s;
 }
 
 .photo-ad {
-  right: 44vw;
-  top: 30vh;
-  width: 11vw;
-  min-width: 88px;
-  height: 14vh;
+  right: 46vw;
+  top: 34vh;
+  width: 12vw;
+  min-width: 102px;
+  height: 15vh;
   border-radius: 18px;
   --tilt: 9deg;
   animation-name: float-four;
+  --float-duration: 14s;
+  --float-delay: -18s;
 }
 
 .influencer-floating-action {
@@ -1910,6 +1968,25 @@ main {
 
   72% {
     transform: translate3d(18px, -18px, 0) rotate(calc(var(--tilt) + 1deg));
+  }
+}
+
+@keyframes float-six {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--tilt));
+  }
+
+  18% {
+    transform: translate3d(24px, -20px, 0) rotate(calc(var(--tilt) + 3deg));
+  }
+
+  52% {
+    transform: translate3d(-22px, 26px, 0) rotate(calc(var(--tilt) - 4deg));
+  }
+
+  82% {
+    transform: translate3d(14px, 10px, 0) rotate(calc(var(--tilt) + 1deg));
   }
 }
 

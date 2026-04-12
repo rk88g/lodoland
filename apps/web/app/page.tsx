@@ -448,7 +448,6 @@ export default function HomePage() {
           <div className="event-gradient" />
 
           <div className="scene-copy left-copy">
-            <span className="eyebrow-chip">Evento reciente</span>
             <h1 className="scene-wordmark">LODO LAND</h1>
             <h2 className="scene-title">Mud Festival 2026</h2>
             <p>
@@ -528,9 +527,7 @@ export default function HomePage() {
           <div className="sponsor-fog" />
 
           <div className="scene-copy sponsor-copy">
-            <span className="eyebrow-chip">Patrocinadores</span>
             <h2 className="scene-title">Partner Wall</h2>
-            <p>Una presencia limpia, protagonista y premium para cada marca aliada dentro de LODO LAND.</p>
           </div>
 
           <div className="sponsor-showcase">
@@ -635,19 +632,11 @@ export default function HomePage() {
           <div className="merch-radiance" />
 
           <div className="scene-copy left-copy">
-            <span className="eyebrow-chip">Merch</span>
             <h2 className="scene-title">Productos Como Tres Piezas Protagonistas</h2>
-            <p>
-              Los tres recuadros principales viven como imagenes de merch. Pueden llevar al login
-              o abrir un modal con todos los productos disponibles.
-            </p>
             <div className="scene-actions">
               <button className="cta-solid" onClick={() => setMerchModalOpen(true)} type="button">
                 Ver catalogo
               </button>
-              <Link className="cta-outline" href="/login">
-                Iniciar sesion
-              </Link>
             </div>
           </div>
 
