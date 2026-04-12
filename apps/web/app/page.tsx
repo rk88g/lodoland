@@ -1,255 +1,378 @@
 import Link from "next/link";
 
-const stats = [
-  { value: "+12", label: "formatos de venta para eventos y dinamicas" },
-  { value: "100%", label: "contenido editable desde el panel admin" },
-  { value: "24/7", label: "compra en linea con acceso a promociones" },
-  { value: "1", label: "ecosistema para tickets, rifas y quinielas" }
-];
+const latestEvent = {
+  eyebrow: "Evento mas reciente",
+  title: "Mud Festival 2026",
+  description:
+    "La experiencia principal de LODO LAND con pistas extremas, zonas premium, activaciones de marca, venta de boletos por fase y beneficios editables desde admin.",
+  meta: [
+    { label: "Fecha", value: "28 JUN" },
+    { label: "Lugar", value: "Guadalajara" },
+    { label: "Boletos", value: "General + VIP" }
+  ],
+  highlights: [
+    "Preventa por fases con control de cupo.",
+    "Zona de marcas, activaciones e influencers.",
+    "Checkout directo desde la pagina."
+  ]
+};
 
-const commerceFeatures = [
+const socialPreviews = [
   {
-    title: "Tickets para eventos",
-    description:
-      "Crea experiencias con cupos, tipos de acceso, fechas, precios y estados de venta."
+    platform: "Facebook",
+    handle: "/LodoLandMx",
+    label: "Feed mini",
+    description: "Vista compacta para anunciar fechas, galerias y lanzamientos de boletos."
   },
   {
-    title: "Rifas digitales",
-    description:
-      "Publica rifas con reglas, limites de participacion, resultados y seguimiento de compras."
-  },
-  {
-    title: "Quinielas",
-    description:
-      "Vende accesos a quinielas con dinamicas configurables y control de estatus."
-  },
-  {
-    title: "Promociones y ventas",
-    description:
-      "Lanza productos especiales, promociones por temporada y ofertas activadas desde admin."
+    platform: "Instagram",
+    handle: "@lodolandmx",
+    label: "Reels mini",
+    description: "Highlights visuales, drops de merch, promos y cobertura de influencers."
   }
 ];
 
-const adminFeatures = [
+const sponsors = [
+  "Monster",
+  "Red Bull",
+  "Fox Racing",
+  "Oakley",
+  "Can-Am",
+  "BFGoodrich"
+];
+
+const influencers = [
   {
-    title: "CMS por campo",
-    description: "Cada titulo, etiqueta, boton, imagen o link se edita de forma individual."
+    name: "Ana Torque",
+    handle: "@anatorque",
+    channel: "Instagram + TikTok",
+    quote: "Contenido extremo, backstage y activaciones en vivo."
   },
   {
-    title: "Panel modular",
-    description: "Eventos, rifas, quinielas y ventas se administran desde modulos separados."
+    name: "Rafa Mud",
+    handle: "@rafamud",
+    channel: "YouTube",
+    quote: "Cobertura de carrera, retos y experiencias con la comunidad."
   },
   {
-    title: "Auditoria",
-    description: "Los cambios importantes quedan registrados para control interno."
+    name: "Jess Nitro",
+    handle: "@jessnitro",
+    channel: "Instagram",
+    quote: "Moda, merch y colaboraciones especiales del festival."
+  }
+];
+
+const sales = [
+  {
+    title: "Drop de temporada",
+    price: "Desde $399 MXN",
+    note: "Promociones online, rifas especiales y combos activables por campana."
   },
   {
-    title: "Escalable",
-    description: "La estructura queda lista para pagos, notificaciones y reportes."
+    title: "Paquete crew",
+    price: "Desde $1,290 MXN",
+    note: "Accesos grupales, experiencias con beneficios y venta limitada."
+  }
+];
+
+const merch = [
+  {
+    title: "Jersey oficial",
+    badge: "Nuevo",
+    detail: "Edicion tecnica para eventos, lanzamientos y colaboraciones."
+  },
+  {
+    title: "Gorra track",
+    badge: "Top seller",
+    detail: "Coleccion para fans, patrocinadores y creators invitados."
+  },
+  {
+    title: "Kit rider",
+    badge: "Bundle",
+    detail: "Playera, stickers, lanyard y beneficios para activaciones."
   }
 ];
 
 export default function HomePage() {
   return (
-    <main className="site-shell">
-      <div className="grain" />
+    <main className="home-shell">
+      <div className="noise-layer" />
+      <div className="aurora aurora-a" />
+      <div className="aurora aurora-b" />
 
-      <header className="topbar">
-        <Link className="brand" href="/">
-          <span className="brand-mark" />
+      <header className="site-header">
+        <Link className="site-brand" href="/">
+          <span className="site-brand-mark" />
           <span>LODO LAND</span>
         </Link>
 
-        <nav className="nav">
-          <Link href="#experiencias">Experiencias</Link>
-          <Link href="#commerce">Compras</Link>
-          <Link href="#admin">Admin</Link>
-          <Link href="/login">Iniciar sesion</Link>
-          <Link className="cta-link" href="/perfil">
-            Comprar ahora
+        <nav className="site-nav" aria-label="Secciones principales">
+          <a href="#evento">Evento</a>
+          <a href="#redes">Redes</a>
+          <a href="#patrocinadores">Patrocinadores</a>
+          <a href="#influencers">Influencers</a>
+          <a href="#ventas">Ventas</a>
+          <a href="#merch">Merch</a>
+          <Link className="site-nav-login" href="/login">
+            Mi cuenta
           </Link>
         </nav>
       </header>
 
-      <section className="hero" id="experiencias">
-        <div className="hero-copy">
-          <span className="eyebrow">Eventos, rifas, quinielas y ventas online</span>
-          <h1>LODO LAND</h1>
-          <p>
-            Una plataforma hecha para vender experiencias con una portada visual potente,
-            acceso de usuarios, compras integradas y un panel administrador que controla cada
-            texto, imagen, etiqueta y enlace de la web por separado.
-          </p>
-
-          <div className="hero-actions">
-            <Link className="button button-primary" href="/login">
-              Iniciar sesion
-            </Link>
-            <Link className="button button-secondary" href="/admin">
-              Ver panel admin
-            </Link>
-          </div>
-        </div>
-
-        <div className="hero-visual" aria-hidden="true">
-          <div className="sun" />
-          <div className="mud-ring ring-a" />
-          <div className="mud-ring ring-b" />
-          <div className="float-card card-main">
-            <strong>Landing con narrativa visual</strong>
-            <p>
-              Scroll inmersivo, capas, bloques con profundidad y llamadas a la accion para
-              convertir visitas en compras.
-            </p>
-          </div>
-          <div className="float-card card-event">
-            <strong>Evento destacado</strong>
-            <p>Tickets generales, VIP, preventa y promociones activables desde el panel.</p>
-          </div>
-          <div className="float-card card-cta">
-            <strong>Compra directa</strong>
-            <p>El usuario entra, inicia sesion y compra sin salir de la pagina.</p>
-          </div>
-          <div className="mud-wave" />
-        </div>
-      </section>
-
-      <section className="stat-grid">
-        {stats.map((stat) => (
-          <article className="stat" key={stat.label}>
-            <strong>{stat.value}</strong>
-            <span>{stat.label}</span>
-          </article>
-        ))}
-      </section>
-
-      <section className="parallax-section" id="commerce">
-        <div className="parallax-panel">
-          <article className="panel-copy">
-            <span className="kicker">Comercio digital</span>
-            <h2 className="display-title">Compra Todo Desde Tu Perfil</h2>
-            <p>
-              La experiencia autenticada se centra en una cuenta desde donde cada persona puede
-              comprar tickets, rifas, quinielas y promociones sin brincar entre paginas
-              aisladas.
-            </p>
-
-            <div className="feature-grid">
-              {commerceFeatures.map((feature) => (
-                <article className="feature" key={feature.title}>
-                  <strong>{feature.title}</strong>
-                  <p>{feature.description}</p>
-                </article>
-              ))}
-            </div>
-          </article>
-
-          <article className="panel-card">
-            <div>
-              <span className="kicker">Usuario autenticado</span>
-              <h3 className="display-title">Perfil</h3>
-              <p>
-                Historial de ordenes, metodos de pago, boletos activos, rifas compradas y acceso
-                a promociones privadas.
-              </p>
-            </div>
-
-            <div className="mini-grid">
-              <article className="mini-card">
-                <strong>Eventos</strong>
-                <p>Boletos con cupo, variantes y control de disponibilidad.</p>
-              </article>
-              <article className="mini-card">
-                <strong>Rifas</strong>
-                <p>Entradas por participante, resultados y estados de compra.</p>
-              </article>
-              <article className="mini-card">
-                <strong>Quinielas</strong>
-                <p>Pago de acceso, reglas y seguimiento de participacion.</p>
-              </article>
-              <article className="mini-card">
-                <strong>Promos</strong>
-                <p>Productos o campanas especiales vendidas directo en la web.</p>
-              </article>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className="parallax-section" id="admin">
-        <div className="parallax-panel">
-          <article className="panel-card">
-            <div>
-              <span className="kicker">Control total</span>
-              <h3 className="display-title">Admin</h3>
-              <p>
-                Todo lo visible en la pagina puede editarse como contenido administrable:
-                textos, links, botones, imagenes, tarjetas, bloques y CTA.
-              </p>
-            </div>
-
-            <div className="mini-grid">
-              {adminFeatures.map((feature) => (
-                <article className="mini-card" key={feature.title}>
-                  <strong>{feature.title}</strong>
-                  <p>{feature.description}</p>
-                </article>
-              ))}
-            </div>
-          </article>
-
-          <article className="panel-copy">
-            <span className="kicker">Backoffice operativo</span>
-            <h2 className="display-title">Gestiona Cada Venta</h2>
-            <p>
-              El panel inicial queda listo para crear eventos, rifas, quinielas y ventas
-              especiales, ademas de preparar el terreno para pagos integrados y auditoria.
-            </p>
-
-            <div className="feature-grid">
-              <article className="feature">
-                <strong>Eventos</strong>
-                <p>Nombre, slug, fechas, ubicacion, capacidad, visibilidad y tipos de ticket.</p>
-              </article>
-              <article className="feature">
-                <strong>Rifas</strong>
-                <p>Reglas, precio por entrada, maximos, fechas y publicacion.</p>
-              </article>
-              <article className="feature">
-                <strong>Quinielas</strong>
-                <p>Edicion de dinamica, precio, cierre, resultados y estatus.</p>
-              </article>
-              <article className="feature">
-                <strong>Ventas</strong>
-                <p>Promociones, productos y bundles visibles en campanas o en perfil.</p>
-              </article>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className="cta-band">
-        <h2 className="display-title">Listo Para Crecer</h2>
+      <section className="intro-band">
+        <span className="home-chip">Experiencias, compras y contenido vivo</span>
         <p>
-          Esta base ya contempla frontend en Vercel, backend en Railway, dominio en Cloudflare,
-          autenticacion y datos en Supabase, y una estructura de base de datos preparada para
-          migraciones, pagos y control granular del contenido.
+          Landing inmersiva con scroll narrativo, bloques editables y acceso a login para compras,
+          boletos, rifas, quinielas y promociones.
         </p>
+      </section>
 
-        <div className="hero-actions">
-          <Link className="button button-secondary" href="/perfil">
-            Ir a mi perfil
-          </Link>
-          <Link className="button button-secondary" href="/admin/contenido">
-            Editar contenido
-          </Link>
+      <section className="story-section section-event" id="evento">
+        <div className="section-backdrop">
+          <div className="section-orb orb-event-a" />
+          <div className="section-orb orb-event-b" />
+        </div>
+
+        <div className="section-grid">
+          <article className="section-copy">
+            <span className="section-kicker">{latestEvent.eyebrow}</span>
+            <h1 className="section-title">El Proximo Golpe De Lodo</h1>
+            <p className="section-body">{latestEvent.description}</p>
+
+            <div className="meta-strip">
+              {latestEvent.meta.map((item) => (
+                <article className="meta-card" key={item.label}>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </article>
+              ))}
+            </div>
+
+            <div className="cta-row">
+              <Link className="primary-button" href="/eventos">
+                Ver evento
+              </Link>
+              <Link className="ghost-button" href="/login">
+                Comprar boletos
+              </Link>
+            </div>
+          </article>
+
+          <article className="section-stage">
+            <div className="stage-window">
+              <div className="stage-topline">
+                <span>Evento reciente</span>
+                <span>{latestEvent.title}</span>
+              </div>
+
+              <div className="stage-poster">
+                <div className="poster-badge">Featured</div>
+                <div className="poster-title">Mud Festival</div>
+                <div className="poster-subtitle">Drops, boletos, alianzas y activaciones</div>
+              </div>
+
+              <div className="bullet-stack">
+                {latestEvent.highlights.map((item) => (
+                  <div className="bullet-card" key={item}>
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </article>
         </div>
       </section>
 
-      <footer className="footer">
-        <span>LODO LAND | Plataforma comercial y experiencia visual</span>
-        <span>Cloudflare | Vercel | Railway | Supabase | GitHub</span>
-      </footer>
+      <section className="story-section section-social" id="redes">
+        <div className="section-backdrop">
+          <div className="section-orb orb-social-a" />
+          <div className="section-orb orb-social-b" />
+        </div>
+
+        <div className="section-grid reverse-grid">
+          <article className="section-stage">
+            <div className="social-stack">
+              {socialPreviews.map((profile) => (
+                <article className="social-card" key={profile.platform}>
+                  <div className="social-header">
+                    <strong>{profile.platform}</strong>
+                    <span>{profile.label}</span>
+                  </div>
+                  <div className="social-screen">
+                    <div className="social-bar" />
+                    <div className="social-post large-post" />
+                    <div className="social-post-grid">
+                      <div className="social-post small-post" />
+                      <div className="social-post small-post" />
+                      <div className="social-post small-post" />
+                    </div>
+                  </div>
+                  <div className="social-footer">
+                    <span>{profile.handle}</span>
+                    <p>{profile.description}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </article>
+
+          <article className="section-copy">
+            <span className="section-kicker">Social hub</span>
+            <h2 className="section-title">Facebook E Instagram Como Mini Escaparates</h2>
+            <p className="section-body">
+              Esta seccion esta pensada para mostrar previews compactos del contenido social y
+              empujar trafico a las cuentas oficiales con visuales vivos y CTAs medibles.
+            </p>
+
+            <div className="info-panel">
+              <strong>Editable desde admin</strong>
+              <p>
+                Links, embeds, handles, textos, colores, miniaturas y orden de aparicion por
+                plataforma.
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="story-section section-sponsors" id="patrocinadores">
+        <div className="section-backdrop">
+          <div className="section-orb orb-sponsor-a" />
+          <div className="section-orb orb-sponsor-b" />
+        </div>
+
+        <div className="section-grid">
+          <article className="section-copy">
+            <span className="section-kicker">Partners</span>
+            <h2 className="section-title">Patrocinadores Con Peso Propio</h2>
+            <p className="section-body">
+              Cada marca debe sentirse como parte del festival, no como una lista plana. Aqui
+              mostramos logos, categorias, links y presencia visual con jerarquia.
+            </p>
+          </article>
+
+          <article className="section-stage">
+            <div className="logo-wall">
+              {sponsors.map((sponsor, index) => (
+                <div className="logo-chip" key={sponsor} style={{ animationDelay: `${index * 120}ms` }}>
+                  {sponsor}
+                </div>
+              ))}
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="story-section section-influencers" id="influencers">
+        <div className="section-backdrop">
+          <div className="section-orb orb-influencer-a" />
+          <div className="section-orb orb-influencer-b" />
+        </div>
+
+        <div className="section-grid reverse-grid">
+          <article className="section-stage">
+            <div className="influencer-rail">
+              {influencers.map((person) => (
+                <article className="influencer-card" key={person.handle}>
+                  <div className="avatar-glow" />
+                  <strong>{person.name}</strong>
+                  <span>{person.handle}</span>
+                  <small>{person.channel}</small>
+                  <p>{person.quote}</p>
+                </article>
+              ))}
+            </div>
+          </article>
+
+          <article className="section-copy">
+            <span className="section-kicker">Creators</span>
+            <h2 className="section-title">Influencers, Canales Y Colaboraciones</h2>
+            <p className="section-body">
+              Esta capa esta hecha para destacar perfiles invitados, colaboraciones, links directos
+              y activaciones de creators con presencia visual distinta a las otras secciones.
+            </p>
+
+            <div className="cta-row">
+              <a className="ghost-button" href="#ventas">
+                Ver ventas destacadas
+              </a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="story-section section-sales" id="ventas">
+        <div className="section-backdrop">
+          <div className="section-orb orb-sales-a" />
+          <div className="section-orb orb-sales-b" />
+        </div>
+
+        <div className="section-grid">
+          <article className="section-copy">
+            <span className="section-kicker">Ventas online</span>
+            <h2 className="section-title">Promos, Combos Y Drops Comerciales</h2>
+            <p className="section-body">
+              Esta seccion debe empujar conversion. Cada card puede apuntar a ticketing, rifas,
+              quinielas o promociones especiales con control total desde admin.
+            </p>
+          </article>
+
+          <article className="section-stage">
+            <div className="sales-grid">
+              {sales.map((sale) => (
+                <article className="sale-card" key={sale.title}>
+                  <span>{sale.price}</span>
+                  <strong>{sale.title}</strong>
+                  <p>{sale.note}</p>
+                  <Link className="sale-link" href="/perfil">
+                    Ir a compras
+                  </Link>
+                </article>
+              ))}
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="story-section section-merch" id="merch">
+        <div className="section-backdrop">
+          <div className="section-orb orb-merch-a" />
+          <div className="section-orb orb-merch-b" />
+        </div>
+
+        <div className="section-grid reverse-grid">
+          <article className="section-stage">
+            <div className="merch-carousel">
+              {merch.map((item) => (
+                <article className="merch-card" key={item.title}>
+                  <span>{item.badge}</span>
+                  <strong>{item.title}</strong>
+                  <p>{item.detail}</p>
+                </article>
+              ))}
+            </div>
+          </article>
+
+          <article className="section-copy">
+            <span className="section-kicker">Store</span>
+            <h2 className="section-title">Merch Que Se Sienta Como Coleccion</h2>
+            <p className="section-body">
+              El cierre del home se convierte en vitrina de producto: texturas, ediciones,
+              bundles, drops y colaboraciones con una identidad mas editorial.
+            </p>
+
+            <div className="cta-row">
+              <Link className="primary-button" href="/perfil">
+                Ver mi cuenta
+              </Link>
+              <Link className="ghost-button" href="/login">
+                Iniciar sesion
+              </Link>
+            </div>
+          </article>
+        </div>
+      </section>
     </main>
   );
 }
+
