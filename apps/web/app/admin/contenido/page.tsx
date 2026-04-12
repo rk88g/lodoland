@@ -16,7 +16,10 @@ const homepageCollections = [
   "home_sponsors",
   "home_influencers",
   "home_sales_items",
-  "home_merch_items"
+  "home_merch_items",
+  "cms_item_groups",
+  "cms_group_items",
+  "cms_group_item_fields"
 ];
 
 export default function AdminContentPage() {
@@ -48,6 +51,10 @@ export default function AdminContentPage() {
             <p>
               Para la home tambien hay tablas por seccion para manejar logos, perfiles, cards,
               redes y productos sin mezclar esos datos con el texto libre.
+            </p>
+            <p>
+              La capa nueva `cms_item_groups` y sus items/campos permite editar banners, menu,
+              logos, modales, links, influencers y elementos repetibles pieza por pieza.
             </p>
             <ul>
               {homepageCollections.map((tableName) => (
