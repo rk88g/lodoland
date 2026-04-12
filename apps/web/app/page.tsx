@@ -22,6 +22,12 @@ type SaleOffer = {
   accent: string;
 };
 
+type MenuSponsorPanel = {
+  name: string;
+  websiteUrl: string;
+  socials: SocialLink[];
+};
+
 const officialSponsor = {
   title: "Patrocinador oficial",
   name: "Sponsor Principal",
@@ -140,6 +146,33 @@ const footerTrack = [
   "GoPro"
 ];
 
+const menuSponsorPanels: MenuSponsorPanel[] = [
+  {
+    name: "Monster Energy",
+    websiteUrl: "https://example.com",
+    socials: [
+      { label: "Instagram", href: "https://instagram.com" },
+      { label: "Facebook", href: "https://facebook.com" }
+    ]
+  },
+  {
+    name: "Fox Racing",
+    websiteUrl: "https://example.com",
+    socials: [
+      { label: "Instagram", href: "https://instagram.com" },
+      { label: "TikTok", href: "https://tiktok.com" }
+    ]
+  },
+  {
+    name: "Oakley",
+    websiteUrl: "https://example.com",
+    socials: [
+      { label: "Instagram", href: "https://instagram.com" },
+      { label: "YouTube", href: "https://youtube.com" }
+    ]
+  }
+];
+
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sponsorModalOpen, setSponsorModalOpen] = useState(true);
@@ -147,6 +180,7 @@ export default function HomePage() {
   const [merchModalOpen, setMerchModalOpen] = useState(false);
   const [activeSale, setActiveSale] = useState(0);
   const [saleModalIndex, setSaleModalIndex] = useState<number | null>(null);
+  const [activeMenuPanel, setActiveMenuPanel] = useState(3);
   const isOverlayOpen = sponsorModalOpen || menuOpen || influencerModalOpen || merchModalOpen || saleModalIndex !== null;
   const currentYear = new Date().getFullYear();
 
@@ -218,37 +252,67 @@ export default function HomePage() {
           </button>
 
           <div className="menu-overlay-inner">
-            <nav className="menu-grid" aria-label="Secciones del sitio">
-              <a href="#evento" onClick={() => setMenuOpen(false)}>
-                Evento reciente
-              </a>
-              <a href="#redes" onClick={() => setMenuOpen(false)}>
-                Redes sociales
-              </a>
-              <a href="#patrocinadores" onClick={() => setMenuOpen(false)}>
-                Patrocinadores
-              </a>
-              <a href="#influencers" onClick={() => setMenuOpen(false)}>
-                Influencers
-              </a>
-              <a href="#ventas" onClick={() => setMenuOpen(false)}>
-                Ventas
-              </a>
-              <a href="#merch" onClick={() => setMenuOpen(false)}>
-                Merch
-              </a>
-              <Link href="/login" onClick={() => setMenuOpen(false)}>
-                Mi cuenta
-              </Link>
-            </nav>
+            <div className="menu-collapses" role="tablist" aria-label="Menu colapsable principal">
+              {menuSponsorPanels.map((panel, index) => (
+                <button
+                  className={`menu-collapse sponsor-collapse ${activeMenuPanel === index ? "is-open" : ""}`}
+                  key={panel.name}
+                  onMouseEnter={() => setActiveMenuPanel(index)}
+                  onClick={() => setActiveMenuPanel(index)}
+                  type="button"
+                >
+                  <div className="menu-collapse-visual">
+                    <div className={`menu-sponsor-art sponsor-art-${index + 1}`} />
+                  </div>
+                  <div className="menu-collapse-info">
+                    <strong>{panel.name}</strong>
+                    <div className="menu-socials">
+                      {panel.socials.map((social) => (
+                        <a href={social.href} key={social.label} target="_blank" rel="noreferrer">
+                          {social.label}
+                        </a>
+                      ))}
+                    </div>
+                    <a href={panel.websiteUrl} target="_blank" rel="noreferrer">
+                      Sitio
+                    </a>
+                  </div>
+                </button>
+              ))}
 
-            <div className="menu-ads">
-              <a className="menu-ad menu-ad-square" href="https://example.com" target="_blank" rel="noreferrer">
-                Banner cuadrado
-              </a>
-              <a className="menu-ad menu-ad-rect" href="https://example.com" target="_blank" rel="noreferrer">
-                Banner rectangular
-              </a>
+              <div className={`menu-collapse menu-links-collapse ${activeMenuPanel === 3 ? "is-open" : ""}`}>
+                <button
+                  className="menu-collapse-trigger"
+                  onMouseEnter={() => setActiveMenuPanel(3)}
+                  onClick={() => setActiveMenuPanel(3)}
+                  type="button"
+                >
+                  Secciones
+                </button>
+                <nav className="menu-links-list" aria-label="Secciones del sitio">
+                  <a href="#evento" onClick={() => setMenuOpen(false)}>
+                    Evento reciente
+                  </a>
+                  <a href="#redes" onClick={() => setMenuOpen(false)}>
+                    Redes sociales
+                  </a>
+                  <a href="#patrocinadores" onClick={() => setMenuOpen(false)}>
+                    Patrocinadores
+                  </a>
+                  <a href="#influencers" onClick={() => setMenuOpen(false)}>
+                    Influencers
+                  </a>
+                  <a href="#ventas" onClick={() => setMenuOpen(false)}>
+                    Ventas
+                  </a>
+                  <a href="#merch" onClick={() => setMenuOpen(false)}>
+                    Merch
+                  </a>
+                  <Link href="/login" onClick={() => setMenuOpen(false)}>
+                    Mi cuenta
+                  </Link>
+                </nav>
+              </div>
             </div>
           </div>
         </div>
@@ -422,17 +486,16 @@ export default function HomePage() {
         <div className="sticky-scene">
           <div className="social-glow social-glow-a" />
           <div className="social-glow social-glow-b" />
-          <div className="social-wordband wordband-top">FACEBOOK INSTAGRAM FACEBOOK INSTAGRAM</div>
-          <div className="social-wordband wordband-bottom">LODO LAND GDL REELS POSTS STORIES</div>
-
-          <div className="scene-copy right-copy">
-            <span className="eyebrow-chip">Redes sociales</span>
-            <h2 className="scene-title">Facebook E Instagram Integrados A La Escena</h2>
-            <p>
-              Los perfiles oficiales de LODO LAND GDL se muestran como recuadros inmersivos. En
-              movil se transforman en tarjetas apiladas con ritmo visual para no perder impacto.
-            </p>
-          </div>
+          <div className="social-splash social-splash-a" />
+          <div className="social-splash social-splash-b" />
+          <div className="social-splash social-splash-c" />
+          <div className="social-splash social-splash-d" />
+          <div className="social-splash social-splash-e" />
+          <div className="social-water social-water-a" />
+          <div className="social-water social-water-b" />
+          <div className="social-water social-water-c" />
+          <div className="social-water social-water-d" />
+          <div className="social-water social-water-e" />
 
           <div className="social-frames">
             {socialProfiles.map((profile) => (
@@ -464,16 +527,20 @@ export default function HomePage() {
         <div className="sticky-scene">
           <div className="sponsor-fog" />
 
-          <div className="scene-copy left-copy">
+          <div className="scene-copy sponsor-copy">
             <span className="eyebrow-chip">Patrocinadores</span>
-            <h2 className="scene-title">Aliados, Marcas Y Logos Con Movimiento</h2>
-            <p>
-              Los patrocinadores viven en recuadros con bordes difuminados y micro movimiento al
-              pasar el mouse. Abajo vive un banner principal horizontal con link configurable.
-            </p>
+            <h2 className="scene-title">Partner Wall</h2>
+            <p>Una presencia limpia, protagonista y premium para cada marca aliada dentro de LODO LAND.</p>
           </div>
 
-          <div className="sponsor-grid">
+          <div className="sponsor-showcase">
+            <div className="sponsor-centerpiece">
+              <span>Marcas aliadas</span>
+              <strong>Zona de exhibicion principal</strong>
+            </div>
+          </div>
+
+          <div className="sponsor-grid sponsor-grid-wall">
             {sponsorTiles.map((sponsor) => (
               <a className="sponsor-tile" href="https://example.com" key={sponsor} target="_blank" rel="noreferrer">
                 <span className="mud-dot mud-dot-a" />
@@ -518,6 +585,18 @@ export default function HomePage() {
             <div className="collage-photo photo-p" />
             <div className="collage-photo photo-q" />
             <div className="collage-photo photo-r" />
+            <div className="collage-photo photo-s" />
+            <div className="collage-photo photo-t" />
+            <div className="collage-photo photo-u" />
+            <div className="collage-photo photo-v" />
+            <div className="collage-photo photo-w" />
+            <div className="collage-photo photo-x" />
+            <div className="collage-photo photo-y" />
+            <div className="collage-photo photo-z" />
+            <div className="collage-photo photo-aa" />
+            <div className="collage-photo photo-ab" />
+            <div className="collage-photo photo-ac" />
+            <div className="collage-photo photo-ad" />
           </div>
 
           <div className="influencer-floating-action">
