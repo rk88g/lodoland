@@ -72,6 +72,73 @@ main {
   pointer-events: none;
 }
 
+.mud-splash,
+.water-drop {
+  position: fixed;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.16;
+}
+
+.mud-splash {
+  background: rgba(125, 61, 29, 0.34);
+  filter: blur(8px);
+}
+
+.mud-splash-a {
+  left: -40px;
+  top: 28vh;
+  width: 180px;
+  height: 110px;
+  border-radius: 53% 47% 46% 54% / 44% 58% 42% 56%;
+  transform: rotate(-14deg);
+}
+
+.mud-splash-b {
+  right: 8vw;
+  top: 62vh;
+  width: 120px;
+  height: 80px;
+  border-radius: 59% 41% 63% 37% / 50% 38% 62% 50%;
+  transform: rotate(18deg);
+}
+
+.mud-splash-c {
+  right: -20px;
+  bottom: 12vh;
+  width: 220px;
+  height: 120px;
+  border-radius: 50% 50% 62% 38% / 54% 38% 62% 46%;
+  transform: rotate(-12deg);
+}
+
+.water-drop {
+  border-radius: 999px 999px 999px 999px / 999px 999px 999px 999px;
+  background: radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.5), rgba(111, 202, 255, 0.26) 46%, rgba(111, 202, 255, 0.02) 72%);
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.14);
+}
+
+.water-drop-a {
+  left: 16vw;
+  top: 16vh;
+  width: 28px;
+  height: 40px;
+}
+
+.water-drop-b {
+  right: 20vw;
+  top: 48vh;
+  width: 22px;
+  height: 30px;
+}
+
+.water-drop-c {
+  right: 6vw;
+  bottom: 14vh;
+  width: 34px;
+  height: 46px;
+}
+
 .glow-left {
   top: -120px;
   left: -20px;
@@ -287,8 +354,8 @@ main {
 .menu-grid a {
   display: flex;
   align-items: center;
-  min-height: 140px;
-  padding: 28px;
+  min-height: 104px;
+  padding: 20px 26px;
   border-radius: 0;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -660,50 +727,62 @@ main {
   background: rgba(0, 0, 0, 0.62);
 }
 
-.phone-meta {
-  margin-top: 16px;
-  color: var(--ink-soft);
+.phone-iframe-shell {
+  height: calc(100% - 46px);
+  padding: 4px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
 }
 
-.phone-meta span,
-.phone-meta small,
-.phone-meta strong {
-  display: block;
+.phone-embed {
+  height: 100%;
+  border-radius: 26px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    #0f1626;
 }
 
-.phone-meta strong {
-  margin-top: 6px;
-  font-size: 1.2rem;
+.phone-embed-facebook {
+  background:
+    linear-gradient(180deg, rgba(56, 88, 152, 0.26), rgba(10, 16, 28, 0.84)),
+    #0f1626;
 }
 
-.preview-bar,
-.preview-hero,
-.preview-grid div {
-  border-radius: 18px;
+.phone-embed-instagram {
+  background:
+    linear-gradient(180deg, rgba(226, 69, 132, 0.22), rgba(84, 104, 167, 0.18), rgba(10, 16, 28, 0.88)),
+    #0f1626;
 }
 
-.preview-bar {
-  width: 50%;
-  height: 16px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.14), rgba(65, 211, 194, 0.42));
+.embed-topbar {
+  width: 58%;
+  height: 18px;
+  margin: 16px 16px 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.16), rgba(65, 211, 194, 0.44));
 }
 
-.preview-hero {
-  height: 140px;
-  margin-top: 12px;
-  background: linear-gradient(145deg, rgba(255, 107, 159, 0.42), rgba(139, 185, 255, 0.38));
+.embed-cover {
+  height: 160px;
+  margin: 18px 16px 0;
+  border-radius: 26px;
+  background:
+    linear-gradient(145deg, rgba(255, 107, 159, 0.4), rgba(139, 185, 255, 0.42));
 }
 
-.preview-grid {
+.embed-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 10px;
+  padding: 14px 16px 16px;
 }
 
-.preview-grid div {
-  height: 74px;
-  background: linear-gradient(145deg, rgba(255, 186, 87, 0.34), rgba(160, 74, 33, 0.28));
+.embed-grid div {
+  height: 86px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(255, 186, 87, 0.32), rgba(160, 74, 33, 0.26));
 }
 
 .section-sponsors {
@@ -757,6 +836,62 @@ main {
   opacity: 0.46;
 }
 
+.sponsor-tile::after {
+  content: "";
+  position: absolute;
+  inset: auto;
+  width: 180px;
+  height: 110px;
+  left: -40px;
+  bottom: -60px;
+  border-radius: 56% 44% 52% 48% / 44% 60% 40% 56%;
+  background: rgba(125, 61, 29, 0.34);
+  filter: blur(6px);
+  opacity: 0;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.sponsor-tile .mud-dot,
+.sponsor-tile .water-dot {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.sponsor-tile .mud-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(125, 61, 29, 0.42);
+}
+
+.sponsor-tile .water-dot {
+  width: 10px;
+  height: 16px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.6), rgba(111, 202, 255, 0.28) 48%, rgba(111, 202, 255, 0.04) 72%);
+}
+
+.mud-dot-a {
+  left: 18px;
+  bottom: 24px;
+}
+
+.mud-dot-b {
+  left: 44px;
+  bottom: 16px;
+}
+
+.water-dot-a {
+  right: 26px;
+  top: 18px;
+}
+
+.water-dot-b {
+  right: 42px;
+  top: 34px;
+}
+
 .sponsor-tile span {
   position: relative;
   z-index: 1;
@@ -765,6 +900,16 @@ main {
 
 .sponsor-tile:hover {
   transform: translateY(-6px) scale(1.02);
+}
+
+.sponsor-tile:hover::after {
+  opacity: 1;
+  transform: translate3d(24px, -10px, 0);
+}
+
+.sponsor-tile:hover .mud-dot,
+.sponsor-tile:hover .water-dot {
+  opacity: 1;
 }
 
 .sponsor-banner {
@@ -896,6 +1041,86 @@ main {
   min-width: 150px;
   height: 24vh;
   border-radius: 36px 0 0 0;
+}
+
+.photo-k {
+  left: 34vw;
+  top: 2vh;
+  width: 12vw;
+  min-width: 100px;
+  height: 18vh;
+  border-radius: 20px;
+  transform: rotate(-7deg);
+}
+
+.photo-l {
+  left: 42vw;
+  top: 20vh;
+  width: 10vw;
+  min-width: 90px;
+  height: 16vh;
+  border-radius: 16px;
+  transform: rotate(8deg);
+}
+
+.photo-m {
+  left: 38vw;
+  bottom: 12vh;
+  width: 12vw;
+  min-width: 100px;
+  height: 18vh;
+  border-radius: 22px;
+  transform: rotate(-10deg);
+}
+
+.photo-n {
+  right: 38vw;
+  top: 10vh;
+  width: 14vw;
+  min-width: 110px;
+  height: 18vh;
+  border-radius: 24px;
+  transform: rotate(6deg);
+}
+
+.photo-o {
+  right: 34vw;
+  bottom: 14vh;
+  width: 12vw;
+  min-width: 100px;
+  height: 16vh;
+  border-radius: 20px;
+  transform: rotate(10deg);
+}
+
+.photo-p {
+  left: 50vw;
+  top: 42vh;
+  width: 8vw;
+  min-width: 80px;
+  height: 12vh;
+  border-radius: 18px;
+  transform: rotate(-12deg);
+}
+
+.photo-q {
+  left: 58vw;
+  bottom: 8vh;
+  width: 10vw;
+  min-width: 90px;
+  height: 14vh;
+  border-radius: 18px;
+  transform: rotate(7deg);
+}
+
+.photo-r {
+  right: 50vw;
+  top: 8vh;
+  width: 8vw;
+  min-width: 80px;
+  height: 12vh;
+  border-radius: 18px;
+  transform: rotate(11deg);
 }
 
 .influencer-floating-action {
@@ -1330,6 +1555,18 @@ main {
   .photo-j {
     width: 28vw;
     min-width: 100px;
+  }
+
+  .photo-k,
+  .photo-l,
+  .photo-m,
+  .photo-n,
+  .photo-o,
+  .photo-p,
+  .photo-q,
+  .photo-r {
+    width: 18vw;
+    min-width: 80px;
   }
 
   .influencer-floating-action {

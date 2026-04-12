@@ -167,6 +167,12 @@ export default function HomePage() {
       <div className="page-noise" />
       <div className="page-glow glow-left" />
       <div className="page-glow glow-right" />
+      <div className="mud-splash mud-splash-a" />
+      <div className="mud-splash mud-splash-b" />
+      <div className="mud-splash mud-splash-c" />
+      <div className="water-drop water-drop-a" />
+      <div className="water-drop water-drop-b" />
+      <div className="water-drop water-drop-c" />
 
       {sponsorModalOpen ? (
         <div className="overlay-shell" role="dialog" aria-modal="true" aria-label="Patrocinador oficial">
@@ -433,17 +439,19 @@ export default function HomePage() {
               <a className="social-frame" href={profile.url} key={profile.platform} target="_blank" rel="noreferrer">
                 <div className="phone-shell">
                   <div className="phone-notch" />
-                  <div className="preview-bar" />
-                  <div className="preview-hero" />
-                  <div className="preview-grid">
-                    <div />
-                    <div />
-                    <div />
-                  </div>
-                  <div className="phone-meta">
-                    <span>{profile.platform}</span>
-                    <strong>{profile.account}</strong>
-                    <small>{profile.handle}</small>
+                  <div className="phone-iframe-shell">
+                    <div className={`phone-embed phone-embed-${profile.platform.toLowerCase()}`}>
+                      <div className="embed-topbar" />
+                      <div className="embed-cover" />
+                      <div className="embed-grid">
+                        <div />
+                        <div />
+                        <div />
+                        <div />
+                        <div />
+                        <div />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </a>
@@ -468,6 +476,10 @@ export default function HomePage() {
           <div className="sponsor-grid">
             {sponsorTiles.map((sponsor) => (
               <a className="sponsor-tile" href="https://example.com" key={sponsor} target="_blank" rel="noreferrer">
+                <span className="mud-dot mud-dot-a" />
+                <span className="mud-dot mud-dot-b" />
+                <span className="water-dot water-dot-a" />
+                <span className="water-dot water-dot-b" />
                 <span>{sponsor}</span>
               </a>
             ))}
@@ -498,6 +510,14 @@ export default function HomePage() {
             <div className="collage-photo photo-h" />
             <div className="collage-photo photo-i" />
             <div className="collage-photo photo-j" />
+            <div className="collage-photo photo-k" />
+            <div className="collage-photo photo-l" />
+            <div className="collage-photo photo-m" />
+            <div className="collage-photo photo-n" />
+            <div className="collage-photo photo-o" />
+            <div className="collage-photo photo-p" />
+            <div className="collage-photo photo-q" />
+            <div className="collage-photo photo-r" />
           </div>
 
           <div className="influencer-floating-action">
