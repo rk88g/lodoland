@@ -79,18 +79,53 @@ export async function signInWithGoogleAction() {
   redirect(data.url);
 }
 
-export async function sendPhoneOtpAction(formData: FormData) {
-  const phone = String(formData.get("phone") ?? "").trim();
+export async function signInWithFacebookAction() {
+  const supabase = createClient();
+  const { siteUrl } = getPublicAppUrls();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "facebook",
+    options: {
+      redirectTo: `${siteUrl}/auth/callback`
+    }
+  });
 
-  if (!phone) {
-    redirect(`/login?error=${sanitizeMessage("Ingresa un numero de telefono.")}`);
+  if (error || !data.url) {
+    redirect(`/login?error=${sanitizeMessage(error?.message || "No se pudo iniciar Facebook.")}`);
+  }
+
+  redirect(data.url);
+}
+
+export async function signUpWithEmailAction(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const passwordConfirm = String(formData.get("passwordConfirm") ?? "");
+
+  if (!email || !password || !passwordConfirm) {
+    redirect(`/login?error=${sanitizeMessage("Completa correo y ambas contrasenas.")}`);
+  }
+
+  if (email.toLowerCase().endsWith("@lodoland.mx")) {
+    redirect(
+      `/admin/login?error=${sanitizeMessage("El personal interno debe entrar desde el acceso de control.")}`
+    );
+  }
+
+  if (password.length < 8) {
+    redirect(`/login?error=${sanitizeMessage("La contrasena debe tener minimo 8 caracteres.")}`);
+  }
+
+  if (password !== passwordConfirm) {
+    redirect(`/login?error=${sanitizeMessage("Las contrasenas no coinciden.")}`);
   }
 
   const supabase = createClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    phone,
+  const { siteUrl } = getPublicAppUrls();
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
     options: {
-      shouldCreateUser: true
+      emailRedirectTo: `${siteUrl}/auth/callback`
     }
   });
 
@@ -98,26 +133,35 @@ export async function sendPhoneOtpAction(formData: FormData) {
     redirect(`/login?error=${sanitizeMessage(error.message)}`);
   }
 
-  redirect(`/login/verificar?phone=${encodeURIComponent(phone)}`);
+  redirect(
+    `/login?message=${sanitizeMessage(
+      "Te enviamos un correo de verificacion. Antes de cualquier compra o movimiento debes confirmarlo."
+    )}`
+  );
 }
 
-export async function verifyPhoneOtpAction(formData: FormData) {
-  const phone = String(formData.get("phone") ?? "").trim();
-  const token = String(formData.get("token") ?? "").trim();
+export async function signInWithEmailAction(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
 
-  if (!phone || !token) {
-    redirect(`/login/verificar?phone=${encodeURIComponent(phone)}&error=${sanitizeMessage("Ingresa el codigo completo.")}`);
+  if (!email || !password) {
+    redirect(`/login?error=${sanitizeMessage("Ingresa tu correo y contrasena.")}`);
+  }
+
+  if (email.toLowerCase().endsWith("@lodoland.mx")) {
+    redirect(
+      `/admin/login?error=${sanitizeMessage("El personal interno debe entrar desde el acceso de control.")}`
+    );
   }
 
   const supabase = createClient();
-  const { error } = await supabase.auth.verifyOtp({
-    phone,
-    token,
-    type: "sms"
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password
   });
 
   if (error) {
-    redirect(`/login/verificar?phone=${encodeURIComponent(phone)}&error=${sanitizeMessage(error.message)}`);
+    redirect(`/login?error=${sanitizeMessage(error.message)}`);
   }
 
   redirect(await resolveDestination(supabase));
