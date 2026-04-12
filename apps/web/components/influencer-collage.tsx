@@ -1,57 +1,69 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-type CollageItem = {
+type Tone = "tone-gold" | "tone-pink" | "tone-blue" | "tone-teal" | "tone-burn";
+
+type Asset = {
   id: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  radius: number;
-  vx: number;
-  vy: number;
-  tone: string;
+  tone: Tone;
 };
 
-type MobileSlot = {
+type Slot = {
+  id: string;
   left: string;
   top: string;
   width: string;
   height: string;
-  radius: string;
-  angle: string;
+  rotation: string;
+  zIndex: number;
+  duration: string;
+  delay: string;
 };
 
-const INITIAL_ITEMS: CollageItem[] = [
-  { id: "a", x: 0.04, y: 0.08, width: 0.17, height: 0.29, radius: 38, vx: 0.012, vy: 0.009, tone: "tone-gold" },
-  { id: "b", x: 0.25, y: 0.06, width: 0.14, height: 0.24, radius: 28, vx: -0.013, vy: 0.011, tone: "tone-pink" },
-  { id: "c", x: 0.43, y: 0.05, width: 0.16, height: 0.21, radius: 32, vx: 0.01, vy: 0.012, tone: "tone-blue" },
-  { id: "d", x: 0.66, y: 0.06, width: 0.15, height: 0.27, radius: 34, vx: -0.012, vy: 0.009, tone: "tone-teal" },
-  { id: "e", x: 0.84, y: 0.07, width: 0.12, height: 0.2, radius: 26, vx: -0.009, vy: 0.008, tone: "tone-burn" },
-  { id: "f", x: 0.07, y: 0.4, width: 0.14, height: 0.22, radius: 30, vx: 0.009, vy: -0.011, tone: "tone-pink" },
-  { id: "g", x: 0.25, y: 0.36, width: 0.21, height: 0.27, radius: 40, vx: -0.01, vy: 0.008, tone: "tone-gold" },
-  { id: "h", x: 0.51, y: 0.33, width: 0.11, height: 0.18, radius: 22, vx: 0.013, vy: -0.008, tone: "tone-blue" },
-  { id: "i", x: 0.66, y: 0.36, width: 0.2, height: 0.24, radius: 34, vx: -0.008, vy: 0.01, tone: "tone-burn" },
-  { id: "j", x: 0.87, y: 0.34, width: 0.1, height: 0.17, radius: 20, vx: 0.011, vy: -0.009, tone: "tone-teal" },
-  { id: "k", x: 0.05, y: 0.7, width: 0.13, height: 0.18, radius: 24, vx: 0.008, vy: 0.012, tone: "tone-blue" },
-  { id: "l", x: 0.22, y: 0.67, width: 0.12, height: 0.17, radius: 20, vx: -0.012, vy: -0.008, tone: "tone-pink" },
-  { id: "m", x: 0.38, y: 0.64, width: 0.16, height: 0.26, radius: 34, vx: 0.009, vy: 0.007, tone: "tone-teal" },
-  { id: "n", x: 0.58, y: 0.66, width: 0.14, height: 0.2, radius: 26, vx: -0.01, vy: 0.009, tone: "tone-gold" },
-  { id: "o", x: 0.75, y: 0.63, width: 0.2, height: 0.23, radius: 36, vx: 0.011, vy: -0.01, tone: "tone-burn" },
-  { id: "p", x: 0.9, y: 0.68, width: 0.09, height: 0.15, radius: 18, vx: -0.008, vy: 0.011, tone: "tone-blue" }
+const ASSET_POOL: Asset[] = [
+  { id: "asset-a", tone: "tone-gold" },
+  { id: "asset-b", tone: "tone-pink" },
+  { id: "asset-c", tone: "tone-blue" },
+  { id: "asset-d", tone: "tone-teal" },
+  { id: "asset-e", tone: "tone-burn" },
+  { id: "asset-f", tone: "tone-gold" },
+  { id: "asset-g", tone: "tone-blue" },
+  { id: "asset-h", tone: "tone-pink" },
+  { id: "asset-i", tone: "tone-teal" },
+  { id: "asset-j", tone: "tone-burn" },
+  { id: "asset-k", tone: "tone-gold" },
+  { id: "asset-l", tone: "tone-blue" }
 ];
 
-const MOBILE_SLOTS: MobileSlot[] = [
-  { left: "6%", top: "8%", width: "42%", height: "25%", radius: "28px", angle: "-5deg" },
-  { left: "52%", top: "10%", width: "34%", height: "20%", radius: "22px", angle: "6deg" },
-  { left: "12%", top: "36%", width: "30%", height: "18%", radius: "18px", angle: "8deg" },
-  { left: "48%", top: "36%", width: "40%", height: "24%", radius: "30px", angle: "-8deg" },
-  { left: "8%", top: "64%", width: "38%", height: "22%", radius: "24px", angle: "4deg" },
-  { left: "54%", top: "66%", width: "28%", height: "17%", radius: "18px", angle: "-6deg" }
+const DESKTOP_SLOTS: Slot[] = [
+  { id: "slot-a", left: "2%", top: "2%", width: "18%", height: "28%", rotation: "-7deg", zIndex: 2, duration: "15s", delay: "0s" },
+  { id: "slot-b", left: "17%", top: "0%", width: "20%", height: "28%", rotation: "4deg", zIndex: 3, duration: "18s", delay: "-4s" },
+  { id: "slot-c", left: "34%", top: "1%", width: "18%", height: "24%", rotation: "-3deg", zIndex: 4, duration: "17s", delay: "-8s" },
+  { id: "slot-d", left: "50%", top: "6%", width: "18%", height: "26%", rotation: "5deg", zIndex: 5, duration: "21s", delay: "-6s" },
+  { id: "slot-e", left: "69%", top: "2%", width: "16%", height: "24%", rotation: "-6deg", zIndex: 2, duration: "16s", delay: "-10s" },
+  { id: "slot-f", left: "0%", top: "34%", width: "17%", height: "27%", rotation: "7deg", zIndex: 4, duration: "19s", delay: "-2s" },
+  { id: "slot-g", left: "20%", top: "28%", width: "24%", height: "34%", rotation: "-4deg", zIndex: 7, duration: "22s", delay: "-5s" },
+  { id: "slot-h", left: "41%", top: "40%", width: "18%", height: "24%", rotation: "6deg", zIndex: 6, duration: "18s", delay: "-7s" },
+  { id: "slot-i", left: "57%", top: "31%", width: "16%", height: "22%", rotation: "-5deg", zIndex: 5, duration: "20s", delay: "-9s" },
+  { id: "slot-j", left: "73%", top: "36%", width: "18%", height: "30%", rotation: "3deg", zIndex: 4, duration: "17s", delay: "-11s" },
+  { id: "slot-k", left: "8%", top: "66%", width: "18%", height: "24%", rotation: "-4deg", zIndex: 3, duration: "23s", delay: "-3s" },
+  { id: "slot-l", left: "28%", top: "69%", width: "17%", height: "21%", rotation: "5deg", zIndex: 4, duration: "16s", delay: "-12s" },
+  { id: "slot-m", left: "49%", top: "64%", width: "20%", height: "26%", rotation: "-6deg", zIndex: 6, duration: "19s", delay: "-1s" },
+  { id: "slot-n", left: "71%", top: "67%", width: "17%", height: "22%", rotation: "4deg", zIndex: 3, duration: "21s", delay: "-14s" }
 ];
 
-function shuffleItems(items: CollageItem[]) {
+const MOBILE_SLOTS: Slot[] = [
+  { id: "mobile-a", left: "5%", top: "9%", width: "40%", height: "24%", rotation: "-5deg", zIndex: 2, duration: "0s", delay: "0s" },
+  { id: "mobile-b", left: "49%", top: "8%", width: "32%", height: "19%", rotation: "4deg", zIndex: 3, duration: "0s", delay: "0s" },
+  { id: "mobile-c", left: "10%", top: "36%", width: "30%", height: "18%", rotation: "6deg", zIndex: 3, duration: "0s", delay: "0s" },
+  { id: "mobile-d", left: "44%", top: "34%", width: "42%", height: "23%", rotation: "-6deg", zIndex: 4, duration: "0s", delay: "0s" },
+  { id: "mobile-e", left: "8%", top: "63%", width: "36%", height: "20%", rotation: "4deg", zIndex: 2, duration: "0s", delay: "0s" },
+  { id: "mobile-f", left: "52%", top: "66%", width: "28%", height: "16%", rotation: "-4deg", zIndex: 3, duration: "0s", delay: "0s" }
+];
+
+function shuffleAssets(items: Asset[]) {
   const copy = [...items];
 
   for (let index = copy.length - 1; index > 0; index -= 1) {
@@ -64,182 +76,73 @@ function shuffleItems(items: CollageItem[]) {
   return copy;
 }
 
+function buildSelection(slotCount: number) {
+  return shuffleAssets(ASSET_POOL).slice(0, slotCount);
+}
+
 export function InfluencerCollage() {
-  const frameRef = useRef<HTMLDivElement | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
-  const [items, setItems] = useState(INITIAL_ITEMS);
   const [isMobile, setIsMobile] = useState(false);
-  const [mobileSelection, setMobileSelection] = useState(() =>
-    shuffleItems(INITIAL_ITEMS).slice(0, MOBILE_SLOTS.length)
-  );
+  const [desktopAssets, setDesktopAssets] = useState(() => buildSelection(DESKTOP_SLOTS.length));
+  const [mobileAssets, setMobileAssets] = useState(() => buildSelection(MOBILE_SLOTS.length));
+
+  const activeSlots = useMemo(() => (isMobile ? MOBILE_SLOTS : DESKTOP_SLOTS), [isMobile]);
+  const activeAssets = isMobile ? mobileAssets : desktopAssets;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 780px)");
-    const syncScreenMode = () => setIsMobile(mediaQuery.matches);
+    const syncMode = () => setIsMobile(mediaQuery.matches);
 
-    syncScreenMode();
-    mediaQuery.addEventListener("change", syncScreenMode);
+    syncMode();
+    mediaQuery.addEventListener("change", syncMode);
 
     return () => {
-      mediaQuery.removeEventListener("change", syncScreenMode);
+      mediaQuery.removeEventListener("change", syncMode);
     };
   }, []);
 
   useEffect(() => {
-    if (!isMobile) {
-      return undefined;
-    }
-
     const interval = window.setInterval(() => {
-      setMobileSelection(shuffleItems(INITIAL_ITEMS).slice(0, MOBILE_SLOTS.length));
-    }, 3600);
+      if (isMobile) {
+        setMobileAssets(buildSelection(MOBILE_SLOTS.length));
+        return;
+      }
+
+      setDesktopAssets(buildSelection(DESKTOP_SLOTS.length));
+    }, isMobile ? 3800 : 7600);
 
     return () => {
       window.clearInterval(interval);
     };
   }, [isMobile]);
 
-  useEffect(() => {
-    if (isMobile) {
-      return undefined;
-    }
-
-    let lastTime = performance.now();
-
-    const step = (time: number) => {
-      const delta = Math.min(time - lastTime, 32);
-      lastTime = time;
-
-      setItems((currentItems) => {
-        const nextItems = currentItems.map((item) => ({ ...item }));
-
-        nextItems.forEach((item) => {
-          item.x += item.vx * delta;
-          item.y += item.vy * delta;
-
-          if (item.x <= 0) {
-            item.x = 0;
-            item.vx *= -1;
-          }
-
-          if (item.y <= 0) {
-            item.y = 0;
-            item.vy *= -1;
-          }
-
-          if (item.x + item.width >= 1) {
-            item.x = 1 - item.width;
-            item.vx *= -1;
-          }
-
-          if (item.y + item.height >= 1) {
-            item.y = 1 - item.height;
-            item.vy *= -1;
-          }
-        });
-
-        for (let leftIndex = 0; leftIndex < nextItems.length; leftIndex += 1) {
-          for (let rightIndex = leftIndex + 1; rightIndex < nextItems.length; rightIndex += 1) {
-            const leftItem = nextItems[leftIndex];
-            const rightItem = nextItems[rightIndex];
-
-            const overlapX =
-              Math.min(leftItem.x + leftItem.width, rightItem.x + rightItem.width) -
-              Math.max(leftItem.x, rightItem.x);
-            const overlapY =
-              Math.min(leftItem.y + leftItem.height, rightItem.y + rightItem.height) -
-              Math.max(leftItem.y, rightItem.y);
-
-            if (overlapX <= 0 || overlapY <= 0) {
-              continue;
-            }
-
-            if (overlapX < overlapY) {
-              const push = overlapX / 2 + 0.003;
-
-              if (leftItem.x < rightItem.x) {
-                leftItem.x -= push;
-                rightItem.x += push;
-              } else {
-                leftItem.x += push;
-                rightItem.x -= push;
-              }
-
-              const leftVelocity = leftItem.vx;
-              leftItem.vx = rightItem.vx;
-              rightItem.vx = leftVelocity;
-            } else {
-              const push = overlapY / 2 + 0.003;
-
-              if (leftItem.y < rightItem.y) {
-                leftItem.y -= push;
-                rightItem.y += push;
-              } else {
-                leftItem.y += push;
-                rightItem.y -= push;
-              }
-
-              const leftVelocity = leftItem.vy;
-              leftItem.vy = rightItem.vy;
-              rightItem.vy = leftVelocity;
-            }
-
-            leftItem.x = Math.max(0, Math.min(1 - leftItem.width, leftItem.x));
-            leftItem.y = Math.max(0, Math.min(1 - leftItem.height, leftItem.y));
-            rightItem.x = Math.max(0, Math.min(1 - rightItem.width, rightItem.x));
-            rightItem.y = Math.max(0, Math.min(1 - rightItem.height, rightItem.y));
-          }
-        }
-
-        return nextItems;
-      });
-
-      animationFrameRef.current = window.requestAnimationFrame(step);
-    };
-
-    animationFrameRef.current = window.requestAnimationFrame(step);
-
-    return () => {
-      if (animationFrameRef.current !== null) {
-        window.cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [isMobile]);
-
   return (
-    <div className="collage-bg" ref={frameRef}>
-      {isMobile
-        ? mobileSelection.map((item, index) => {
-            const slot = MOBILE_SLOTS[index];
+    <div className="collage-bg collage-scrapbook">
+      {activeSlots.map((slot, index) => {
+        const asset = activeAssets[index];
 
-            return (
-              <div
-                className={`collage-photo-mobile ${item.tone}`}
-                key={`${item.id}-${index}`}
-                style={{
-                  left: slot.left,
-                  top: slot.top,
-                  width: slot.width,
-                  height: slot.height,
-                  borderRadius: slot.radius,
-                  transform: `rotate(${slot.angle})`
-                }}
-              />
-            );
-          })
-        : items.map((item) => (
-            <div
-              className={`collage-photo-drift ${item.tone}`}
-              key={item.id}
-              style={{
-                left: `${item.x * 100}%`,
-                top: `${item.y * 100}%`,
-                width: `${item.width * 100}%`,
-                height: `${item.height * 100}%`,
-                borderRadius: `${item.radius}px`
-              }}
-            />
-          ))}
+        return (
+          <div
+            className={`scrap-photo-frame ${asset?.tone || "tone-gold"} ${isMobile ? "is-mobile" : ""}`}
+            key={`${slot.id}-${asset?.id || "empty"}`}
+            style={
+              {
+                left: slot.left,
+                top: slot.top,
+                width: slot.width,
+                height: slot.height,
+                rotate: slot.rotation,
+                zIndex: slot.zIndex,
+                "--float-duration": slot.duration,
+                "--float-delay": slot.delay
+              } as CSSProperties
+            }
+          >
+            <div className="scrap-photo-inner">
+              <div className="scrap-photo-shot" />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
