@@ -51,7 +51,7 @@ export async function requireAdmin() {
   const role = session.profile?.role;
 
   if (role !== "admin" && role !== "super_admin") {
-    redirect("/perfil");
+    redirect("/admin/login");
   }
 
   return session;

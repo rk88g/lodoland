@@ -27,6 +27,7 @@ type MenuSponsorPanel = {
   name: string;
   websiteUrl: string;
   socials: SocialLink[];
+  pageLabel: string;
 };
 
 const officialSponsor = {
@@ -151,6 +152,7 @@ const menuSponsorPanels: MenuSponsorPanel[] = [
   {
     name: "Monster Energy",
     websiteUrl: "https://example.com",
+    pageLabel: "Publicidad 1",
     socials: [
       { label: "Instagram", href: "https://instagram.com" },
       { label: "Facebook", href: "https://facebook.com" }
@@ -159,6 +161,7 @@ const menuSponsorPanels: MenuSponsorPanel[] = [
   {
     name: "Fox Racing",
     websiteUrl: "https://example.com",
+    pageLabel: "Publicidad 2",
     socials: [
       { label: "Instagram", href: "https://instagram.com" },
       { label: "TikTok", href: "https://tiktok.com" }
@@ -167,6 +170,7 @@ const menuSponsorPanels: MenuSponsorPanel[] = [
   {
     name: "Oakley",
     websiteUrl: "https://example.com",
+    pageLabel: "Publicidad 3",
     socials: [
       { label: "Instagram", href: "https://instagram.com" },
       { label: "YouTube", href: "https://youtube.com" }
@@ -314,6 +318,7 @@ export default function HomePage() {
                 >
                   <div className="menu-collapse-visual">
                     <div className={`menu-sponsor-art sponsor-art-${index + 1}`} />
+                    <span className="menu-page-indicator">{panel.pageLabel}</span>
                   </div>
                   <div className="menu-collapse-info">
                     <strong>{panel.name}</strong>
@@ -338,6 +343,7 @@ export default function HomePage() {
                   onClick={() => setActiveMenuPanel(3)}
                   type="button"
                 >
+                  <span className="menu-page-indicator">Menu</span>
                   Secciones
                 </button>
                 <nav className="menu-links-list" aria-label="Secciones del sitio">

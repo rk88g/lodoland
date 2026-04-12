@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
   if (user.email?.toLowerCase().endsWith("@lodoland.mx")) {
     await supabase.auth.signOut();
     return NextResponse.redirect(
-      `${siteUrl}/login?error=${encodeURIComponent("El personal interno debe entrar con correo organizacional y contrasena.")}`
+      `${siteUrl}/admin/login?error=${encodeURIComponent("El personal interno debe entrar con correo organizacional y contrasena.")}`
     );
   }
 

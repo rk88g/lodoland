@@ -42,11 +42,11 @@ export async function signInStaffAction(formData: FormData) {
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    redirect(`/login?error=${sanitizeMessage("Ingresa correo y contrasena.")}`);
+    redirect(`/admin/login?error=${sanitizeMessage("Ingresa correo y contrasena.")}`);
   }
 
   if (!email.toLowerCase().endsWith("@lodoland.mx")) {
-    redirect(`/login?error=${sanitizeMessage("El acceso administrativo requiere correo organizacional.")}`);
+    redirect(`/admin/login?error=${sanitizeMessage("El acceso administrativo requiere correo organizacional.")}`);
   }
 
   const supabase = createClient();
@@ -56,7 +56,7 @@ export async function signInStaffAction(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/login?error=${sanitizeMessage(error.message)}`);
+    redirect(`/admin/login?error=${sanitizeMessage(error.message)}`);
   }
 
   redirect(await resolveDestination(supabase));

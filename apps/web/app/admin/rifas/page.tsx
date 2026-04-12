@@ -1,4 +1,8 @@
-export default function AdminRafflesPage() {
+import { requireAdmin } from "../../../lib/auth/session";
+
+export default async function AdminRafflesPage() {
+  await requireAdmin();
+
   return (
     <main className="page-frame">
       <section className="page-card">
@@ -12,4 +16,3 @@ export default function AdminRafflesPage() {
     </main>
   );
 }
-

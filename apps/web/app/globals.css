@@ -423,6 +423,25 @@ main {
   inset: 0;
 }
 
+.menu-page-indicator {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(8, 10, 18, 0.46);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+}
+
 .menu-sponsor-art {
   position: absolute;
   inset: 0;
@@ -512,6 +531,7 @@ main {
   line-height: 0.9;
   text-transform: uppercase;
   cursor: pointer;
+  position: relative;
 }
 
 .menu-links-list {
@@ -2443,6 +2463,27 @@ main {
     min-height: calc(100vh - 138px);
     scroll-snap-align: start;
     scroll-snap-stop: always;
+  }
+
+  .menu-collapse::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 28px;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.18), transparent);
+    pointer-events: none;
+  }
+
+  .menu-collapse::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 44px;
+    background:
+      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08)),
+      linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.16));
+    clip-path: polygon(0 0, 100% 7%, 100% 93%, 0 100%);
+    pointer-events: none;
   }
 
   .menu-collapse-trigger {

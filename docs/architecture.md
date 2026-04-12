@@ -122,3 +122,9 @@ Despues se puede conectar Stripe, Mercado Pago u otro proveedor sin cambiar la e
 3. Checkout y webhook de pagos.
 4. Inventario, cupos y validaciones de compra.
 5. Panel de ordenes, metricas y reportes.
+
+## Expansion operativa
+
+La fase nueva de `CONTROL` e `INTRANET` queda documentada en:
+
+- [control-platform.md](C:/Users/rk88g/Documents/GitHub/lodoland/docs/control-platform.md)

@@ -1,5 +1,6 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { requireAdmin } from "../../lib/auth/session";
 
 const modules: Array<{
   href: Route;
@@ -7,41 +8,48 @@ const modules: Array<{
   description: string;
 }> = [
   {
-    href: "/admin/contenido",
-    title: "Contenido",
-    description: "Editar textos, imagenes, links, botones, etiquetas y bloques por separado."
+    href: "/admin/diseno-web",
+    title: "Diseno Web",
+    description: "Configura secciones, textos, imagenes, banners, colecciones y asignaciones por bloque."
   },
   {
     href: "/admin/eventos",
     title: "Eventos",
-    description: "Crear eventos y sus tipos de ticket, precios, cupos y fechas."
+    description: "Administra calendario, proximos eventos, capacidades, tickets, cortesias e inventario."
   },
   {
-    href: "/admin/rifas",
-    title: "Rifas",
-    description: "Publicar rifas, definir reglas, inventario y resultados."
+    href: "/admin/catalogo",
+    title: "Catalogo",
+    description: "Controla productos, variantes, tallas, colores, imagenes, stock y merchandising."
   },
   {
-    href: "/admin/quinielas",
-    title: "Quinielas",
-    description: "Administrar dinamicas, costo de acceso, apertura y cierre."
+    href: "/admin/promociones",
+    title: "Promocion",
+    description: "Configura rifas, quinielas, ventas directas, viajes, regalos, sorteos y campanas."
   },
   {
-    href: "/admin/ventas",
-    title: "Ventas",
-    description: "Controlar promociones, productos digitales o campanas especiales."
+    href: "/admin/tickets",
+    title: "Tickets",
+    description: "Visualiza tickets generados, pendientes, vendidos, cortesia, inventario y trazabilidad."
+  },
+  {
+    href: "/admin/finanzas",
+    title: "Finanzas",
+    description: "Control de ingresos, gastos, categorias, balances por evento, promo y resumen global."
   }
 ];
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  await requireAdmin();
+
   return (
     <main className="page-frame">
       <section className="page-card">
-        <span className="eyebrow">Backoffice</span>
-        <h1>Panel Administrador</h1>
+        <span className="eyebrow">CONTROL</span>
+        <h1>Panel de Control</h1>
         <p>
-          El panel queda planteado para gobernar contenido y operaciones comerciales desde un
-          solo lugar.
+          Este es el punto de partida del sistema central para configurar el sitio, operar ventas
+          y controlar toda la estructura comercial de LODO LAND.
         </p>
 
         <div className="grid-two">

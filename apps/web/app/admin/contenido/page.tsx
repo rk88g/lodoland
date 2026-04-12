@@ -1,3 +1,5 @@
+import { requireAdmin } from "../../../lib/auth/session";
+
 const editableFields = [
   "Titulos",
   "Subtitulos",
@@ -22,7 +24,9 @@ const homepageCollections = [
   "cms_group_item_fields"
 ];
 
-export default function AdminContentPage() {
+export default async function AdminContentPage() {
+  await requireAdmin();
+
   return (
     <main className="page-frame">
       <section className="page-card">

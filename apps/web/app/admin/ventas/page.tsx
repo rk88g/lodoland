@@ -1,4 +1,8 @@
-export default function AdminSalesPage() {
+import { requireAdmin } from "../../../lib/auth/session";
+
+export default async function AdminSalesPage() {
+  await requireAdmin();
+
   return (
     <main className="page-frame">
       <section className="page-card">
