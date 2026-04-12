@@ -1,40 +1,59 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getCurrentSessionProfile } from "../../lib/auth/session";
+import { signInAction } from "./actions";
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams?: {
+    error?: string;
+  };
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const session = await getCurrentSessionProfile();
+
+  if (session.user) {
+    if (session.profile?.role === "admin" || session.profile?.role === "super_admin") {
+      redirect("/admin");
+    }
+
+    redirect("/perfil");
+  }
+
+  const errorMessage = searchParams?.error ? decodeURIComponent(searchParams.error) : null;
+
   return (
     <main className="page-frame">
-      <section className="page-card">
-        <span className="eyebrow">Acceso</span>
+      <section className="page-card auth-card">
         <h1>Iniciar Sesion</h1>
         <p>
-          Esta pantalla queda lista para conectarse con Supabase Auth y permitir acceso por
-          correo, magic link o proveedor social.
+          Accede con tu correo y contrasena de Supabase. Si tu perfil tiene rol `admin` o
+          `super_admin`, entraras directo al panel privado.
         </p>
 
-        <div className="grid-two">
-          <article className="list-card">
-            <strong>Flujo previsto</strong>
-            <p>
-              Registro, inicio de sesion, recuperacion de acceso y redireccion al perfil del
-              usuario.
-            </p>
-          </article>
-          <article className="list-card">
-            <strong>Destino</strong>
-            <p>Una vez autenticado, el usuario entra a compras, boletos y promociones.</p>
-          </article>
-        </div>
+        {errorMessage ? <p className="status-note status-note-error">{errorMessage}</p> : null}
 
-        <div className="hero-actions">
-          <Link className="button button-primary" href="/perfil">
-            Continuar al perfil
-          </Link>
-          <Link className="button button-secondary" href="/">
-            Volver al inicio
-          </Link>
-        </div>
+        <form action={signInAction} className="auth-form">
+          <label className="field-stack" htmlFor="email">
+            Correo
+            <input className="input-shell" id="email" name="email" type="email" required />
+          </label>
+
+          <label className="field-stack" htmlFor="password">
+            Contrasena
+            <input className="input-shell" id="password" name="password" type="password" required />
+          </label>
+
+          <div className="hero-actions">
+            <button className="button button-primary" type="submit">
+              Entrar
+            </button>
+            <Link className="button button-secondary" href="/">
+              Volver al inicio
+            </Link>
+          </div>
+        </form>
       </section>
     </main>
   );
 }
-

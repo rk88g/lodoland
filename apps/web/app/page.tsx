@@ -1,5 +1,6 @@
 "use client";
 
+import { InfluencerCollage } from "../components/influencer-collage";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -184,6 +185,32 @@ export default function HomePage() {
   const isOverlayOpen = sponsorModalOpen || menuOpen || influencerModalOpen || merchModalOpen || saleModalIndex !== null;
   const currentYear = new Date().getFullYear();
 
+  const closeOverlay = () => {
+    if (saleModalIndex !== null) {
+      setSaleModalIndex(null);
+      return;
+    }
+
+    if (merchModalOpen) {
+      setMerchModalOpen(false);
+      return;
+    }
+
+    if (influencerModalOpen) {
+      setInfluencerModalOpen(false);
+      return;
+    }
+
+    if (menuOpen) {
+      setMenuOpen(false);
+      return;
+    }
+
+    if (sponsorModalOpen) {
+      setSponsorModalOpen(false);
+    }
+  };
+
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
 
@@ -195,6 +222,24 @@ export default function HomePage() {
       document.body.style.overflow = originalOverflow;
     };
   }, [isOverlayOpen]);
+
+  useEffect(() => {
+    if (!isOverlayOpen) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeOverlay();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOverlayOpen, saleModalIndex, merchModalOpen, influencerModalOpen, menuOpen, sponsorModalOpen]);
 
   return (
     <main className="ll-home">
@@ -223,7 +268,6 @@ export default function HomePage() {
             <div className="spotlight-visual" role="img" aria-label="Imagen grande del patrocinador oficial del evento" />
 
             <div className="spotlight-copy">
-              <span className="eyebrow-chip">{officialSponsor.title}</span>
               <h1>{officialSponsor.name}</h1>
               <p>{officialSponsor.description}</p>
 
@@ -254,12 +298,19 @@ export default function HomePage() {
           <div className="menu-overlay-inner">
             <div className="menu-collapses" role="tablist" aria-label="Menu colapsable principal">
               {menuSponsorPanels.map((panel, index) => (
-                <button
+                <article
                   className={`menu-collapse sponsor-collapse ${activeMenuPanel === index ? "is-open" : ""}`}
                   key={panel.name}
                   onMouseEnter={() => setActiveMenuPanel(index)}
                   onClick={() => setActiveMenuPanel(index)}
-                  type="button"
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setActiveMenuPanel(index);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
                 >
                   <div className="menu-collapse-visual">
                     <div className={`menu-sponsor-art sponsor-art-${index + 1}`} />
@@ -277,7 +328,7 @@ export default function HomePage() {
                       Sitio
                     </a>
                   </div>
-                </button>
+                </article>
               ))}
 
               <div className={`menu-collapse menu-links-collapse ${activeMenuPanel === 3 ? "is-open" : ""}`}>
@@ -331,7 +382,6 @@ export default function HomePage() {
             </button>
 
             <div className="overlay-header">
-              <span className="eyebrow-chip">Colaboradores</span>
               <h2>Influencers de LODO LAND</h2>
             </div>
 
@@ -371,7 +421,6 @@ export default function HomePage() {
               x
             </button>
 
-            <span className="eyebrow-chip">Compra rapida</span>
             <h2>{salesOffers[saleModalIndex].title}</h2>
             <p>
               Si no has iniciado sesion, esta accion debe enviarte al login. Si ya estas dentro,
@@ -382,9 +431,6 @@ export default function HomePage() {
               <Link className="cta-solid" href="/login">
                 Iniciar sesion
               </Link>
-              <button className="cta-outline" onClick={() => setSaleModalIndex(null)} type="button">
-                Seguir explorando
-              </button>
             </div>
           </div>
         </div>
@@ -402,7 +448,6 @@ export default function HomePage() {
               x
             </button>
 
-            <span className="eyebrow-chip">Catalogo merch</span>
             <h2>Productos en existencia</h2>
             <div className="merch-modal-grid">
               {merchItems.map((item) => (
@@ -526,10 +571,6 @@ export default function HomePage() {
         <div className="sticky-scene">
           <div className="sponsor-fog" />
 
-          <div className="scene-copy sponsor-copy">
-            <h2 className="scene-title">Partner Wall</h2>
-          </div>
-
           <div className="sponsor-showcase">
             <div className="sponsor-centerpiece">
               <span>Marcas aliadas</span>
@@ -563,38 +604,7 @@ export default function HomePage() {
 
       <section className="full-section section-influencers" id="influencers">
         <div className="sticky-scene">
-          <div className="collage-bg">
-            <div className="collage-photo photo-a" />
-            <div className="collage-photo photo-b" />
-            <div className="collage-photo photo-c" />
-            <div className="collage-photo photo-d" />
-            <div className="collage-photo photo-e" />
-            <div className="collage-photo photo-f" />
-            <div className="collage-photo photo-g" />
-            <div className="collage-photo photo-h" />
-            <div className="collage-photo photo-i" />
-            <div className="collage-photo photo-j" />
-            <div className="collage-photo photo-k" />
-            <div className="collage-photo photo-l" />
-            <div className="collage-photo photo-m" />
-            <div className="collage-photo photo-n" />
-            <div className="collage-photo photo-o" />
-            <div className="collage-photo photo-p" />
-            <div className="collage-photo photo-q" />
-            <div className="collage-photo photo-r" />
-            <div className="collage-photo photo-s" />
-            <div className="collage-photo photo-t" />
-            <div className="collage-photo photo-u" />
-            <div className="collage-photo photo-v" />
-            <div className="collage-photo photo-w" />
-            <div className="collage-photo photo-x" />
-            <div className="collage-photo photo-y" />
-            <div className="collage-photo photo-z" />
-            <div className="collage-photo photo-aa" />
-            <div className="collage-photo photo-ab" />
-            <div className="collage-photo photo-ac" />
-            <div className="collage-photo photo-ad" />
-          </div>
+          <InfluencerCollage />
 
           <div className="influencer-floating-action">
             <button className="cta-solid" onClick={() => setInfluencerModalOpen(true)} type="button">
@@ -611,15 +621,16 @@ export default function HomePage() {
               <button
                 className={`sales-panel ${offer.accent} ${activeSale === index ? "is-active" : ""}`}
                 key={offer.title}
-                onClick={() => setActiveSale(index)}
-                onDoubleClick={() => setSaleModalIndex(index)}
+                onMouseEnter={() => setActiveSale(index)}
+                onFocus={() => setActiveSale(index)}
+                onClick={() => setSaleModalIndex(index)}
                 type="button"
               >
                 <span className="sales-label">{offer.title}</span>
                 <div className="sales-panel-content">
                   <strong>{offer.subtitle}</strong>
                   <p>{offer.price}</p>
-                  <span className="panel-cta">Doble clic para comprar</span>
+                  <span className="panel-cta">Comprar</span>
                 </div>
               </button>
             ))}

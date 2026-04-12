@@ -1,3 +1,6 @@
+import { requireUser } from "../../lib/auth/session";
+import { signOutAction } from "../login/actions";
+
 const userModules = [
   "Comprar tickets para eventos.",
   "Comprar accesos o numeros para rifas.",
@@ -6,18 +9,36 @@ const userModules = [
   "Consultar historial de compras y pagos."
 ];
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const { user, profile } = await requireUser();
+  const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ");
+
   return (
     <main className="page-frame">
-      <section className="page-card">
-        <span className="eyebrow">Zona de usuario</span>
-        <h1>Mi Perfil</h1>
-        <p>
-          Este dashboard representa la zona autenticada donde el cliente compra y consulta todo
-          lo que adquiere dentro de LODO LAND.
-        </p>
+      <section className="page-card auth-card">
+        <div className="profile-header">
+          <div>
+            <h1>Mi Perfil</h1>
+            <p>
+              Sesion activa como {fullName || user.email}. Desde aqui viviran compras, boletos,
+              rifas, quinielas y promociones.
+            </p>
+          </div>
+
+          <form action={signOutAction}>
+            <button className="button button-secondary" type="submit">
+              Cerrar sesion
+            </button>
+          </form>
+        </div>
 
         <div className="grid-two">
+          <article className="list-card">
+            <strong>Cuenta</strong>
+            <p>Correo: {profile?.email || user.email}</p>
+            <p>Rol: {profile?.role || "customer"}</p>
+            <p>Telefono: {profile?.phone || "Pendiente"}</p>
+          </article>
           <article className="list-card">
             <strong>Compras disponibles</strong>
             <ul>
@@ -26,16 +47,8 @@ export default function ProfilePage() {
               ))}
             </ul>
           </article>
-          <article className="list-card">
-            <strong>Estados de cuenta</strong>
-            <p>
-              Aqui se podran mostrar ordenes, pagos pendientes, boletos emitidos y resultados de
-              rifas o quinielas ligadas a la cuenta.
-            </p>
-          </article>
         </div>
       </section>
     </main>
   );
 }
-
