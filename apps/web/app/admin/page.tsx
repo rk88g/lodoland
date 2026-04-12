@@ -1,6 +1,11 @@
+import type { Route } from "next";
 import Link from "next/link";
 
-const modules = [
+const modules: Array<{
+  href: Route;
+  title: string;
+  description: string;
+}> = [
   {
     href: "/admin/contenido",
     title: "Contenido",
