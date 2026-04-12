@@ -1,375 +1,210 @@
 import Link from "next/link";
 
-const latestEvent = {
-  eyebrow: "Evento mas reciente",
-  title: "Mud Festival 2026",
-  description:
-    "La experiencia principal de LODO LAND con pistas extremas, zonas premium, activaciones de marca, venta de boletos por fase y beneficios editables desde admin.",
-  meta: [
-    { label: "Fecha", value: "28 JUN" },
-    { label: "Lugar", value: "Guadalajara" },
-    { label: "Boletos", value: "General + VIP" }
-  ],
-  highlights: [
-    "Preventa por fases con control de cupo.",
-    "Zona de marcas, activaciones e influencers.",
-    "Checkout directo desde la pagina."
-  ]
-};
+const sponsors = ["Monster", "Red Bull", "Fox", "Oakley", "Can-Am", "BFGoodrich"];
 
-const socialPreviews = [
-  {
-    platform: "Facebook",
-    handle: "/LodoLandMx",
-    label: "Feed mini",
-    description: "Vista compacta para anunciar fechas, galerias y lanzamientos de boletos."
-  },
-  {
-    platform: "Instagram",
-    handle: "@lodolandmx",
-    label: "Reels mini",
-    description: "Highlights visuales, drops de merch, promos y cobertura de influencers."
-  }
-];
+const influencerNames = ["Ana Torque", "Rafa Mud", "Jess Nitro", "Moto Rayo"];
 
-const sponsors = [
-  "Monster",
-  "Red Bull",
-  "Fox Racing",
-  "Oakley",
-  "Can-Am",
-  "BFGoodrich"
-];
-
-const influencers = [
-  {
-    name: "Ana Torque",
-    handle: "@anatorque",
-    channel: "Instagram + TikTok",
-    quote: "Contenido extremo, backstage y activaciones en vivo."
-  },
-  {
-    name: "Rafa Mud",
-    handle: "@rafamud",
-    channel: "YouTube",
-    quote: "Cobertura de carrera, retos y experiencias con la comunidad."
-  },
-  {
-    name: "Jess Nitro",
-    handle: "@jessnitro",
-    channel: "Instagram",
-    quote: "Moda, merch y colaboraciones especiales del festival."
-  }
-];
-
-const sales = [
-  {
-    title: "Drop de temporada",
-    price: "Desde $399 MXN",
-    note: "Promociones online, rifas especiales y combos activables por campana."
-  },
-  {
-    title: "Paquete crew",
-    price: "Desde $1,290 MXN",
-    note: "Accesos grupales, experiencias con beneficios y venta limitada."
-  }
-];
-
-const merch = [
-  {
-    title: "Jersey oficial",
-    badge: "Nuevo",
-    detail: "Edicion tecnica para eventos, lanzamientos y colaboraciones."
-  },
-  {
-    title: "Gorra track",
-    badge: "Top seller",
-    detail: "Coleccion para fans, patrocinadores y creators invitados."
-  },
-  {
-    title: "Kit rider",
-    badge: "Bundle",
-    detail: "Playera, stickers, lanyard y beneficios para activaciones."
-  }
-];
+const merchNames = ["Jersey Oficial", "Gorra Track", "Kit Rider", "Poster Drop"];
 
 export default function HomePage() {
   return (
-    <main className="home-shell">
-      <div className="noise-layer" />
-      <div className="aurora aurora-a" />
-      <div className="aurora aurora-b" />
+    <main className="parallax-home">
+      <div className="global-grain" />
+      <div className="global-glow glow-one" />
+      <div className="global-glow glow-two" />
 
-      <header className="site-header">
-        <Link className="site-brand" href="/">
-          <span className="site-brand-mark" />
+      <header className="floating-header">
+        <Link className="brand-lockup" href="/">
+          <span className="brand-badge" />
           <span>LODO LAND</span>
         </Link>
 
-        <nav className="site-nav" aria-label="Secciones principales">
-          <a href="#evento">Evento</a>
-          <a href="#redes">Redes</a>
-          <a href="#patrocinadores">Patrocinadores</a>
-          <a href="#influencers">Influencers</a>
-          <a href="#ventas">Ventas</a>
-          <a href="#merch">Merch</a>
-          <Link className="site-nav-login" href="/login">
-            Mi cuenta
-          </Link>
-        </nav>
+        <details className="section-menu">
+          <summary className="section-menu-trigger">Explorar</summary>
+          <div className="section-menu-panel">
+            <a href="#evento">Evento reciente</a>
+            <a href="#redes">Redes sociales</a>
+            <a href="#patrocinadores">Patrocinadores</a>
+            <a href="#influencers">Influencers</a>
+            <a href="#ventas">Ventas</a>
+            <a href="#merch">Merch</a>
+            <Link href="/login">Mi cuenta</Link>
+          </div>
+        </details>
       </header>
 
-      <section className="intro-band">
-        <span className="home-chip">Experiencias, compras y contenido vivo</span>
-        <p>
-          Landing inmersiva con scroll narrativo, bloques editables y acceso a login para compras,
-          boletos, rifas, quinielas y promociones.
-        </p>
-      </section>
+      <section className="immersive-section event-section" id="evento">
+        <div className="sticky-stage">
+          <div className="scene-layer event-haze" />
+          <div className="scene-layer event-sun" />
+          <div className="scene-layer mud-wave mud-wave-a" />
+          <div className="scene-layer mud-wave mud-wave-b" />
+          <div className="scene-layer tire-track tire-track-a" />
+          <div className="scene-layer tire-track tire-track-b" />
 
-      <section className="story-section section-event" id="evento">
-        <div className="section-backdrop">
-          <div className="section-orb orb-event-a" />
-          <div className="section-orb orb-event-b" />
-        </div>
+          <div className="section-content">
+            <span className="section-tag">Evento mas reciente</span>
+            <h1 className="hero-wordmark">LODO LAND</h1>
+            <h2 className="section-headline">Mud Festival 2026</h2>
+            <p className="section-copy">
+              La primera capa presenta el evento principal como una escena completa: fecha,
+              ciudad, fases de ticket, narrativa visual y una entrada directa al flujo de compra.
+            </p>
 
-        <div className="section-grid">
-          <article className="section-copy">
-            <span className="section-kicker">{latestEvent.eyebrow}</span>
-            <h1 className="section-title">El Proximo Golpe De Lodo</h1>
-            <p className="section-body">{latestEvent.description}</p>
-
-            <div className="meta-strip">
-              {latestEvent.meta.map((item) => (
-                <article className="meta-card" key={item.label}>
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
-                </article>
-              ))}
+            <div className="inline-metadata">
+              <span>28 JUN</span>
+              <span>Guadalajara</span>
+              <span>General + VIP</span>
             </div>
 
-            <div className="cta-row">
-              <Link className="primary-button" href="/eventos">
+            <div className="section-actions">
+              <Link className="action-solid" href="/eventos">
                 Ver evento
               </Link>
-              <Link className="ghost-button" href="/login">
+              <Link className="action-outline" href="/login">
                 Comprar boletos
               </Link>
             </div>
-          </article>
+          </div>
 
-          <article className="section-stage">
-            <div className="stage-window">
-              <div className="stage-topline">
-                <span>Evento reciente</span>
-                <span>{latestEvent.title}</span>
-              </div>
-
-              <div className="stage-poster">
-                <div className="poster-badge">Featured</div>
-                <div className="poster-title">Mud Festival</div>
-                <div className="poster-subtitle">Drops, boletos, alianzas y activaciones</div>
-              </div>
-
-              <div className="bullet-stack">
-                {latestEvent.highlights.map((item) => (
-                  <div className="bullet-card" key={item}>
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </article>
+          <div className="side-message event-message">
+            Pistas extremas, activaciones de marca, creators invitados y una salida limpia hacia
+            boletos, rifas y promociones.
+          </div>
         </div>
       </section>
 
-      <section className="story-section section-social" id="redes">
-        <div className="section-backdrop">
-          <div className="section-orb orb-social-a" />
-          <div className="section-orb orb-social-b" />
-        </div>
+      <section className="immersive-section social-section" id="redes">
+        <div className="sticky-stage">
+          <div className="scene-layer social-gradient" />
+          <div className="scene-layer social-frame social-frame-left" />
+          <div className="scene-layer social-frame social-frame-right" />
+          <div className="scene-layer social-ribbon social-ribbon-top">
+            FACEBOOK INSTAGRAM FACEBOOK INSTAGRAM
+          </div>
+          <div className="scene-layer social-ribbon social-ribbon-bottom">
+            REELS POSTS STORIES HIGHLIGHTS REELS POSTS STORIES
+          </div>
 
-        <div className="section-grid reverse-grid">
-          <article className="section-stage">
-            <div className="social-stack">
-              {socialPreviews.map((profile) => (
-                <article className="social-card" key={profile.platform}>
-                  <div className="social-header">
-                    <strong>{profile.platform}</strong>
-                    <span>{profile.label}</span>
-                  </div>
-                  <div className="social-screen">
-                    <div className="social-bar" />
-                    <div className="social-post large-post" />
-                    <div className="social-post-grid">
-                      <div className="social-post small-post" />
-                      <div className="social-post small-post" />
-                      <div className="social-post small-post" />
-                    </div>
-                  </div>
-                  <div className="social-footer">
-                    <span>{profile.handle}</span>
-                    <p>{profile.description}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </article>
-
-          <article className="section-copy">
-            <span className="section-kicker">Social hub</span>
-            <h2 className="section-title">Facebook E Instagram Como Mini Escaparates</h2>
-            <p className="section-body">
-              Esta seccion esta pensada para mostrar previews compactos del contenido social y
-              empujar trafico a las cuentas oficiales con visuales vivos y CTAs medibles.
+          <div className="section-content align-right">
+            <span className="section-tag">Redes sociales</span>
+            <h2 className="section-headline">La Pagina Debe Respirar Como Feed Vivo</h2>
+            <p className="section-copy">
+              Esta capa esta pensada para previews mini de Facebook e Instagram integrados como
+              escenografia del sitio, no como simples tarjetas sueltas.
             </p>
-
-            <div className="info-panel">
-              <strong>Editable desde admin</strong>
-              <p>
-                Links, embeds, handles, textos, colores, miniaturas y orden de aparicion por
-                plataforma.
-              </p>
-            </div>
-          </article>
+            <p className="section-note">
+              Aqui van handles, links, embeds, visual mini y cualquier copy promocional editable.
+            </p>
+          </div>
         </div>
       </section>
 
-      <section className="story-section section-sponsors" id="patrocinadores">
-        <div className="section-backdrop">
-          <div className="section-orb orb-sponsor-a" />
-          <div className="section-orb orb-sponsor-b" />
-        </div>
+      <section className="immersive-section sponsors-section" id="patrocinadores">
+        <div className="sticky-stage">
+          <div className="scene-layer sponsor-glow" />
+          <div className="scene-layer sponsor-grid-lines" />
+          <div className="scene-layer sponsor-marquee sponsor-marquee-a">
+            {sponsors.join("  |  ")}  |  {sponsors.join("  |  ")}
+          </div>
+          <div className="scene-layer sponsor-marquee sponsor-marquee-b">
+            PARTNERS  |  LOGOS  |  MARCAS  |  ALIANZAS  |  PARTNERS  |  LOGOS
+          </div>
 
-        <div className="section-grid">
-          <article className="section-copy">
-            <span className="section-kicker">Partners</span>
-            <h2 className="section-title">Patrocinadores Con Peso Propio</h2>
-            <p className="section-body">
-              Cada marca debe sentirse como parte del festival, no como una lista plana. Aqui
-              mostramos logos, categorias, links y presencia visual con jerarquia.
+          <div className="section-content">
+            <span className="section-tag">Patrocinadores</span>
+            <h2 className="section-headline">Marcas Que Tambien Se Sientan Escena</h2>
+            <p className="section-copy">
+              Los patrocinadores no deben verse como lista plana. Esta pantalla esta pensada para
+              logos, tiers, empresas, links oficiales y fondos visuales editables desde admin.
             </p>
-          </article>
-
-          <article className="section-stage">
-            <div className="logo-wall">
-              {sponsors.map((sponsor, index) => (
-                <div className="logo-chip" key={sponsor} style={{ animationDelay: `${index * 120}ms` }}>
-                  {sponsor}
-                </div>
-              ))}
-            </div>
-          </article>
+          </div>
         </div>
       </section>
 
-      <section className="story-section section-influencers" id="influencers">
-        <div className="section-backdrop">
-          <div className="section-orb orb-influencer-a" />
-          <div className="section-orb orb-influencer-b" />
-        </div>
+      <section className="immersive-section influencers-section" id="influencers">
+        <div className="sticky-stage">
+          <div className="scene-layer influencer-beam" />
+          <div className="scene-layer influencer-orb influencer-orb-a" />
+          <div className="scene-layer influencer-orb influencer-orb-b" />
+          <div className="scene-layer influencer-column influencer-column-a" />
+          <div className="scene-layer influencer-column influencer-column-b" />
 
-        <div className="section-grid reverse-grid">
-          <article className="section-stage">
-            <div className="influencer-rail">
-              {influencers.map((person) => (
-                <article className="influencer-card" key={person.handle}>
-                  <div className="avatar-glow" />
-                  <strong>{person.name}</strong>
-                  <span>{person.handle}</span>
-                  <small>{person.channel}</small>
-                  <p>{person.quote}</p>
-                </article>
-              ))}
-            </div>
-          </article>
-
-          <article className="section-copy">
-            <span className="section-kicker">Creators</span>
-            <h2 className="section-title">Influencers, Canales Y Colaboraciones</h2>
-            <p className="section-body">
-              Esta capa esta hecha para destacar perfiles invitados, colaboraciones, links directos
-              y activaciones de creators con presencia visual distinta a las otras secciones.
+          <div className="section-content align-right">
+            <span className="section-tag">Influencers</span>
+            <h2 className="section-headline">Perfiles, Colaboraciones Y Energia De Creator</h2>
+            <p className="section-copy">
+              Cada influencer entra como parte de una narrativa visual distinta: handle, enlaces,
+              plataforma, foto, bio y colaboraciones con scroll inmersivo.
             </p>
+          </div>
 
-            <div className="cta-row">
-              <a className="ghost-button" href="#ventas">
-                Ver ventas destacadas
-              </a>
-            </div>
-          </article>
+          <div className="name-cloud">
+            {influencerNames.map((name) => (
+              <span key={name}>{name}</span>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="story-section section-sales" id="ventas">
-        <div className="section-backdrop">
-          <div className="section-orb orb-sales-a" />
-          <div className="section-orb orb-sales-b" />
-        </div>
+      <section className="immersive-section sales-section" id="ventas">
+        <div className="sticky-stage">
+          <div className="scene-layer sales-halo" />
+          <div className="scene-layer sales-ring sales-ring-a" />
+          <div className="scene-layer sales-ring sales-ring-b" />
+          <div className="scene-layer sales-splash sales-splash-a" />
+          <div className="scene-layer sales-splash sales-splash-b" />
 
-        <div className="section-grid">
-          <article className="section-copy">
-            <span className="section-kicker">Ventas online</span>
-            <h2 className="section-title">Promos, Combos Y Drops Comerciales</h2>
-            <p className="section-body">
-              Esta seccion debe empujar conversion. Cada card puede apuntar a ticketing, rifas,
-              quinielas o promociones especiales con control total desde admin.
-            </p>
-          </article>
-
-          <article className="section-stage">
-            <div className="sales-grid">
-              {sales.map((sale) => (
-                <article className="sale-card" key={sale.title}>
-                  <span>{sale.price}</span>
-                  <strong>{sale.title}</strong>
-                  <p>{sale.note}</p>
-                  <Link className="sale-link" href="/perfil">
-                    Ir a compras
-                  </Link>
-                </article>
-              ))}
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className="story-section section-merch" id="merch">
-        <div className="section-backdrop">
-          <div className="section-orb orb-merch-a" />
-          <div className="section-orb orb-merch-b" />
-        </div>
-
-        <div className="section-grid reverse-grid">
-          <article className="section-stage">
-            <div className="merch-carousel">
-              {merch.map((item) => (
-                <article className="merch-card" key={item.title}>
-                  <span>{item.badge}</span>
-                  <strong>{item.title}</strong>
-                  <p>{item.detail}</p>
-                </article>
-              ))}
-            </div>
-          </article>
-
-          <article className="section-copy">
-            <span className="section-kicker">Store</span>
-            <h2 className="section-title">Merch Que Se Sienta Como Coleccion</h2>
-            <p className="section-body">
-              El cierre del home se convierte en vitrina de producto: texturas, ediciones,
-              bundles, drops y colaboraciones con una identidad mas editorial.
+          <div className="section-content">
+            <span className="section-tag">Ventas</span>
+            <h2 className="section-headline">Promos, Drops Y Conversion Sin Salir Del Ritmo</h2>
+            <p className="section-copy">
+              Esta capa debe vender. Aqui entran rifas, quinielas, paquetes y promociones con un
+              scroll poderoso y visuales de alto impacto.
             </p>
 
-            <div className="cta-row">
-              <Link className="primary-button" href="/perfil">
-                Ver mi cuenta
-              </Link>
-              <Link className="ghost-button" href="/login">
-                Iniciar sesion
+            <div className="price-bursts">
+              <span>Desde $399 MXN</span>
+              <span>Combos crew</span>
+              <span>Promos limitadas</span>
+            </div>
+
+            <div className="section-actions">
+              <Link className="action-solid" href="/perfil">
+                Ir a compras
               </Link>
             </div>
-          </article>
+          </div>
+        </div>
+      </section>
+
+      <section className="immersive-section merch-section" id="merch">
+        <div className="sticky-stage">
+          <div className="scene-layer merch-light" />
+          <div className="scene-layer merch-panel merch-panel-a" />
+          <div className="scene-layer merch-panel merch-panel-b" />
+          <div className="scene-layer merch-panel merch-panel-c" />
+
+          <div className="section-content align-right">
+            <span className="section-tag">Merch</span>
+            <h2 className="section-headline">La Ultima Capa Debe Sentirse Como Drop Editorial</h2>
+            <p className="section-copy">
+              Merch, bundles y colaboraciones deben cerrar la experiencia con una sensacion de
+              coleccion especial, lista para comprar desde el perfil del usuario.
+            </p>
+
+            <div className="merch-list">
+              {merchNames.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
+
+            <div className="section-actions">
+              <Link className="action-solid" href="/login">
+                Mi cuenta
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
     </main>
