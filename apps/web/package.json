@@ -17,7 +17,7 @@
     "@mui/utils": "5.16.6",
     "@supabase/ssr": "0.5.2",
     "@supabase/supabase-js": "2.49.1",
-    "next": "14.2.13",
+    "next": "^14.2.35",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
