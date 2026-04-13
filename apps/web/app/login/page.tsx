@@ -1,12 +1,6 @@
 import { redirect } from "next/navigation";
 import { AuthPortal } from "../../components/auth-portal";
 import { getCurrentSessionProfile } from "../../lib/auth/session";
-import {
-  signInWithEmailAction,
-  signInWithFacebookAction,
-  signInWithGoogleAction,
-  signUpWithEmailAction
-} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -36,10 +30,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       errorMessage={errorMessage}
       message={message}
       mode="customer"
-      signInEmailAction={signInWithEmailAction}
-      signInFacebookAction={signInWithFacebookAction}
-      signInGoogleAction={signInWithGoogleAction}
-      signUpEmailAction={signUpWithEmailAction}
     />
   );
 }

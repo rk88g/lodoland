@@ -26,23 +26,9 @@ type AuthPortalProps = {
   errorMessage?: string | null;
   message?: string | null;
   mode: "customer" | "control";
-  signInEmailAction?: (formData: FormData) => Promise<void>;
-  signUpEmailAction?: (formData: FormData) => Promise<void>;
-  signInGoogleAction?: () => Promise<void>;
-  signInFacebookAction?: () => Promise<void>;
-  signInStaffAction?: (formData: FormData) => Promise<void>;
 };
 
-export function AuthPortal({
-  errorMessage,
-  message,
-  mode,
-  signInEmailAction,
-  signInFacebookAction,
-  signInGoogleAction,
-  signInStaffAction,
-  signUpEmailAction
-}: AuthPortalProps) {
+export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
   const { mode: paletteMode, toggleMode } = useMaterialMode();
   const [expanded, setExpanded] = useState(mode === "customer" ? "signin" : "staff");
   const isCustomer = mode === "customer";
@@ -113,8 +99,7 @@ export function AuthPortal({
                 <AccordionDetails>
                   <Stack spacing={2}>
                     <Stack spacing={1.25}>
-                      {signInGoogleAction ? (
-                        <form action={signInGoogleAction}>
+                      <form action="/auth/login/google" method="post">
                           <Button
                             fullWidth
                             startIcon={<GoogleIcon />}
@@ -130,11 +115,9 @@ export function AuthPortal({
                           >
                             Continuar con Google
                           </Button>
-                        </form>
-                      ) : null}
+                      </form>
 
-                      {signInFacebookAction ? (
-                        <form action={signInFacebookAction}>
+                      <form action="/auth/login/facebook" method="post">
                           <Button
                             fullWidth
                             startIcon={<FacebookRoundedIcon />}
@@ -149,13 +132,12 @@ export function AuthPortal({
                           >
                             Continuar con Facebook
                           </Button>
-                        </form>
-                      ) : null}
+                      </form>
                     </Stack>
 
                     <Divider>o</Divider>
 
-                    <form action={signInEmailAction}>
+                    <form action="/auth/login/email" method="post">
                       <Stack spacing={2}>
                         <TextField label="Correo electrónico" name="email" required type="email" />
                         <TextField label="Contraseña" name="password" required type="password" />
@@ -183,7 +165,7 @@ export function AuthPortal({
                       Antes de cualquier compra, pedido, acceso o movimiento, deberás verificar tu correo.
                     </Typography>
 
-                    <form action={signUpEmailAction}>
+                    <form action="/auth/signup/email" method="post">
                       <Stack spacing={2}>
                         <TextField label="Correo electrónico" name="email" required type="email" />
                         <TextField
@@ -225,7 +207,7 @@ export function AuthPortal({
                     Acceso exclusivo para administración, ventas, supervisión y gerencia.
                   </Typography>
 
-                  <form action={signInStaffAction}>
+                  <form action="/auth/login/staff" method="post">
                     <Stack spacing={2}>
                       <TextField
                         label="Correo organizacional"

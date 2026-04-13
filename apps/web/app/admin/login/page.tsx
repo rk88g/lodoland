@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { AuthPortal } from "../../../components/auth-portal";
 import { getCurrentSessionProfile } from "../../../lib/auth/session";
-import { signInStaffAction } from "../../login/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +26,6 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
       errorMessage={errorMessage}
       message={message}
       mode="control"
-      signInStaffAction={signInStaffAction}
     />
   );
 }

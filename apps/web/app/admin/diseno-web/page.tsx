@@ -18,7 +18,6 @@ import {
   getSectionBindings
 } from "../../../lib/data/portal";
 import { controlNavItems } from "../../../lib/navigation";
-import { signOutAction } from "../../login/actions";
 import {
   createAvatarPresetAction,
   createMediaCollectionAction,
@@ -47,7 +46,6 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
   return (
     <DashboardShell
       navItems={controlNavItems}
-      signOutAction={signOutAction}
       subtitle="Sitio, assets y secciones"
       title="Diseño web"
     >

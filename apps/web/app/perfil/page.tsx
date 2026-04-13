@@ -11,7 +11,6 @@ import { DashboardShell } from "../../components/dashboard-shell";
 import { requireUser } from "../../lib/auth/session";
 import { getAvatarPresets, getNextEvent } from "../../lib/data/portal";
 import { customerNavItems } from "../../lib/navigation";
-import { signOutAction } from "../login/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +33,6 @@ export default async function ProfilePage() {
   return (
     <DashboardShell
       navItems={customerNavItems}
-      signOutAction={signOutAction}
       subtitle="Intranet de clientes"
       title="Mi cuenta"
     >

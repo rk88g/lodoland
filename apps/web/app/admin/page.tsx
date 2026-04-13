@@ -4,7 +4,6 @@ import { DashboardShell } from "../../components/dashboard-shell";
 import { requireAdmin } from "../../lib/auth/session";
 import { getMediaAssets, getUpcomingEvents } from "../../lib/data/portal";
 import { controlNavItems } from "../../lib/navigation";
-import { signOutAction } from "../login/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +14,6 @@ export default async function AdminPage() {
   return (
     <DashboardShell
       navItems={controlNavItems}
-      signOutAction={signOutAction}
       subtitle="Panel central"
       title="Control"
     >

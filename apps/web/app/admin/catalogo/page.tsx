@@ -2,7 +2,6 @@ import { Box, Stack, Typography } from "@mui/material";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { requireAdmin } from "../../../lib/auth/session";
 import { controlNavItems } from "../../../lib/navigation";
-import { signOutAction } from "../../login/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +11,6 @@ export default async function AdminCatalogoPage() {
   return (
     <DashboardShell
       navItems={controlNavItems}
-      signOutAction={signOutAction}
       subtitle="Merch y productos"
       title="Catálogo"
     >

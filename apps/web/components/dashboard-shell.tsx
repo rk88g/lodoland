@@ -55,7 +55,6 @@ type DashboardShellProps = {
   navItems: DashboardNavItem[];
   subtitle?: string;
   title: string;
-  signOutAction: () => Promise<void>;
 };
 
 const drawerWidth = 252;
@@ -84,7 +83,6 @@ function resolveIcon(icon: NavIcon) {
 export function DashboardShell({
   children,
   navItems,
-  signOutAction,
   subtitle,
   title
 }: DashboardShellProps) {
@@ -126,7 +124,7 @@ export function DashboardShell({
         </List>
 
         <Box sx={{ p: 2 }}>
-          <form action={signOutAction}>
+          <form action="/auth/signout" method="post">
             <Button fullWidth startIcon={<LogoutOutlinedIcon />} type="submit" variant="outlined">
               Cerrar sesión
             </Button>
@@ -134,7 +132,7 @@ export function DashboardShell({
         </Box>
       </Box>
     ),
-    [navItems, pathname, signOutAction]
+    [navItems, pathname]
   );
 
   return (

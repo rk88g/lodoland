@@ -1,4 +1,5 @@
 import { MEDIA_BUCKET } from "../supabase/storage";
+import { isBuildPhase } from "../runtime";
 import { getSupabaseEnv } from "../supabase/env";
 import { createClient } from "../supabase/server";
 
@@ -98,6 +99,10 @@ async function resolveMediaAsset(
 }
 
 export async function getNextEvent() {
+  if (isBuildPhase()) {
+    return null;
+  }
+
   const supabase = createClient();
   const nowIso = new Date().toISOString();
   const { data } = await supabase
@@ -126,6 +131,10 @@ export async function getNextEvent() {
 }
 
 export async function getUpcomingEvents(limit = 5) {
+  if (isBuildPhase()) {
+    return [];
+  }
+
   const supabase = createClient();
   const nowIso = new Date().toISOString();
   const { data } = await supabase
@@ -164,6 +173,10 @@ export async function getUpcomingEvents(limit = 5) {
 }
 
 export async function getAvatarPresets() {
+  if (isBuildPhase()) {
+    return [];
+  }
+
   const supabase = createClient();
   const { data } = await supabase
     .from("avatar_presets")
@@ -193,6 +206,10 @@ export async function getAvatarPresets() {
 }
 
 export async function getMediaAssets(limit = 18) {
+  if (isBuildPhase()) {
+    return [];
+  }
+
   const supabase = createClient();
   const { data } = await supabase
     .from("media_assets")
@@ -215,6 +232,10 @@ export async function getMediaAssets(limit = 18) {
 }
 
 export async function getMediaCollections(limit = 12) {
+  if (isBuildPhase()) {
+    return [];
+  }
+
   const supabase = createClient();
   const { data } = await supabase
     .from("media_collections")
@@ -235,6 +256,10 @@ export async function getMediaCollections(limit = 12) {
 }
 
 export async function getSectionBindings(limit = 12) {
+  if (isBuildPhase()) {
+    return [];
+  }
+
   const supabase = createClient();
   const { data } = await supabase
     .from("section_media_bindings")

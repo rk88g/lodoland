@@ -3,7 +3,6 @@ import { requireUser } from "../../lib/auth/session";
 import { getUpcomingEvents } from "../../lib/data/portal";
 import { customerNavItems } from "../../lib/navigation";
 import { DashboardShell } from "../../components/dashboard-shell";
-import { signOutAction } from "../login/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +24,6 @@ export default async function EventsPage() {
   return (
     <DashboardShell
       navItems={customerNavItems}
-      signOutAction={signOutAction}
       subtitle="Calendario visible"
       title="Eventos"
     >
