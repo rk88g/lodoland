@@ -10,9 +10,23 @@ type HomeExperienceProps = {
 };
 
 const saleToneClasses = ["sale-mud", "sale-gold", "sale-blue", "sale-pink"] as const;
+const menuSponsorToneClasses = ["menu-sponsor-tone-1", "menu-sponsor-tone-2", "menu-sponsor-tone-3"] as const;
 
 function getStaticIntentHref(intent: "tickets" | "merch") {
   return `/login?intent=${intent}`;
+}
+
+function buildSponsorToneStyle(backgroundColor: string | null, accentColor: string | null) {
+  if (!backgroundColor && !accentColor) {
+    return undefined;
+  }
+
+  return {
+    ["--menu-sponsor-bg" as string]: backgroundColor || "rgba(7, 10, 18, 0.84)",
+    ["--menu-sponsor-accent" as string]: accentColor || backgroundColor || "rgba(255, 186, 87, 0.36)",
+    ["--sponsor-tile-bg" as string]: backgroundColor || "rgba(8, 10, 18, 0.46)",
+    ["--sponsor-tile-accent" as string]: accentColor || backgroundColor || "rgba(255, 186, 87, 0.24)"
+  } as CSSProperties;
 }
 
 export function HomeExperience({ data }: HomeExperienceProps) {
@@ -207,6 +221,18 @@ export function HomeExperience({ data }: HomeExperienceProps) {
           </button>
 
           <div className="menu-overlay-inner">
+            <div aria-label="Indicador de paginas del menu" className="menu-page-dots">
+              {Array.from({ length: menuPageCount }, (_, index) => (
+                <button
+                  aria-label={`Ir a pagina ${index + 1}`}
+                  className={`menu-page-dot ${activeMenuPanel === index ? "is-active" : ""}`}
+                  key={index}
+                  onClick={() => goToMenuPanel(index)}
+                  type="button"
+                />
+              ))}
+            </div>
+
             <div
               aria-label="Menu colapsable principal"
               className="menu-collapses"
@@ -231,17 +257,21 @@ export function HomeExperience({ data }: HomeExperienceProps) {
                 >
                   <div className="menu-collapse-visual">
                     <div
-                      className="menu-sponsor-art"
-                      style={
-                        panel.image
-                          ? {
-                              backgroundImage: `linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)), url(${panel.image.url})`,
-                              backgroundSize: "cover",
-                              backgroundPosition: "center"
-                            }
-                          : undefined
-                      }
-                    />
+                      className={`menu-sponsor-art ${menuSponsorToneClasses[index % menuSponsorToneClasses.length]}`}
+                      style={buildSponsorToneStyle(panel.backgroundColor, panel.accentColor)}
+                    >
+                      {panel.image ? (
+                        <span
+                          className="menu-sponsor-logo"
+                          style={{
+                            backgroundImage: `url(${panel.image.url})`,
+                            backgroundSize: "contain",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "center"
+                          }}
+                        />
+                      ) : null}
+                    </div>
                   </div>
                   <div className="menu-collapse-info">
                     <strong>{panel.name}</strong>
@@ -271,18 +301,6 @@ export function HomeExperience({ data }: HomeExperienceProps) {
                   ))}
                 </nav>
               </div>
-            </div>
-
-            <div aria-label="Indicador de paginas del menu" className="menu-page-dots">
-              {Array.from({ length: menuPageCount }, (_, index) => (
-                <button
-                  aria-label={`Ir a pagina ${index + 1}`}
-                  className={`menu-page-dot ${activeMenuPanel === index ? "is-active" : ""}`}
-                  key={index}
-                  onClick={() => goToMenuPanel(index)}
-                  type="button"
-                />
-              ))}
             </div>
           </div>
         </div>
@@ -658,7 +676,14 @@ export function HomeExperience({ data }: HomeExperienceProps) {
 
           <div className="sponsor-grid sponsor-grid-wall">
             {data.sponsors.items.map((sponsor) => (
-              <a className="sponsor-tile" href={sponsor.href} key={sponsor.id} rel="noreferrer" target="_blank">
+              <a
+                className="sponsor-tile"
+                href={sponsor.href}
+                key={sponsor.id}
+                rel="noreferrer"
+                style={buildSponsorToneStyle(sponsor.backgroundColor, sponsor.accentColor)}
+                target="_blank"
+              >
                 <span className="mud-dot mud-dot-a" />
                 <span className="mud-dot mud-dot-b" />
                 <span className="water-dot water-dot-a" />

@@ -17,6 +17,8 @@ export type HomeSponsorItem = {
   name: string;
   href: string;
   image: CmsMediaAsset | null;
+  backgroundColor: string | null;
+  accentColor: string | null;
 };
 
 export type HomeInfluencerProfile = {
@@ -156,7 +158,9 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
       id: item.id,
       name: textFromItem(item, "name", item.label),
       href: linkFromItem(item, "target_url", "https://example.com"),
-      image: item.fields.logo_media?.media || null
+      image: item.fields.logo_media?.media || null,
+      backgroundColor: textFromItem(item, "background_color", "") || null,
+      accentColor: textFromItem(item, "accent_color", "") || null
     })) || [];
 
   const sponsorModalItem = eventSection?.groups.official_sponsor_modal?.items[0];

@@ -5,7 +5,6 @@ import {
   Checkbox,
   Chip,
   FormControlLabel,
-  MenuItem,
   Stack,
   TextField,
   Typography
@@ -61,7 +60,7 @@ const groupFieldKeys: Record<string, string[]> = {
   official_sponsor_modal: ["title", "description", "website_label", "website_url", "social_label", "social_url", "media"],
   event_side_banner: ["media", "target_url"],
   social_profiles: ["platform", "target_url", "embed_url", "preview_media"],
-  sponsor_tiles: ["name", "target_url", "logo_media"],
+  sponsor_tiles: ["name", "target_url", "logo_media", "background_color", "accent_color"],
   sponsor_main_banner: ["media", "target_url"],
   influencer_collage: ["media"],
   influencer_profiles: ["name", "role", "description", "cover_media", "instagram_url", "facebook_url", "youtube_url", "tiktok_url"],
@@ -97,7 +96,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
 
   try {
     [mediaAssets, mediaCollections, sectionBindings, avatarPresets, homeConfig] = await Promise.all([
-      getMediaAssets(120),
+      getMediaAssets(36),
       getMediaCollections(20),
       getSectionBindings(20),
       getAvatarPresets(),
@@ -395,6 +394,13 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
       <Stack spacing={1.5}>
         <Typography variant="h2">Configuracion de portada</Typography>
         <Typography color="text.secondary">Aqui solo aparecen los campos que la home usa realmente.</Typography>
+        <datalist id="media-assets-list">
+          {mediaAssets.map((asset) => (
+            <option key={asset.id} value={asset.id}>
+              {asset.title || asset.path}
+            </option>
+          ))}
+        </datalist>
         {homeEditorContent}
       </Stack>
 
@@ -528,20 +534,21 @@ function CmsFieldEditor({ action, field, helperText, mediaAssets }: CmsFieldEdit
         {field.kind === "link" ? (
           <TextField autoComplete="off" defaultValue={field.linkUrl || ""} helperText={helperText} label="URL" name="linkUrl" />
         ) : field.kind === "image" ? (
-          <TextField
-            defaultValue={field.mediaAssetId || ""}
-            helperText={helperText || "Selecciona un asset ya registrado en Storage."}
-            label="Asset"
-            name="mediaAssetId"
-            select
-          >
-            <MenuItem value="">Sin imagen</MenuItem>
-            {mediaAssets.map((asset) => (
-              <MenuItem key={asset.id} value={asset.id}>
-                {asset.title || asset.path}
-              </MenuItem>
-            ))}
-          </TextField>
+          <Stack spacing={1}>
+            <TextField
+              autoComplete="off"
+              defaultValue={field.mediaAssetId || ""}
+              helperText={helperText || "Escribe o pega el ID del asset. Puedes elegir uno reciente en la lista sugerida."}
+              inputProps={{ list: "media-assets-list" }}
+              label="Asset ID"
+              name="mediaAssetId"
+            />
+            {field.media ? (
+              <Typography color="text.secondary" variant="caption">
+                Asset actual: {field.media.title || field.media.url}
+              </Typography>
+            ) : null}
+          </Stack>
         ) : (
           <TextField
             autoComplete="off"
@@ -585,6 +592,8 @@ function getFieldHint(sectionKey: string, fieldKey: string) {
     "redes_sociales.social_profiles.embed_url": "Usa una URL publica de embed. Si no existe, deja solo la preview.",
     "redes_sociales.social_profiles.preview_media": "Preview recomendada: 1290x2796 px o equivalente vertical.",
     "patrocinadores.sponsor_tiles.logo_media": "Logo sponsor recomendado en PNG transparente o WebP horizontal.",
+    "patrocinadores.sponsor_tiles.background_color": "Color base opcional del patrocinador. Ejemplo: #111827.",
+    "patrocinadores.sponsor_tiles.accent_color": "Color de acento opcional. Ejemplo: #22c55e.",
     "patrocinadores.sponsor_main_banner.media": "Banner horizontal recomendado: 1920x640 px.",
     "influencers.influencer_collage.media": "Imagen collage recomendada: alta resolucion, vertical u horizontal.",
     "influencers.influencer_profiles.cover_media": "Foto influencer recomendada: 1200x1600 px.",
