@@ -5,7 +5,6 @@ import {
   Checkbox,
   Chip,
   FormControlLabel,
-  Grid,
   Stack,
   TextField,
   Typography
@@ -59,32 +58,32 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
         </Typography>
 
         <form action={registerMediaAssetAction}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
               <TextField label="Ruta en Storage" name="path" placeholder="home/evento/flayer-principal.webp" required />
-            </Grid>
-            <Grid item xs={12} md={3}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
               <TextField label="Título" name="title" />
-            </Grid>
-            <Grid item xs={12} md={3}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
               <TextField label="Alt" name="altText" />
-            </Grid>
-            <Grid item xs={12}>
+            </Box>
+            <Box sx={{ gridColumn: "1 / -1" }}>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
                 <FormControlLabel control={<Checkbox name="isPublic" />} label="Visible públicamente" />
                 <Button type="submit" variant="contained">
                   Registrar asset
                 </Button>
               </Stack>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </form>
       </Stack>
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Colecciones y avatares</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
+          <Box>
             <form action={createMediaCollectionAction}>
               <Stack spacing={1.5}>
                 <TextField label="Nombre de colección" name="label" required />
@@ -95,36 +94,36 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                 </Button>
               </Stack>
             </form>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box>
             <form action={createAvatarPresetAction}>
               <Stack spacing={1.5}>
                 <TextField label="Nombre del avatar" name="label" required />
                 <TextField label="Slug" name="slug" placeholder="mud-core" />
                 <TextField label="Descripción" name="description" />
-                <Grid container spacing={1.5}>
-                  <Grid item xs={12} sm={6}>
+                <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" } }}>
+                  <Box>
                     <TextField label="Color base" name="backgroundColor" placeholder="#111827" />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
+                  </Box>
+                  <Box>
                     <TextField label="Color acento" name="accentColor" placeholder="#7dd3fc" />
-                  </Grid>
-                </Grid>
+                  </Box>
+                </Box>
                 <Button type="submit" variant="contained">
                   Crear avatar
                 </Button>
               </Stack>
             </form>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Stack>
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Assets registrados</Typography>
         {mediaAssets.length ? (
-          <Grid container spacing={2}>
+          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", md: "repeat(3, minmax(0, 1fr))" } }}>
             {mediaAssets.map((asset) => (
-              <Grid item xs={12} sm={6} md={4} key={asset.id}>
+              <Box key={asset.id}>
                 <Stack spacing={1}>
                   <Box
                     sx={{
@@ -143,9 +142,9 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                     <Chip label={asset.bucket} size="small" />
                   </Stack>
                 </Stack>
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         ) : (
           <Typography color="text.secondary">
             Aún no hay imágenes registradas en `media_assets`.
@@ -155,9 +154,9 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Colecciones activas</Typography>
-        <Grid container spacing={2}>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(3, minmax(0, 1fr))" } }}>
           {mediaCollections.map((collection) => (
-            <Grid item xs={12} md={4} key={collection.id}>
+            <Box key={collection.id}>
               <Stack spacing={1}>
                 <Typography variant="h3">{collection.label}</Typography>
                 <Typography color="text.secondary" variant="body2">
@@ -172,17 +171,17 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                   size="small"
                 />
               </Stack>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       </Stack>
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Bindings por sección</Typography>
         {sectionBindings.length ? (
-          <Grid container spacing={2}>
+          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
             {sectionBindings.map((binding) => (
-              <Grid item xs={12} md={6} key={binding.id}>
+              <Box key={binding.id}>
                 <Stack spacing={1}>
                   <Typography variant="h3">{binding.pageSlug}</Typography>
                   <Typography color="text.secondary" variant="body2">
@@ -192,9 +191,9 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                     {binding.collectionLabel} · {binding.rotationMode} · {binding.itemsLimit} items
                   </Typography>
                 </Stack>
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         ) : (
           <Typography color="text.secondary">
             Todavía no hay colecciones asignadas a secciones.
@@ -204,9 +203,9 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Avatares disponibles</Typography>
-        <Grid container spacing={2}>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" } }}>
           {avatarPresets.map((avatarPreset) => (
-            <Grid item xs={12} sm={6} md={3} key={avatarPreset.id}>
+            <Box key={avatarPreset.id}>
               <Stack spacing={1}>
                 <Box
                   sx={{
@@ -221,9 +220,9 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                 />
                 <Typography variant="body2">{avatarPreset.label}</Typography>
               </Stack>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       </Stack>
     </DashboardShell>
   );
