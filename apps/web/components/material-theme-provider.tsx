@@ -138,7 +138,8 @@ export function MaterialThemeProvider({ children }: { children: ReactNode }) {
           MuiTextField: {
             defaultProps: {
               variant: "outlined",
-              fullWidth: true
+              fullWidth: true,
+              autoComplete: "off"
             }
           },
           MuiAccordion: {

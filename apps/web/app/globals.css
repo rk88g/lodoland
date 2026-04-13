@@ -712,6 +712,13 @@ main {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.phone-embed-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: rgba(8, 10, 18, 0.86);
+}
+
 .social-icon {
   display: inline-grid;
   place-items: center;
@@ -719,6 +726,13 @@ main {
   height: 26px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.14);
+}
+
+.sponsor-logo {
+  display: block;
+  width: 100%;
+  height: 56px;
+  margin-bottom: 10px;
 }
 
 .full-section {
@@ -1991,6 +2005,14 @@ main {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-chip-logo {
+  display: inline-block;
+  width: 52px;
+  height: 24px;
+  margin-right: 10px;
+  flex: 0 0 auto;
 }
 
 .footer-bottom {

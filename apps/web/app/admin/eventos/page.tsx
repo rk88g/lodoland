@@ -48,7 +48,7 @@ export default async function AdminEventsPage({ searchParams }: AdminEventsPageP
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Crear evento</Typography>
-        <form action={createEventAction}>
+        <form action={createEventAction} autoComplete="off">
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
               <TextField label="Título" name="title" required />

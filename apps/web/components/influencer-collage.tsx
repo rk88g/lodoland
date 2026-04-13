@@ -8,6 +8,8 @@ type Tone = "tone-gold" | "tone-pink" | "tone-blue" | "tone-teal" | "tone-burn";
 type Asset = {
   id: string;
   tone: Tone;
+  url?: string | null;
+  altText?: string | null;
 };
 
 type Slot = {
@@ -76,14 +78,52 @@ function shuffleAssets(items: Asset[]) {
   return copy;
 }
 
-function buildSelection(slotCount: number) {
-  return shuffleAssets(ASSET_POOL).slice(0, slotCount);
+function buildSelection(slotCount: number, assetPool: Asset[]) {
+  if (!assetPool.length) {
+    return [];
+  }
+
+  if (assetPool.length >= slotCount) {
+    return shuffleAssets(assetPool).slice(0, slotCount);
+  }
+
+  const repeated: Asset[] = [];
+
+  while (repeated.length < slotCount) {
+    repeated.push(...shuffleAssets(assetPool));
+  }
+
+  return repeated.slice(0, slotCount);
 }
 
-export function InfluencerCollage() {
+type InfluencerCollageProps = {
+  images?: Array<{
+    id?: string;
+    url: string;
+    altText?: string | null;
+  }>;
+};
+
+const TONES: Tone[] = ["tone-gold", "tone-pink", "tone-blue", "tone-teal", "tone-burn"];
+
+function buildAssetPool(images?: InfluencerCollageProps["images"]) {
+  if (!images?.length) {
+    return ASSET_POOL;
+  }
+
+  return images.map((image, index) => ({
+    id: image.id || `cms-image-${index + 1}`,
+    url: image.url,
+    altText: image.altText || null,
+    tone: TONES[index % TONES.length]
+  }));
+}
+
+export function InfluencerCollage({ images }: InfluencerCollageProps) {
+  const assetPool = useMemo(() => buildAssetPool(images), [images]);
   const [isMobile, setIsMobile] = useState(false);
-  const [desktopAssets, setDesktopAssets] = useState(() => buildSelection(DESKTOP_SLOTS.length));
-  const [mobileAssets, setMobileAssets] = useState(() => buildSelection(MOBILE_SLOTS.length));
+  const [desktopAssets, setDesktopAssets] = useState(() => buildSelection(DESKTOP_SLOTS.length, assetPool));
+  const [mobileAssets, setMobileAssets] = useState(() => buildSelection(MOBILE_SLOTS.length, assetPool));
 
   const activeSlots = useMemo(() => (isMobile ? MOBILE_SLOTS : DESKTOP_SLOTS), [isMobile]);
   const activeAssets = isMobile ? mobileAssets : desktopAssets;
@@ -101,19 +141,24 @@ export function InfluencerCollage() {
   }, []);
 
   useEffect(() => {
+    setDesktopAssets(buildSelection(DESKTOP_SLOTS.length, assetPool));
+    setMobileAssets(buildSelection(MOBILE_SLOTS.length, assetPool));
+  }, [assetPool]);
+
+  useEffect(() => {
     const interval = window.setInterval(() => {
       if (isMobile) {
-        setMobileAssets(buildSelection(MOBILE_SLOTS.length));
+        setMobileAssets(buildSelection(MOBILE_SLOTS.length, assetPool));
         return;
       }
 
-      setDesktopAssets(buildSelection(DESKTOP_SLOTS.length));
+      setDesktopAssets(buildSelection(DESKTOP_SLOTS.length, assetPool));
     }, isMobile ? 3800 : 7600);
 
     return () => {
       window.clearInterval(interval);
     };
-  }, [isMobile]);
+  }, [assetPool, isMobile]);
 
   return (
     <div className="collage-bg collage-scrapbook">
@@ -138,7 +183,20 @@ export function InfluencerCollage() {
             }
           >
             <div className="scrap-photo-inner">
-              <div className="scrap-photo-shot" />
+              <div
+                aria-label={asset?.altText || "Imagen collage"}
+                className="scrap-photo-shot"
+                role="img"
+                style={
+                  asset?.url
+                    ? {
+                        backgroundImage: `url(${asset.url})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center"
+                      }
+                    : undefined
+                }
+              />
             </div>
           </div>
         );

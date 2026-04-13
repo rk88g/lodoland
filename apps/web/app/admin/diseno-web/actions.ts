@@ -100,3 +100,75 @@ export async function createAvatarPresetAction(formData: FormData) {
 
   revalidatePath("/admin/diseno-web");
 }
+
+export async function updateSectionFieldAction(formData: FormData) {
+  const session = await requireAdmin();
+  const supabase = createClient();
+
+  const fieldId = String(formData.get("fieldId") ?? "").trim();
+  const kind = String(formData.get("kind") ?? "").trim();
+  const textValue = String(formData.get("textValue") ?? "").trim();
+  const linkUrl = String(formData.get("linkUrl") ?? "").trim();
+  const mediaAssetId = String(formData.get("mediaAssetId") ?? "").trim();
+
+  if (!fieldId) {
+    redirect("/admin/diseno-web?error=No se encontro el campo a actualizar.");
+  }
+
+  const payload: Record<string, unknown> = {
+    updated_by: session.profile?.id || null
+  };
+
+  if (kind === "link") {
+    payload.link_url = linkUrl || null;
+  } else if (kind === "image") {
+    payload.media_asset_id = mediaAssetId || null;
+  } else {
+    payload.text_value = textValue || null;
+  }
+
+  const { error } = await supabase.from("cms_section_fields").update(payload).eq("id", fieldId);
+
+  if (error) {
+    redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/admin/diseno-web");
+  revalidatePath("/");
+}
+
+export async function updateGroupItemFieldAction(formData: FormData) {
+  const session = await requireAdmin();
+  const supabase = createClient();
+
+  const fieldId = String(formData.get("fieldId") ?? "").trim();
+  const kind = String(formData.get("kind") ?? "").trim();
+  const textValue = String(formData.get("textValue") ?? "").trim();
+  const linkUrl = String(formData.get("linkUrl") ?? "").trim();
+  const mediaAssetId = String(formData.get("mediaAssetId") ?? "").trim();
+
+  if (!fieldId) {
+    redirect("/admin/diseno-web?error=No se encontro el campo del item a actualizar.");
+  }
+
+  const payload: Record<string, unknown> = {
+    updated_by: session.profile?.id || null
+  };
+
+  if (kind === "link") {
+    payload.link_url = linkUrl || null;
+  } else if (kind === "image") {
+    payload.media_asset_id = mediaAssetId || null;
+  } else {
+    payload.text_value = textValue || null;
+  }
+
+  const { error } = await supabase.from("cms_group_item_fields").update(payload).eq("id", fieldId);
+
+  if (error) {
+    redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/admin/diseno-web");
+  revalidatePath("/");
+}

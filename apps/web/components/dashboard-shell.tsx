@@ -141,6 +141,8 @@ export function DashboardShell({
         color="transparent"
         position="fixed"
         sx={{
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          ml: { md: `${drawerWidth}px` },
           borderBottom: 1,
           borderColor: "divider",
           backdropFilter: "blur(12px)",
@@ -208,7 +210,7 @@ export function DashboardShell({
           {drawerContent}
         </Drawer>
 
-        <Box component="main" sx={{ flexGrow: 1, width: { md: `calc(100% - ${drawerWidth}px)` } }}>
+        <Box component="main" sx={{ flexGrow: 1, ml: { md: `${drawerWidth}px` }, width: "100%", minWidth: 0 }}>
           <Toolbar sx={{ minHeight: 64 }} />
           <Stack spacing={2} sx={{ p: { xs: 2, md: 3 } }}>
             <Paper

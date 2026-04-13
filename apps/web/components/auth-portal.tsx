@@ -99,7 +99,7 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
                 <AccordionDetails>
                   <Stack spacing={2}>
                     <Stack spacing={1.25}>
-                      <form action="/auth/login/google" method="post">
+                      <form action="/auth/login/google" autoComplete="off" method="post">
                           <Button
                             fullWidth
                             startIcon={<GoogleIcon />}
@@ -117,7 +117,7 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
                           </Button>
                       </form>
 
-                      <form action="/auth/login/facebook" method="post">
+                      <form action="/auth/login/facebook" autoComplete="off" method="post">
                           <Button
                             fullWidth
                             startIcon={<FacebookRoundedIcon />}
@@ -137,7 +137,7 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
 
                     <Divider>o</Divider>
 
-                    <form action="/auth/login/email" method="post">
+                    <form action="/auth/login/email" autoComplete="off" method="post">
                       <Stack spacing={2}>
                         <TextField label="Correo electrónico" name="email" required type="email" />
                         <TextField label="Contraseña" name="password" required type="password" />
@@ -165,7 +165,7 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
                       Antes de cualquier compra, pedido, acceso o movimiento, deberás verificar tu correo.
                     </Typography>
 
-                    <form action="/auth/signup/email" method="post">
+                    <form action="/auth/signup/email" autoComplete="off" method="post">
                       <Stack spacing={2}>
                         <TextField label="Correo electrónico" name="email" required type="email" />
                         <TextField
@@ -207,7 +207,7 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
                     Acceso exclusivo para administración, ventas, supervisión y gerencia.
                   </Typography>
 
-                  <form action="/auth/login/staff" method="post">
+                  <form action="/auth/login/staff" autoComplete="off" method="post">
                     <Stack spacing={2}>
                       <TextField
                         label="Correo organizacional"
