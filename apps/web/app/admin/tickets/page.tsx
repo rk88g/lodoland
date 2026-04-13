@@ -1,4 +1,4 @@
-import { Grid, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { requireAdmin } from "../../../lib/auth/session";
 import { controlNavItems } from "../../../lib/navigation";
@@ -16,30 +16,30 @@ export default async function AdminTicketsPage() {
     >
       <Stack spacing={1.5}>
         <Typography variant="h2">Inventario</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
+          <Box>
             <Typography>Lotes, capacidad, reservas, tickets vendidos, pendientes y cortesías.</Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box>
             <Typography color="text.secondary">
               La estructura ya está prevista con `ticket_lots`, `issued_tickets` y movimientos de inventario.
             </Typography>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Stack>
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Operación</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
+          <Box>
             <Typography>Escaneo, check-in, anulación, cortesía, reimpresión e historial de emisión.</Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box>
             <Typography color="text.secondary">
               En la siguiente fase uniremos esto con eventos, órdenes y pagos.
             </Typography>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Stack>
     </DashboardShell>
   );

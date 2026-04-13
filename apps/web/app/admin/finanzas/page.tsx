@@ -1,4 +1,4 @@
-import { Grid, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { requireAdmin } from "../../../lib/auth/session";
 import { controlNavItems } from "../../../lib/navigation";
@@ -16,30 +16,30 @@ export default async function AdminFinanzasPage() {
     >
       <Stack spacing={1.5}>
         <Typography variant="h2">Operación</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
+          <Box>
             <Typography>Registro manual y automático de ingresos, gastos, ajustes y responsables.</Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box>
             <Typography color="text.secondary">
               La base ya contempla `financial_categories` y `financial_entries`.
             </Typography>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Stack>
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Analítica</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
+          <Box>
             <Typography>Totales por evento, promoción, ticket, merch y consolidado global.</Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box>
             <Typography color="text.secondary">
               En la siguiente etapa conectaremos gráficos, cortes por categoría y utilidad.
             </Typography>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Stack>
     </DashboardShell>
   );
