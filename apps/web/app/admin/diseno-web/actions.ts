@@ -82,6 +82,8 @@ export async function registerMediaAssetAction(formData: FormData) {
   }
 
   revalidatePath("/admin/diseno-web");
+  revalidatePath("/");
+  redirect("/admin/diseno-web?success=Asset%20subido%20y%20registrado%20correctamente.");
 }
 
 export async function createMediaCollectionAction(formData: FormData) {
@@ -109,6 +111,7 @@ export async function createMediaCollectionAction(formData: FormData) {
   }
 
   revalidatePath("/admin/diseno-web");
+  redirect("/admin/diseno-web?success=Coleccion%20creada%20correctamente.");
 }
 
 export async function createAvatarPresetAction(formData: FormData) {
@@ -138,6 +141,7 @@ export async function createAvatarPresetAction(formData: FormData) {
   }
 
   revalidatePath("/admin/diseno-web");
+  redirect("/admin/diseno-web?success=Avatar%20creado%20correctamente.");
 }
 
 export async function updateSectionFieldAction(formData: FormData) {
@@ -174,6 +178,7 @@ export async function updateSectionFieldAction(formData: FormData) {
 
   revalidatePath("/admin/diseno-web");
   revalidatePath("/");
+  redirect("/admin/diseno-web?success=Campo%20actualizado%20correctamente.");
 }
 
 export async function updateGroupItemFieldAction(formData: FormData) {
@@ -210,4 +215,5 @@ export async function updateGroupItemFieldAction(formData: FormData) {
 
   revalidatePath("/admin/diseno-web");
   revalidatePath("/");
+  redirect("/admin/diseno-web?success=Campo%20actualizado%20correctamente.");
 }

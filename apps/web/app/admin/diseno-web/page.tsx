@@ -1,38 +1,17 @@
-import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  Chip,
-  FormControlLabel,
-  Stack,
-  TextField,
-  Typography
-} from "@mui/material";
+import { Alert, Box, Button, Checkbox, FormControlLabel, Stack, TextField, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { requireAdmin } from "../../../lib/auth/session";
 import { getCmsPageConfig, type CmsFieldValue } from "../../../lib/data/cms";
-import {
-  getAvatarPresets,
-  getMediaAssets,
-  getMediaCollections,
-  getSectionBindings
-} from "../../../lib/data/portal";
 import { controlNavItems } from "../../../lib/navigation";
-import {
-  createAvatarPresetAction,
-  createMediaCollectionAction,
-  registerMediaAssetAction,
-  updateGroupItemFieldAction,
-  updateSectionFieldAction
-} from "./actions";
+import { registerMediaAssetAction, updateGroupItemFieldAction, updateSectionFieldAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 type AdminDisenoWebPageProps = {
   searchParams?: {
     error?: string;
+    success?: string;
   };
 };
 
@@ -87,33 +66,33 @@ function getVisibleGroupFields(groupKey: string, fields: Record<string, CmsField
 
 export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWebPageProps) {
   await requireAdmin();
-  let mediaAssets = [] as Awaited<ReturnType<typeof getMediaAssets>>;
-  let mediaCollections = [] as Awaited<ReturnType<typeof getMediaCollections>>;
-  let sectionBindings = [] as Awaited<ReturnType<typeof getSectionBindings>>;
-  let avatarPresets = [] as Awaited<ReturnType<typeof getAvatarPresets>>;
+
   let homeConfig: Awaited<ReturnType<typeof getCmsPageConfig>> = null;
   let loadError: string | null = null;
 
   try {
-    [mediaAssets, mediaCollections, sectionBindings, avatarPresets, homeConfig] = await Promise.all([
-      getMediaAssets(36),
-      getMediaCollections(20),
-      getSectionBindings(20),
-      getAvatarPresets(),
-      getCmsPageConfig("home")
-    ]);
+    homeConfig = await getCmsPageConfig("home", { includeMedia: false });
   } catch (error) {
     console.error("[admin/diseno-web] load error", error);
     loadError = error instanceof Error ? error.message : "No se pudo cargar la configuracion del editor.";
   }
 
   let errorMessage: string | null = null;
+  let successMessage: string | null = null;
 
   if (searchParams?.error) {
     try {
       errorMessage = decodeURIComponent(searchParams.error);
     } catch {
       errorMessage = searchParams.error;
+    }
+  }
+
+  if (searchParams?.success) {
+    try {
+      successMessage = decodeURIComponent(searchParams.success);
+    } catch {
+      successMessage = searchParams.success;
     }
   }
 
@@ -148,10 +127,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                     "linear-gradient(90deg, rgba(124,77,255,0.18), rgba(0,188,212,0.14), rgba(255,193,7,0.18))"
                 }}
               >
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1} useFlexGap justifyContent="space-between">
-                  <Typography variant="h3">{section.label}</Typography>
-                  <Chip label={section.sectionKey} size="small" />
-                </Stack>
+                <Typography variant="h3">{section.label}</Typography>
               </Box>
 
               <Stack spacing={2} sx={{ p: { xs: 2, md: 2.5 } }}>
@@ -177,7 +153,6 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                           action={updateSectionFieldAction}
                           field={field}
                           helperText={getFieldHint(section.sectionKey, field.fieldKey)}
-                          mediaAssets={mediaAssets}
                         />
                       </Box>
                     ))}
@@ -208,7 +183,6 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                       >
                         <Box sx={{ width: 42, height: 4, bgcolor: "primary.main" }} />
                         <Typography variant="h3">{group.label}</Typography>
-                        <Chip label={group.groupKey} size="small" />
                       </Box>
 
                       <Box
@@ -237,10 +211,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                                 gap: 1.5
                               }}
                             >
-                              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} useFlexGap justifyContent="space-between">
-                                <Typography sx={{ fontWeight: 700 }}>{item.label}</Typography>
-                                <Chip label={item.itemKey} size="small" />
-                              </Stack>
+                              <Typography sx={{ fontWeight: 700 }}>{item.label}</Typography>
 
                               <Box sx={{ display: "grid", gap: 1.5 }}>
                                 {visibleFields.map((field) => (
@@ -257,7 +228,6 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                                       action={updateGroupItemFieldAction}
                                       field={field}
                                       helperText={getFieldHint(section.sectionKey, `${group.groupKey}.${field.fieldKey}`)}
-                                      mediaAssets={mediaAssets}
                                     />
                                   </Box>
                                 ))}
@@ -288,15 +258,16 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
   }
 
   return (
-    <DashboardShell navItems={controlNavItems} subtitle="Sitio, assets y secciones" title="Diseno web">
+    <DashboardShell navItems={controlNavItems} subtitle="Sitio, textos y assets" title="Diseno web">
+      {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
       {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
       {loadError ? <Alert severity="warning">{loadError}</Alert> : null}
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Subir asset a Supabase</Typography>
         <Typography color="text.secondary">
-          Carga aqui mismo la imagen al bucket `lodoland-media`. La ruta se genera sola y despues queda lista para
-          asignarse a cualquier seccion.
+          Sube una imagen por vez al bucket `lodoland-media`. Aqui no se muestran previews; solo se registra el asset
+          para usarlo despues en la web.
         </Typography>
 
         <form action={registerMediaAssetAction} autoComplete="off" encType="multipart/form-data">
@@ -330,16 +301,13 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
               <TextField autoComplete="off" defaultValue="home/general" helperText="Carpeta dentro del bucket." label="Seccion / carpeta" name="folder" />
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
-              <TextField autoComplete="off" helperText="Opcional. Si lo dejas vacio se genera automaticamente." label="Ruta manual" name="path" placeholder="home/evento/flayer-principal.webp" />
+              <TextField autoComplete="off" disabled label="Bucket" value="lodoland-media" />
             </Box>
-            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
               <TextField autoComplete="off" label="Titulo" name="title" />
             </Box>
-            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
               <TextField autoComplete="off" label="Alt" name="altText" />
-            </Box>
-            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
-              <TextField autoComplete="off" disabled label="Bucket" value="lodoland-media" />
             </Box>
             <Box sx={{ gridColumn: "1 / -1" }}>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
@@ -354,161 +322,12 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
       </Stack>
 
       <Stack spacing={1.5}>
-        <Typography variant="h2">Colecciones y avatares</Typography>
-        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
-          <Box>
-            <form action={createMediaCollectionAction} autoComplete="off">
-              <Stack spacing={1.5}>
-                <TextField autoComplete="off" label="Nombre de coleccion" name="label" required />
-                <TextField autoComplete="off" label="Slug" name="slug" placeholder="influencers-collage-2026" />
-                <TextField autoComplete="off" label="Descripcion" multiline minRows={3} name="description" />
-                <Button type="submit" variant="contained">
-                  Crear coleccion
-                </Button>
-              </Stack>
-            </form>
-          </Box>
-          <Box>
-            <form action={createAvatarPresetAction} autoComplete="off">
-              <Stack spacing={1.5}>
-                <TextField autoComplete="off" label="Nombre del avatar" name="label" required />
-                <TextField autoComplete="off" label="Slug" name="slug" placeholder="mud-core" />
-                <TextField autoComplete="off" label="Descripcion" name="description" />
-                <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" } }}>
-                  <Box>
-                    <TextField autoComplete="off" label="Color base" name="backgroundColor" placeholder="#111827" />
-                  </Box>
-                  <Box>
-                    <TextField autoComplete="off" label="Color acento" name="accentColor" placeholder="#7dd3fc" />
-                  </Box>
-                </Box>
-                <Button type="submit" variant="contained">
-                  Crear avatar
-                </Button>
-              </Stack>
-            </form>
-          </Box>
-        </Box>
-      </Stack>
-
-      <Stack spacing={1.5}>
         <Typography variant="h2">Configuracion de portada</Typography>
-        <Typography color="text.secondary">Aqui solo aparecen los campos que la home usa realmente.</Typography>
-        <datalist id="media-assets-list">
-          {mediaAssets.map((asset) => (
-            <option key={asset.id} value={asset.id}>
-              {asset.title || asset.path}
-            </option>
-          ))}
-        </datalist>
+        <Typography color="text.secondary">
+          Aqui solo aparecen los campos que la home usa realmente. Para imagenes, pega el `Asset ID` del archivo que
+          ya subiste.
+        </Typography>
         {homeEditorContent}
-      </Stack>
-
-      <Stack spacing={1.5}>
-        <Typography variant="h2">Assets registrados</Typography>
-        {mediaAssets.length ? (
-          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", md: "repeat(3, minmax(0, 1fr))" } }}>
-            {mediaAssets.map((asset) => (
-              <Box key={asset.id}>
-                <Stack spacing={1}>
-                  <Box
-                    sx={{
-                      minHeight: 148,
-                      border: 1,
-                      borderColor: "divider",
-                      backgroundColor: "background.default",
-                      backgroundImage: `url(${asset.publicUrl})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center"
-                    }}
-                  />
-                  <Typography variant="body2">{asset.title || asset.path}</Typography>
-                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                    <Chip label={asset.isPublic ? "Publico" : "Privado"} size="small" />
-                    <Chip label={asset.bucket} size="small" />
-                  </Stack>
-                </Stack>
-              </Box>
-            ))}
-          </Box>
-        ) : (
-          <Typography color="text.secondary">
-            Aun no hay imagenes registradas en `media_assets`.
-          </Typography>
-        )}
-      </Stack>
-
-      <Stack spacing={1.5}>
-        <Typography variant="h2">Colecciones activas</Typography>
-        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(3, minmax(0, 1fr))" } }}>
-          {mediaCollections.map((collection) => (
-            <Box key={collection.id}>
-              <Stack spacing={1}>
-                <Typography variant="h3">{collection.label}</Typography>
-                <Typography color="text.secondary" variant="body2">
-                  {collection.slug}
-                </Typography>
-                {collection.description ? (
-                  <Typography color="text.secondary">{collection.description}</Typography>
-                ) : null}
-                <Chip
-                  color={collection.isActive ? "success" : "default"}
-                  label={collection.isActive ? "Activa" : "Inactiva"}
-                  size="small"
-                />
-              </Stack>
-            </Box>
-          ))}
-        </Box>
-      </Stack>
-
-      <Stack spacing={1.5}>
-        <Typography variant="h2">Bindings por seccion</Typography>
-        {sectionBindings.length ? (
-          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
-            {sectionBindings.map((binding) => (
-              <Box key={binding.id}>
-                <Stack spacing={1}>
-                  <Typography variant="h3">{binding.pageSlug}</Typography>
-                  <Typography color="text.secondary" variant="body2">
-                    {binding.sectionKey} · {binding.bindingKey}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    {binding.collectionLabel} · {binding.rotationMode} · {binding.itemsLimit} items
-                  </Typography>
-                </Stack>
-              </Box>
-            ))}
-          </Box>
-        ) : (
-          <Typography color="text.secondary">
-            Todavia no hay colecciones asignadas a secciones.
-          </Typography>
-        )}
-      </Stack>
-
-      <Stack spacing={1.5}>
-        <Typography variant="h2">Avatares disponibles</Typography>
-        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" } }}>
-          {avatarPresets.map((avatarPreset) => (
-            <Box key={avatarPreset.id}>
-              <Stack spacing={1}>
-                <Box
-                  sx={{
-                    minHeight: 110,
-                    border: 1,
-                    borderColor: "divider",
-                    backgroundColor: avatarPreset.backgroundColor || "background.default",
-                    backgroundImage: avatarPreset.mediaUrl ? `url(${avatarPreset.mediaUrl})` : "none",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center"
-                  }}
-                />
-                <Typography variant="body2">{avatarPreset.label}</Typography>
-              </Stack>
-            </Box>
-          ))}
-        </Box>
       </Stack>
     </DashboardShell>
   );
@@ -518,10 +337,9 @@ type CmsFieldEditorProps = {
   action: (formData: FormData) => Promise<void>;
   field: CmsFieldValue;
   helperText?: string;
-  mediaAssets: Awaited<ReturnType<typeof getMediaAssets>>;
 };
 
-function CmsFieldEditor({ action, field, helperText, mediaAssets }: CmsFieldEditorProps) {
+function CmsFieldEditor({ action, field, helperText }: CmsFieldEditorProps) {
   return (
     <form action={action} autoComplete="off">
       <Stack spacing={1.25}>
@@ -534,21 +352,13 @@ function CmsFieldEditor({ action, field, helperText, mediaAssets }: CmsFieldEdit
         {field.kind === "link" ? (
           <TextField autoComplete="off" defaultValue={field.linkUrl || ""} helperText={helperText} label="URL" name="linkUrl" />
         ) : field.kind === "image" ? (
-          <Stack spacing={1}>
-            <TextField
-              autoComplete="off"
-              defaultValue={field.mediaAssetId || ""}
-              helperText={helperText || "Escribe o pega el ID del asset. Puedes elegir uno reciente en la lista sugerida."}
-              inputProps={{ list: "media-assets-list" }}
-              label="Asset ID"
-              name="mediaAssetId"
-            />
-            {field.media ? (
-              <Typography color="text.secondary" variant="caption">
-                Asset actual: {field.media.title || field.media.url}
-              </Typography>
-            ) : null}
-          </Stack>
+          <TextField
+            autoComplete="off"
+            defaultValue={field.mediaAssetId || ""}
+            helperText={helperText || "Pega aqui el ID del asset ya cargado en Supabase Storage."}
+            label="Asset ID"
+            name="mediaAssetId"
+          />
         ) : (
           <TextField
             autoComplete="off"
@@ -560,19 +370,6 @@ function CmsFieldEditor({ action, field, helperText, mediaAssets }: CmsFieldEdit
             name="textValue"
           />
         )}
-
-        {field.kind === "image" && field.media ? (
-          <Box
-            sx={{
-              minHeight: 120,
-              border: 1,
-              borderColor: "divider",
-              backgroundImage: `url(${field.media.url})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center"
-            }}
-          />
-        ) : null}
 
         <Button type="submit" variant="outlined">
           Guardar campo
@@ -587,23 +384,22 @@ function getFieldHint(sectionKey: string, fieldKey: string) {
     "menu_overlay.menu_links.label": "Texto que se vera en el menu principal.",
     "menu_overlay.menu_links.url": "Ancla o ruta. Ejemplo: #ventas o /login.",
     "evento_reciente.hero_image_alt": "Texto alternativo del flyer del proximo evento.",
-    "evento_reciente.official_sponsor_modal.media": "Imagen grande del patrocinador oficial. Recomendado: 1800x2200 px.",
-    "evento_reciente.event_side_banner.media": "Banner vertical recomendado: 1080x1920 px.",
+    "evento_reciente.official_sponsor_modal.media": "Asset ID de la imagen grande del patrocinador oficial.",
+    "evento_reciente.event_side_banner.media": "Asset ID del banner vertical del evento.",
     "redes_sociales.social_profiles.embed_url": "Usa una URL publica de embed. Si no existe, deja solo la preview.",
-    "redes_sociales.social_profiles.preview_media": "Preview recomendada: 1290x2796 px o equivalente vertical.",
-    "patrocinadores.sponsor_tiles.logo_media": "Logo sponsor recomendado en PNG transparente o WebP horizontal.",
+    "redes_sociales.social_profiles.preview_media": "Asset ID de la preview vertical de la red social.",
+    "patrocinadores.sponsor_tiles.logo_media": "Asset ID del logo del patrocinador.",
     "patrocinadores.sponsor_tiles.background_color": "Color base opcional del patrocinador. Ejemplo: #111827.",
     "patrocinadores.sponsor_tiles.accent_color": "Color de acento opcional. Ejemplo: #22c55e.",
-    "patrocinadores.sponsor_main_banner.media": "Banner horizontal recomendado: 1920x640 px.",
-    "influencers.influencer_collage.media": "Imagen collage recomendada: alta resolucion, vertical u horizontal.",
-    "influencers.influencer_profiles.cover_media": "Foto influencer recomendada: 1200x1600 px.",
-    "ventas_destacadas.sales_panels.cover_media": "Imagen panel recomendada: 1400x2200 px.",
-    "merch_destacado.merch_gallery.media": "Imagen merch recomendada: 1400x1800 px.",
-    "footer.footer_marquee.logo_media": "Logo footer recomendado: 600x240 px."
+    "patrocinadores.sponsor_main_banner.media": "Asset ID del banner horizontal principal.",
+    "influencers.influencer_collage.media": "Asset ID para el collage de influencers.",
+    "influencers.influencer_profiles.cover_media": "Asset ID de la foto del influencer.",
+    "ventas_destacadas.sales_panels.cover_media": "Asset ID del panel de venta.",
+    "merch_destacado.merch_gallery.media": "Asset ID de la imagen del producto.",
+    "footer.footer_marquee.logo_media": "Asset ID del logo del footer."
   };
 
   const normalized = fieldKey
-    .replace(/^menu_ads\./, "menu_overlay.menu_ads.")
     .replace(/^event_side_banner\./, "evento_reciente.event_side_banner.")
     .replace(/^social_profiles\./, "redes_sociales.social_profiles.")
     .replace(/^sponsor_tiles\./, "patrocinadores.sponsor_tiles.")

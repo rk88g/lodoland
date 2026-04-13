@@ -148,7 +148,14 @@ function mapField(row: CmsFieldRow, mediaMap: Map<string, CmsMediaAsset>) {
   } satisfies CmsFieldValue;
 }
 
-export async function getCmsPageConfig(pageSlug: string): Promise<CmsPageConfig | null> {
+type GetCmsPageConfigOptions = {
+  includeMedia?: boolean;
+};
+
+export async function getCmsPageConfig(
+  pageSlug: string,
+  options?: GetCmsPageConfigOptions
+): Promise<CmsPageConfig | null> {
   if (isBuildPhase()) {
     return null;
   }
@@ -231,12 +238,14 @@ export async function getCmsPageConfig(pageSlug: string): Promise<CmsPageConfig 
     )
   ) as string[];
 
-  const { data: mediaAssets } = mediaAssetIds.length
-    ? await supabase
-        .from("media_assets")
-        .select("id, bucket, path, title, alt_text")
-        .in("id", mediaAssetIds)
-    : { data: [] as MediaAssetRow[] };
+  const includeMedia = options?.includeMedia !== false;
+  const { data: mediaAssets } =
+    includeMedia && mediaAssetIds.length
+      ? await supabase
+          .from("media_assets")
+          .select("id, bucket, path, title, alt_text")
+          .in("id", mediaAssetIds)
+      : { data: [] as MediaAssetRow[] };
 
   const mediaMap = new Map(
     ((mediaAssets || []) as MediaAssetRow[]).map((asset) => [
