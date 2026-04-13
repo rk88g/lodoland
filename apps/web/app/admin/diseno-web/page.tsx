@@ -10,6 +10,7 @@ import {
   TextField,
   Typography
 } from "@mui/material";
+import type { ReactNode } from "react";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { requireAdmin } from "../../../lib/auth/session";
 import { getCmsPageConfig, type CmsFieldValue } from "../../../lib/data/cms";
@@ -103,6 +104,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
       getCmsPageConfig("home")
     ]);
   } catch (error) {
+    console.error("[admin/diseno-web] load error", error);
     loadError = error instanceof Error ? error.message : "No se pudo cargar la configuracion del editor.";
   }
 
@@ -114,6 +116,176 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
     } catch {
       errorMessage = searchParams.error;
     }
+  }
+
+  let homeEditorContent: ReactNode = null;
+
+  try {
+    homeEditorContent = homeConfig ? (
+      <Stack spacing={3}>
+        {editorSectionOrder
+          .map((sectionKey) => homeConfig.sections[sectionKey])
+          .filter((section): section is NonNullable<(typeof homeConfig.sections)[string]> => Boolean(section))
+          .map((section) => (
+            <Box
+              key={section.id}
+              sx={{
+                border: 1,
+                borderColor: "divider",
+                background: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(180deg, rgba(26,35,50,0.92), rgba(18,26,39,0.92))"
+                    : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,247,252,0.98))",
+                overflow: "hidden"
+              }}
+            >
+              <Box
+                sx={{
+                  px: { xs: 2, md: 2.5 },
+                  py: 1.5,
+                  borderBottom: 1,
+                  borderColor: "divider",
+                  background:
+                    "linear-gradient(90deg, rgba(124,77,255,0.18), rgba(0,188,212,0.14), rgba(255,193,7,0.18))"
+                }}
+              >
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1} useFlexGap justifyContent="space-between">
+                  <Typography variant="h3">{section.label}</Typography>
+                  <Chip label={section.sectionKey} size="small" />
+                </Stack>
+              </Box>
+
+              <Stack spacing={2} sx={{ p: { xs: 2, md: 2.5 } }}>
+                {getVisibleSectionFields(section.sectionKey, section.fields).length ? (
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gap: 2,
+                      gridTemplateColumns: { xs: "1fr", xl: "repeat(2, minmax(0, 1fr))" }
+                    }}
+                  >
+                    {getVisibleSectionFields(section.sectionKey, section.fields).map((field) => (
+                      <Box
+                        key={field.id}
+                        sx={{
+                          border: 1,
+                          borderColor: "divider",
+                          bgcolor: "background.paper",
+                          p: 2
+                        }}
+                      >
+                        <CmsFieldEditor
+                          action={updateSectionFieldAction}
+                          field={field}
+                          helperText={getFieldHint(section.sectionKey, field.fieldKey)}
+                          mediaAssets={mediaAssets}
+                        />
+                      </Box>
+                    ))}
+                  </Box>
+                ) : null}
+
+                {Object.values(section.groups)
+                  .sort((a, b) => a.sortOrder - b.sortOrder)
+                  .filter(
+                    (group) =>
+                      getVisibleGroupFields(group.groupKey, group.items[0]?.fields || {}).length ||
+                      group.items.some((item) => getVisibleGroupFields(group.groupKey, item.fields).length)
+                  )
+                  .map((group) => (
+                    <Box key={group.id} sx={{ display: "grid", gap: 1.5 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1.25,
+                          py: 1,
+                          borderTop: 1,
+                          borderBottom: 1,
+                          borderColor: "divider",
+                          background:
+                            "linear-gradient(90deg, rgba(255,255,255,0), rgba(124,77,255,0.08), rgba(0,188,212,0.08), rgba(255,255,255,0))"
+                        }}
+                      >
+                        <Box sx={{ width: 42, height: 4, bgcolor: "primary.main" }} />
+                        <Typography variant="h3">{group.label}</Typography>
+                        <Chip label={group.groupKey} size="small" />
+                      </Box>
+
+                      <Box
+                        sx={{
+                          display: "grid",
+                          gap: 2,
+                          gridTemplateColumns: { xs: "1fr", lg: "repeat(2, minmax(0, 1fr))" }
+                        }}
+                      >
+                        {group.items.map((item) => {
+                          const visibleFields = getVisibleGroupFields(group.groupKey, item.fields);
+
+                          if (!visibleFields.length) {
+                            return null;
+                          }
+
+                          return (
+                            <Box
+                              key={item.id}
+                              sx={{
+                                border: 1,
+                                borderColor: "divider",
+                                bgcolor: "background.paper",
+                                p: 2,
+                                display: "grid",
+                                gap: 1.5
+                              }}
+                            >
+                              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} useFlexGap justifyContent="space-between">
+                                <Typography sx={{ fontWeight: 700 }}>{item.label}</Typography>
+                                <Chip label={item.itemKey} size="small" />
+                              </Stack>
+
+                              <Box sx={{ display: "grid", gap: 1.5 }}>
+                                {visibleFields.map((field) => (
+                                  <Box
+                                    key={field.id}
+                                    sx={{
+                                      border: 1,
+                                      borderColor: "divider",
+                                      bgcolor: "background.default",
+                                      p: 1.5
+                                    }}
+                                  >
+                                    <CmsFieldEditor
+                                      action={updateGroupItemFieldAction}
+                                      field={field}
+                                      helperText={getFieldHint(section.sectionKey, `${group.groupKey}.${field.fieldKey}`)}
+                                      mediaAssets={mediaAssets}
+                                    />
+                                  </Box>
+                                ))}
+                              </Box>
+                            </Box>
+                          );
+                        })}
+                      </Box>
+                    </Box>
+                  ))}
+              </Stack>
+            </Box>
+          ))}
+      </Stack>
+    ) : (
+      <Typography color="text.secondary">
+        No se pudo cargar la configuracion del home. Aplica primero las migraciones de homepage en Supabase.
+      </Typography>
+    );
+  } catch (error) {
+    console.error("[admin/diseno-web] render error", error);
+    homeEditorContent = (
+      <Alert severity="error">
+        La configuracion del home cargo con un dato invalido y no pudo renderizarse por completo. Revisa los logs del
+        servidor para el detalle tecnico.
+      </Alert>
+    );
   }
 
   return (
@@ -223,160 +395,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
       <Stack spacing={1.5}>
         <Typography variant="h2">Configuracion de portada</Typography>
         <Typography color="text.secondary">Aqui solo aparecen los campos que la home usa realmente.</Typography>
-
-        {homeConfig ? (
-          <Stack spacing={3}>
-            {editorSectionOrder
-              .map((sectionKey) => homeConfig.sections[sectionKey])
-              .filter((section): section is NonNullable<(typeof homeConfig.sections)[string]> => Boolean(section))
-              .map((section) => (
-                <Box
-                  key={section.id}
-                  sx={{
-                    border: 1,
-                    borderColor: "divider",
-                    background: (theme) =>
-                      theme.palette.mode === "dark"
-                        ? "linear-gradient(180deg, rgba(26,35,50,0.92), rgba(18,26,39,0.92))"
-                        : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,247,252,0.98))",
-                    overflow: "hidden"
-                  }}
-                >
-                  <Box
-                    sx={{
-                      px: { xs: 2, md: 2.5 },
-                      py: 1.5,
-                      borderBottom: 1,
-                      borderColor: "divider",
-                      background:
-                        "linear-gradient(90deg, rgba(124,77,255,0.18), rgba(0,188,212,0.14), rgba(255,193,7,0.18))"
-                    }}
-                  >
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1} useFlexGap justifyContent="space-between">
-                      <Typography variant="h3">{section.label}</Typography>
-                      <Chip label={section.sectionKey} size="small" />
-                    </Stack>
-                  </Box>
-
-                  <Stack spacing={2} sx={{ p: { xs: 2, md: 2.5 } }}>
-                    {getVisibleSectionFields(section.sectionKey, section.fields).length ? (
-                      <Box
-                        sx={{
-                          display: "grid",
-                          gap: 2,
-                          gridTemplateColumns: { xs: "1fr", xl: "repeat(2, minmax(0, 1fr))" }
-                        }}
-                      >
-                        {getVisibleSectionFields(section.sectionKey, section.fields).map((field) => (
-                          <Box
-                            key={field.id}
-                            sx={{
-                              border: 1,
-                              borderColor: "divider",
-                              bgcolor: "background.paper",
-                              p: 2
-                            }}
-                          >
-                            <CmsFieldEditor
-                              action={updateSectionFieldAction}
-                              field={field}
-                              helperText={getFieldHint(section.sectionKey, field.fieldKey)}
-                              mediaAssets={mediaAssets}
-                            />
-                          </Box>
-                        ))}
-                      </Box>
-                    ) : null}
-
-                    {Object.values(section.groups)
-                      .sort((a, b) => a.sortOrder - b.sortOrder)
-                      .filter((group) => getVisibleGroupFields(group.groupKey, group.items[0]?.fields || {}).length || group.items.some((item) => getVisibleGroupFields(group.groupKey, item.fields).length))
-                      .map((group) => (
-                        <Box key={group.id} sx={{ display: "grid", gap: 1.5 }}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1.25,
-                              py: 1,
-                              borderTop: 1,
-                              borderBottom: 1,
-                              borderColor: "divider",
-                              background:
-                                "linear-gradient(90deg, rgba(255,255,255,0), rgba(124,77,255,0.08), rgba(0,188,212,0.08), rgba(255,255,255,0))"
-                            }}
-                          >
-                            <Box sx={{ width: 42, height: 4, bgcolor: "primary.main" }} />
-                            <Typography variant="h3">{group.label}</Typography>
-                            <Chip label={group.groupKey} size="small" />
-                          </Box>
-
-                          <Box
-                            sx={{
-                              display: "grid",
-                              gap: 2,
-                              gridTemplateColumns: { xs: "1fr", lg: "repeat(2, minmax(0, 1fr))" }
-                            }}
-                          >
-                            {group.items.map((item) => {
-                              const visibleFields = getVisibleGroupFields(group.groupKey, item.fields);
-
-                              if (!visibleFields.length) {
-                                return null;
-                              }
-
-                              return (
-                                <Box
-                                  key={item.id}
-                                  sx={{
-                                    border: 1,
-                                    borderColor: "divider",
-                                    bgcolor: "background.paper",
-                                    p: 2,
-                                    display: "grid",
-                                    gap: 1.5
-                                  }}
-                                >
-                                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1} useFlexGap justifyContent="space-between">
-                                    <Typography sx={{ fontWeight: 700 }}>{item.label}</Typography>
-                                    <Chip label={item.itemKey} size="small" />
-                                  </Stack>
-
-                                  <Box sx={{ display: "grid", gap: 1.5 }}>
-                                    {visibleFields.map((field) => (
-                                      <Box
-                                        key={field.id}
-                                        sx={{
-                                          border: 1,
-                                          borderColor: "divider",
-                                          bgcolor: "background.default",
-                                          p: 1.5
-                                        }}
-                                      >
-                                        <CmsFieldEditor
-                                          action={updateGroupItemFieldAction}
-                                          field={field}
-                                          helperText={getFieldHint(section.sectionKey, `${group.groupKey}.${field.fieldKey}`)}
-                                          mediaAssets={mediaAssets}
-                                        />
-                                      </Box>
-                                    ))}
-                                  </Box>
-                                </Box>
-                              );
-                            })}
-                          </Box>
-                        </Box>
-                      ))}
-                  </Stack>
-                </Box>
-              ))}
-          </Stack>
-        ) : (
-          <Typography color="text.secondary">
-            No se pudo cargar la configuracion del home. Aplica primero las migraciones de homepage en Supabase.
-          </Typography>
-        )}
+        {homeEditorContent}
       </Stack>
 
       <Stack spacing={1.5}>
