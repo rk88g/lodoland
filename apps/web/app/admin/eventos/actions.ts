@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { logAdminAction } from "../../../lib/audit";
 import { requireAdmin } from "../../../lib/auth/session";
 import { createClient } from "../../../lib/supabase/server";
 
@@ -32,7 +33,7 @@ export async function createEventAction(formData: FormData) {
     redirect("/admin/eventos?error=Debes indicar titulo y slug del evento.");
   }
 
-  const { error } = await supabase.from("events").insert({
+  const { data, error } = await supabase.from("events").insert({
     slug,
     title,
     short_description: shortDescription || null,
@@ -43,13 +44,31 @@ export async function createEventAction(formData: FormData) {
     status,
     created_by: session.profile?.id || null,
     updated_by: session.profile?.id || null
-  });
+  }).select("id").maybeSingle();
 
   if (error) {
     redirect(`/admin/eventos?error=${encodeURIComponent(error.message)}`);
   }
 
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "event",
+    entityId: data?.id || null,
+    action: "create",
+    summary: "Alta de evento desde control",
+    payload: {
+      slug,
+      title,
+      venueName: venueName || null,
+      city: city || null,
+      startsAt: startsAt || null,
+      status
+    }
+  });
+
   revalidatePath("/admin/eventos");
   revalidatePath("/perfil");
   revalidatePath("/");
+  redirect("/admin/eventos?success=Evento%20creado%20correctamente.");
 }

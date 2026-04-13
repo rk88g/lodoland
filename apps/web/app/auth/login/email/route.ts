@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getPublicAppUrls } from "../../../../lib/app-urls";
 import { isStaffEmail, resolveDestination, sanitizeMessage } from "../../../../lib/auth/core";
+import { applyAppSessionCookie } from "../../../../lib/auth/session-policy";
 import { createAuthRouteClient } from "../../../../lib/auth/route-client";
 
 export async function POST(request: NextRequest) {
@@ -36,5 +37,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return withCookies(NextResponse.redirect(new URL(await resolveDestination(supabase), siteUrl)));
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
+    : { data: null };
+
+  const response = withCookies(NextResponse.redirect(new URL(await resolveDestination(supabase), siteUrl)));
+  applyAppSessionCookie(response, profile?.role ?? null);
+  return response;
 }

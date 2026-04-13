@@ -8,7 +8,9 @@ export const controlNavItems: DashboardNavItem[] = [
   { href: "/admin/catalogo" as Route, icon: "catalog", label: "Catalogo" },
   { href: "/admin/promociones" as Route, icon: "promotions", label: "Promocion" },
   { href: "/admin/tickets" as Route, icon: "tickets", label: "Tickets" },
-  { href: "/admin/finanzas" as Route, icon: "finance", label: "Finanzas" }
+  { href: "/admin/finanzas" as Route, icon: "finance", label: "Finanzas" },
+  { href: "/admin/logs/acciones" as Route, icon: "audit", label: "Log acciones" },
+  { href: "/admin/logs/accesos" as Route, icon: "access", label: "Log accesos" }
 ];
 
 export const customerNavItems: DashboardNavItem[] = [

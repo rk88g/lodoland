@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getPublicAppUrls } from "../../../../lib/app-urls";
 import { isStaffEmail, resolveDestination, sanitizeMessage } from "../../../../lib/auth/core";
+import { applyAppSessionCookie } from "../../../../lib/auth/session-policy";
 import { createAuthRouteClient } from "../../../../lib/auth/route-client";
+import { logCollaboratorLogin } from "../../../../lib/audit";
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
@@ -36,5 +38,26 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return withCookies(NextResponse.redirect(new URL(await resolveDestination(supabase), siteUrl)));
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("role, is_active").eq("id", user.id).maybeSingle()
+    : { data: null };
+
+  if (user && profile?.is_active !== false && (profile?.role === "admin" || profile?.role === "super_admin")) {
+    await logCollaboratorLogin({
+      supabase,
+      request,
+      actorUserId: user.id,
+      email: user.email,
+      role: profile.role,
+      provider: "password"
+    });
+  }
+
+  const response = withCookies(NextResponse.redirect(new URL(await resolveDestination(supabase), siteUrl)));
+  applyAppSessionCookie(response, profile?.role ?? null);
+  return response;
 }

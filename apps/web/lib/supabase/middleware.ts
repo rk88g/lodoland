@@ -1,5 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { sanitizeMessage } from "../auth/core";
+import {
+  applyAppSessionCookie,
+  clearAppSessionCookie,
+  getExpiredRedirectPath,
+  isAppSessionExpired
+} from "../auth/session-policy";
 import { getSupabaseEnv } from "./env";
 
 export async function updateSession(request: NextRequest) {
@@ -26,7 +33,46 @@ export async function updateSession(request: NextRequest) {
     }
   });
 
-  await supabase.auth.getUser();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    clearAppSessionCookie(response);
+    return response;
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, is_active")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.is_active === false) {
+    await supabase.auth.signOut();
+    const redirectUrl = new URL(getExpiredRedirectPath(request.nextUrl.pathname), request.url);
+    redirectUrl.searchParams.set("error", sanitizeMessage("Tu cuenta esta desactivada."));
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie);
+    });
+    clearAppSessionCookie(redirectResponse);
+    return redirectResponse;
+  }
+
+  if (isAppSessionExpired(request)) {
+    await supabase.auth.signOut();
+    const redirectUrl = new URL(getExpiredRedirectPath(request.nextUrl.pathname), request.url);
+    redirectUrl.searchParams.set("error", sanitizeMessage("Tu sesion expiro por seguridad."));
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie);
+    });
+    clearAppSessionCookie(redirectResponse);
+    return redirectResponse;
+  }
+
+  applyAppSessionCookie(response, profile?.role ?? null);
 
   return response;
 }

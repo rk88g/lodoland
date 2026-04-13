@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getPublicAppUrls } from "../../../lib/app-urls";
+import { applyAppSessionCookie } from "../../../lib/auth/session-policy";
 import { getSupabaseEnv } from "../../../lib/supabase/env";
 
 export async function GET(request: NextRequest) {
@@ -64,6 +65,8 @@ export async function GET(request: NextRequest) {
   cookiesToSet.forEach(({ name, value, options }) => {
     response.cookies.set(name, value, options);
   });
+
+  applyAppSessionCookie(response, profile?.role ?? null);
 
   return response;
 }

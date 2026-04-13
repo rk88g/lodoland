@@ -16,6 +16,8 @@ import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined
 import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
 import WbSunnyOutlinedIcon from "@mui/icons-material/WbSunnyOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
+import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
+import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
 import {
   AppBar,
   Box,
@@ -42,7 +44,9 @@ type NavIcon =
   | "promotions"
   | "tickets"
   | "finance"
-  | "profile";
+  | "profile"
+  | "audit"
+  | "access";
 
 export type DashboardNavItem = {
   href: Route;
@@ -75,6 +79,10 @@ function resolveIcon(icon: NavIcon) {
       return <PaymentsOutlinedIcon fontSize="small" />;
     case "profile":
       return <PersonOutlineOutlinedIcon fontSize="small" />;
+    case "audit":
+      return <HistoryOutlinedIcon fontSize="small" />;
+    case "access":
+      return <LoginOutlinedIcon fontSize="small" />;
     default:
       return <DashboardOutlinedIcon fontSize="small" />;
   }

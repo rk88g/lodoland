@@ -19,6 +19,7 @@ export const dynamic = "force-dynamic";
 type AdminEventsPageProps = {
   searchParams?: {
     error?: string;
+    success?: string;
   };
 };
 
@@ -37,6 +38,7 @@ export default async function AdminEventsPage({ searchParams }: AdminEventsPageP
   await requireAdmin();
   const [upcomingEvents, mediaAssets] = await Promise.all([getUpcomingEvents(5), getMediaAssets(24)]);
   const errorMessage = searchParams?.error ? decodeURIComponent(searchParams.error) : null;
+  const successMessage = searchParams?.success ? decodeURIComponent(searchParams.success) : null;
 
   return (
     <DashboardShell
@@ -44,6 +46,7 @@ export default async function AdminEventsPage({ searchParams }: AdminEventsPageP
       subtitle="Próximo evento y lista operativa"
       title="Eventos"
     >
+      {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
       {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
 
       <Stack spacing={1.5}>

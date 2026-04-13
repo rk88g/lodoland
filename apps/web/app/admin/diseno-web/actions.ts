@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { logAdminAction } from "../../../lib/audit";
 import { requireAdmin } from "../../../lib/auth/session";
 import { MEDIA_BUCKET } from "../../../lib/supabase/storage";
 import { createClient } from "../../../lib/supabase/server";
@@ -81,6 +82,20 @@ export async function registerMediaAssetAction(formData: FormData) {
     redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}`);
   }
 
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "media_asset",
+    action: "create",
+    summary: "Registro de asset en diseno web",
+    payload: {
+      bucket: MEDIA_BUCKET,
+      path,
+      title: title || null,
+      isPublic
+    }
+  });
+
   revalidatePath("/admin/diseno-web");
   revalidatePath("/");
   redirect("/admin/diseno-web?success=Asset%20subido%20y%20registrado%20correctamente.");
@@ -110,12 +125,24 @@ export async function createMediaCollectionAction(formData: FormData) {
     redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}`);
   }
 
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "media_collection",
+    action: "create",
+    summary: "Alta de coleccion de medios",
+    payload: {
+      slug,
+      label
+    }
+  });
+
   revalidatePath("/admin/diseno-web");
   redirect("/admin/diseno-web?success=Coleccion%20creada%20correctamente.");
 }
 
 export async function createAvatarPresetAction(formData: FormData) {
-  await requireAdmin();
+  const session = await requireAdmin();
   const supabase = createClient();
 
   const label = String(formData.get("label") ?? "").trim();
@@ -139,6 +166,18 @@ export async function createAvatarPresetAction(formData: FormData) {
   if (error) {
     redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}`);
   }
+
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "avatar_preset",
+    action: "create",
+    summary: "Alta de avatar predefinido",
+    payload: {
+      slug,
+      label
+    }
+  });
 
   revalidatePath("/admin/diseno-web");
   redirect("/admin/diseno-web?success=Avatar%20creado%20correctamente.");
@@ -176,6 +215,21 @@ export async function updateSectionFieldAction(formData: FormData) {
     redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}`);
   }
 
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "cms_section_field",
+    entityId: fieldId,
+    action: "update",
+    summary: `Actualizacion de campo de seccion (${kind})`,
+    payload: {
+      kind,
+      textValue: textValue || null,
+      linkUrl: linkUrl || null,
+      mediaAssetId: mediaAssetId || null
+    }
+  });
+
   revalidatePath("/admin/diseno-web");
   revalidatePath("/");
   redirect("/admin/diseno-web?success=Campo%20actualizado%20correctamente.");
@@ -212,6 +266,21 @@ export async function updateGroupItemFieldAction(formData: FormData) {
   if (error) {
     redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}`);
   }
+
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "cms_group_item_field",
+    entityId: fieldId,
+    action: "update",
+    summary: `Actualizacion de campo de item (${kind})`,
+    payload: {
+      kind,
+      textValue: textValue || null,
+      linkUrl: linkUrl || null,
+      mediaAssetId: mediaAssetId || null
+    }
+  });
 
   revalidatePath("/admin/diseno-web");
   revalidatePath("/");
