@@ -198,6 +198,8 @@ export function DashboardShell({
           open
           sx={{
             display: { xs: "none", md: "block" },
+            width: drawerWidth,
+            flexShrink: 0,
             "& .MuiDrawer-paper": {
               width: drawerWidth,
               boxSizing: "border-box",
@@ -210,7 +212,14 @@ export function DashboardShell({
           {drawerContent}
         </Drawer>
 
-        <Box component="main" sx={{ flexGrow: 1, minWidth: 0 }}>
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            minWidth: 0,
+            width: { md: `calc(100% - ${drawerWidth}px)` }
+          }}
+        >
           <Toolbar sx={{ minHeight: 64 }} />
           <Stack spacing={2} sx={{ p: { xs: 2, md: 3 } }}>
             <Paper

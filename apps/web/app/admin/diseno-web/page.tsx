@@ -87,19 +87,39 @@ function getVisibleGroupFields(groupKey: string, fields: Record<string, CmsField
 
 export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWebPageProps) {
   await requireAdmin();
-  const [mediaAssets, mediaCollections, sectionBindings, avatarPresets, homeConfig] = await Promise.all([
-    getMediaAssets(120),
-    getMediaCollections(20),
-    getSectionBindings(20),
-    getAvatarPresets(),
-    getCmsPageConfig("home")
-  ]);
+  let mediaAssets = [] as Awaited<ReturnType<typeof getMediaAssets>>;
+  let mediaCollections = [] as Awaited<ReturnType<typeof getMediaCollections>>;
+  let sectionBindings = [] as Awaited<ReturnType<typeof getSectionBindings>>;
+  let avatarPresets = [] as Awaited<ReturnType<typeof getAvatarPresets>>;
+  let homeConfig: Awaited<ReturnType<typeof getCmsPageConfig>> = null;
+  let loadError: string | null = null;
 
-  const errorMessage = searchParams?.error ? decodeURIComponent(searchParams.error) : null;
+  try {
+    [mediaAssets, mediaCollections, sectionBindings, avatarPresets, homeConfig] = await Promise.all([
+      getMediaAssets(120),
+      getMediaCollections(20),
+      getSectionBindings(20),
+      getAvatarPresets(),
+      getCmsPageConfig("home")
+    ]);
+  } catch (error) {
+    loadError = error instanceof Error ? error.message : "No se pudo cargar la configuracion del editor.";
+  }
+
+  let errorMessage: string | null = null;
+
+  if (searchParams?.error) {
+    try {
+      errorMessage = decodeURIComponent(searchParams.error);
+    } catch {
+      errorMessage = searchParams.error;
+    }
+  }
 
   return (
     <DashboardShell navItems={controlNavItems} subtitle="Sitio, assets y secciones" title="Diseno web">
       {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
+      {loadError ? <Alert severity="warning">{loadError}</Alert> : null}
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Subir asset a Supabase</Typography>
@@ -111,16 +131,29 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
         <form action={registerMediaAssetAction} autoComplete="off" encType="multipart/form-data">
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
-              <TextField
-                autoComplete="off"
-                helperText="Formato recomendado: WebP, PNG o JPG. Maximo 10 MB."
-                inputProps={{ accept: "image/png,image/jpeg,image/webp,image/gif,image/svg+xml" }}
-                InputLabelProps={{ shrink: true }}
-                label="Archivo"
-                name="file"
-                required
-                type="file"
-              />
+              <Stack spacing={0.75}>
+                <Typography sx={{ fontSize: 13, fontWeight: 700 }}>Archivo</Typography>
+                <Box
+                  sx={{
+                    border: 1,
+                    borderColor: "divider",
+                    bgcolor: "background.paper",
+                    px: 1.5,
+                    py: 1.25
+                  }}
+                >
+                  <input
+                    accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                    name="file"
+                    required
+                    style={{ width: "100%" }}
+                    type="file"
+                  />
+                </Box>
+                <Typography color="text.secondary" variant="caption">
+                  Formato recomendado: WebP, PNG o JPG. Maximo 10 MB.
+                </Typography>
+              </Stack>
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
               <TextField autoComplete="off" defaultValue="home/general" helperText="Carpeta dentro del bucket." label="Seccion / carpeta" name="folder" />
