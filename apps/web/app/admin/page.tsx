@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button, Grid, Stack, Typography } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import { DashboardShell } from "../../components/dashboard-shell";
 import { requireAdmin } from "../../lib/auth/session";
 import { getMediaAssets, getUpcomingEvents } from "../../lib/data/portal";
@@ -17,49 +17,49 @@ export default async function AdminPage() {
       subtitle="Panel central"
       title="Control"
     >
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={4}>
+      <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(3, minmax(0, 1fr))" } }}>
+        <Box>
           <Stack spacing={0.75}>
             <Typography variant="body2" color="text.secondary">
               Próximos eventos
             </Typography>
             <Typography variant="h2">{upcomingEvents.length}</Typography>
           </Stack>
-        </Grid>
-        <Grid item xs={12} md={4}>
+        </Box>
+        <Box>
           <Stack spacing={0.75}>
             <Typography variant="body2" color="text.secondary">
               Assets registrados
             </Typography>
             <Typography variant="h2">{mediaAssets.length}</Typography>
           </Stack>
-        </Grid>
-        <Grid item xs={12} md={4}>
+        </Box>
+        <Box>
           <Stack spacing={0.75}>
             <Typography variant="body2" color="text.secondary">
               Sistema
             </Typography>
             <Typography variant="h2">Material UI</Typography>
           </Stack>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Módulos principales</Typography>
-        <Grid container spacing={2}>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", md: "repeat(3, minmax(0, 1fr))" } }}>
           {controlNavItems
             .filter((item) => item.href !== "/admin")
             .map((item) => (
-              <Grid item xs={12} sm={6} md={4} key={item.href}>
+              <Box key={item.href}>
                 <Stack spacing={1.25}>
                   <Typography variant="h3">{item.label}</Typography>
                   <Button component={Link} href={item.href} variant="outlined">
                     Abrir módulo
                   </Button>
                 </Stack>
-              </Grid>
+              </Box>
             ))}
-        </Grid>
+        </Box>
       </Stack>
 
       <Stack spacing={1.5}>

@@ -1,4 +1,4 @@
-import { Box, Chip, Grid, Stack, Typography } from "@mui/material";
+import { Box, Chip, Stack, Typography } from "@mui/material";
 import { requireUser } from "../../lib/auth/session";
 import { getUpcomingEvents } from "../../lib/data/portal";
 import { customerNavItems } from "../../lib/navigation";
@@ -30,11 +30,11 @@ export default async function EventsPage() {
       <Stack spacing={1.5}>
         <Typography variant="h2">Próximos eventos</Typography>
         {upcomingEvents.length ? (
-          <Grid container spacing={2}>
+          <Box sx={{ display: "grid", gap: 2 }}>
             {upcomingEvents.map((event) => (
-              <Grid item xs={12} key={event.id}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={3}>
+              <Box key={event.id}>
+                <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "240px minmax(0, 1fr)" } }}>
+                  <Box>
                     <Box
                       sx={{
                         minHeight: 148,
@@ -46,8 +46,8 @@ export default async function EventsPage() {
                         backgroundPosition: "center"
                       }}
                     />
-                  </Grid>
-                  <Grid item xs={12} md={9}>
+                  </Box>
+                  <Box>
                     <Stack spacing={1}>
                       <Typography variant="h3">{event.title}</Typography>
                       <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -59,11 +59,11 @@ export default async function EventsPage() {
                         <Typography color="text.secondary">{event.shortDescription}</Typography>
                       ) : null}
                     </Stack>
-                  </Grid>
-                </Grid>
-              </Grid>
+                  </Box>
+                </Box>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         ) : (
           <Typography color="text.secondary">
             Aún no hay eventos publicados.

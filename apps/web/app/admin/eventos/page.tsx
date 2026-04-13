@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Chip,
-  Grid,
   MenuItem,
   Stack,
   TextField,
@@ -50,38 +49,38 @@ export default async function AdminEventsPage({ searchParams }: AdminEventsPageP
       <Stack spacing={1.5}>
         <Typography variant="h2">Crear evento</Typography>
         <form action={createEventAction}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
               <TextField label="Título" name="title" required />
-            </Grid>
-            <Grid item xs={12} md={3}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
               <TextField label="Slug" name="slug" placeholder="mud-festival-2026" />
-            </Grid>
-            <Grid item xs={12} md={3}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
               <TextField label="Ciudad" name="city" />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
               <TextField label="Descripción corta" name="shortDescription" />
-            </Grid>
-            <Grid item xs={12} md={3}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
               <TextField label="Sede" name="venueName" />
-            </Grid>
-            <Grid item xs={12} md={3}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
               <TextField
                 InputLabelProps={{ shrink: true }}
                 label="Fecha y hora"
                 name="startsAt"
                 type="datetime-local"
               />
-            </Grid>
-            <Grid item xs={12} md={4}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
               <TextField defaultValue="draft" label="Estado" name="status" select>
                 <MenuItem value="draft">draft</MenuItem>
                 <MenuItem value="published">published</MenuItem>
                 <MenuItem value="archived">archived</MenuItem>
               </TextField>
-            </Grid>
-            <Grid item xs={12} md={8}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 8" } }}>
               <TextField
                 helperText="Selecciona el ID de un asset ya registrado en Diseño web."
                 label="Cover asset ID"
@@ -95,24 +94,24 @@ export default async function AdminEventsPage({ searchParams }: AdminEventsPageP
                   </MenuItem>
                 ))}
               </TextField>
-            </Grid>
-            <Grid item xs={12}>
+            </Box>
+            <Box sx={{ gridColumn: "1 / -1" }}>
               <Button type="submit" variant="contained">
                 Guardar evento
               </Button>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </form>
       </Stack>
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Próximos 5 eventos</Typography>
         {upcomingEvents.length ? (
-          <Grid container spacing={2}>
+          <Box sx={{ display: "grid", gap: 2 }}>
             {upcomingEvents.map((event) => (
-              <Grid item xs={12} key={event.id}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={3}>
+              <Box key={event.id}>
+                <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "240px minmax(0, 1fr)" } }}>
+                  <Box>
                     <Box
                       sx={{
                         minHeight: 148,
@@ -124,8 +123,8 @@ export default async function AdminEventsPage({ searchParams }: AdminEventsPageP
                         backgroundPosition: "center"
                       }}
                     />
-                  </Grid>
-                  <Grid item xs={12} md={9}>
+                  </Box>
+                  <Box>
                     <Stack spacing={1}>
                       <Typography variant="h3">{event.title}</Typography>
                       <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -137,11 +136,11 @@ export default async function AdminEventsPage({ searchParams }: AdminEventsPageP
                         <Typography color="text.secondary">{event.shortDescription}</Typography>
                       ) : null}
                     </Stack>
-                  </Grid>
-                </Grid>
-              </Grid>
+                  </Box>
+                </Box>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         ) : (
           <Typography color="text.secondary">
             Aún no hay eventos publicados con fecha futura.

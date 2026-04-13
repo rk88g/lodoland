@@ -1,4 +1,4 @@
-import { Grid, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { requireAdmin } from "../../../lib/auth/session";
 import { controlNavItems } from "../../../lib/navigation";
@@ -16,30 +16,30 @@ export default async function AdminCatalogoPage() {
     >
       <Stack spacing={1.5}>
         <Typography variant="h2">Producto base</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
+          <Box>
             <Typography>Nombre, slug, descripción, imagen principal, estado, categoría y precio.</Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box>
             <Typography color="text.secondary">
               Este módulo se conectará con `products`, `product_variants` y assets del bucket.
             </Typography>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Stack>
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Variantes</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
+          <Box>
             <Typography>Talla, color, SKU, costo, precio y stock por variante.</Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box>
             <Typography color="text.secondary">
               Después conectaremos inventario, movimientos, assets por variante y disponibilidad.
             </Typography>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Stack>
     </DashboardShell>
   );

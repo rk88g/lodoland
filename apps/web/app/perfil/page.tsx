@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   Chip,
-  Grid,
   Stack,
   Typography
 } from "@mui/material";
@@ -40,8 +39,8 @@ export default async function ProfilePage() {
       <Stack spacing={1.5}>
         <Typography variant="h2">Próximo evento</Typography>
         {nextEvent ? (
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
+          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "280px minmax(0, 1fr)" } }}>
+            <Box>
               <Box
                 sx={{
                   minHeight: 220,
@@ -53,8 +52,8 @@ export default async function ProfilePage() {
                   backgroundPosition: "center"
                 }}
               />
-            </Grid>
-            <Grid item xs={12} md={8}>
+            </Box>
+            <Box>
               <Stack spacing={1.5}>
                 <Typography variant="h3">{nextEvent.title}</Typography>
                 <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -72,8 +71,8 @@ export default async function ProfilePage() {
                   <Button variant="outlined">Comprar después</Button>
                 </Stack>
               </Stack>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         ) : (
           <Typography color="text.secondary">
             Aún no hay un evento publicado para mostrar en intranet.
@@ -83,8 +82,8 @@ export default async function ProfilePage() {
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Perfil</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
+          <Box>
             <Stack spacing={1}>
               <Typography variant="body2" color="text.secondary">
                 Nombre
@@ -103,8 +102,8 @@ export default async function ProfilePage() {
               </Typography>
               <Typography>{profile?.role || "customer"}</Typography>
             </Stack>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box>
             <Stack spacing={1}>
               <Typography variant="body2" color="text.secondary">
                 Estado
@@ -115,16 +114,27 @@ export default async function ProfilePage() {
               </Typography>
               <Typography>Tickets, rifas, quinielas, compras y campañas personalizadas.</Typography>
             </Stack>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Stack>
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Avatares disponibles</Typography>
         {avatarPresets.length ? (
-          <Grid container spacing={2}>
+          <Box
+            sx={{
+              display: "grid",
+              gap: 2,
+              gridTemplateColumns: {
+                xs: "repeat(2, minmax(0, 1fr))",
+                sm: "repeat(3, minmax(0, 1fr))",
+                md: "repeat(4, minmax(0, 1fr))",
+                lg: "repeat(6, minmax(0, 1fr))"
+              }
+            }}
+          >
             {avatarPresets.map((avatarPreset) => (
-              <Grid item xs={6} sm={4} md={3} lg={2} key={avatarPreset.id}>
+              <Box key={avatarPreset.id}>
                 <Stack spacing={1}>
                   <Box
                     sx={{
@@ -155,9 +165,9 @@ export default async function ProfilePage() {
                   </Box>
                   <Typography variant="body2">{avatarPreset.label}</Typography>
                 </Stack>
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         ) : (
           <Typography color="text.secondary">
             Aún no hay avatares registrados en CONTROL &gt; Diseño web.
