@@ -1,66 +1,96 @@
-import type { Route } from "next";
 import Link from "next/link";
+import { Button, Grid, Stack, Typography } from "@mui/material";
+import { DashboardShell } from "../../components/dashboard-shell";
 import { requireAdmin } from "../../lib/auth/session";
-
-const modules: Array<{
-  href: Route;
-  title: string;
-  description: string;
-}> = [
-  {
-    href: "/admin/diseno-web",
-    title: "Diseno Web",
-    description: "Configura secciones, textos, imagenes, banners, colecciones y asignaciones por bloque."
-  },
-  {
-    href: "/admin/eventos",
-    title: "Eventos",
-    description: "Administra calendario, proximos eventos, capacidades, tickets, cortesias e inventario."
-  },
-  {
-    href: "/admin/catalogo",
-    title: "Catalogo",
-    description: "Controla productos, variantes, tallas, colores, imagenes, stock y merchandising."
-  },
-  {
-    href: "/admin/promociones",
-    title: "Promocion",
-    description: "Configura rifas, quinielas, ventas directas, viajes, regalos, sorteos y campanas."
-  },
-  {
-    href: "/admin/tickets",
-    title: "Tickets",
-    description: "Visualiza tickets generados, pendientes, vendidos, cortesia, inventario y trazabilidad."
-  },
-  {
-    href: "/admin/finanzas",
-    title: "Finanzas",
-    description: "Control de ingresos, gastos, categorias, balances por evento, promo y resumen global."
-  }
-];
+import { getMediaAssets, getUpcomingEvents } from "../../lib/data/portal";
+import { controlNavItems } from "../../lib/navigation";
+import { signOutAction } from "../login/actions";
 
 export default async function AdminPage() {
   await requireAdmin();
+  const [upcomingEvents, mediaAssets] = await Promise.all([getUpcomingEvents(5), getMediaAssets(8)]);
 
   return (
-    <main className="page-frame">
-      <section className="page-card">
-        <span className="eyebrow">CONTROL</span>
-        <h1>Panel de Control</h1>
-        <p>
-          Este es el punto de partida del sistema central para configurar el sitio, operar ventas
-          y controlar toda la estructura comercial de LODO LAND.
-        </p>
+    <DashboardShell
+      navItems={controlNavItems}
+      signOutAction={signOutAction}
+      subtitle="Panel central"
+      title="Control"
+    >
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={4}>
+          <Stack spacing={0.75}>
+            <Typography variant="body2" color="text.secondary">
+              Próximos eventos
+            </Typography>
+            <Typography variant="h2">{upcomingEvents.length}</Typography>
+          </Stack>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Stack spacing={0.75}>
+            <Typography variant="body2" color="text.secondary">
+              Assets registrados
+            </Typography>
+            <Typography variant="h2">{mediaAssets.length}</Typography>
+          </Stack>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Stack spacing={0.75}>
+            <Typography variant="body2" color="text.secondary">
+              Sistema
+            </Typography>
+            <Typography variant="h2">Material UI</Typography>
+          </Stack>
+        </Grid>
+      </Grid>
 
-        <div className="grid-two">
-          {modules.map((module) => (
-            <Link className="list-card" href={module.href} key={module.href}>
-              <strong>{module.title}</strong>
-              <p>{module.description}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-    </main>
+      <Stack spacing={1.5}>
+        <Typography variant="h2">Módulos principales</Typography>
+        <Grid container spacing={2}>
+          {controlNavItems
+            .filter((item) => item.href !== "/admin")
+            .map((item) => (
+              <Grid item xs={12} sm={6} md={4} key={item.href}>
+                <Stack spacing={1.25}>
+                  <Typography variant="h3">{item.label}</Typography>
+                  <Button component={Link} href={item.href} variant="outlined">
+                    Abrir módulo
+                  </Button>
+                </Stack>
+              </Grid>
+            ))}
+        </Grid>
+      </Stack>
+
+      <Stack spacing={1.5}>
+        <Typography variant="h2">Actividad inmediata</Typography>
+        {upcomingEvents.length ? (
+          <Stack spacing={1}>
+            {upcomingEvents.map((event) => (
+              <Stack
+                direction={{ xs: "column", md: "row" }}
+                justifyContent="space-between"
+                key={event.id}
+                spacing={1}
+              >
+                <Typography>{event.title}</Typography>
+                <Typography color="text.secondary" variant="body2">
+                  {event.startsAt
+                    ? new Intl.DateTimeFormat("es-MX", {
+                        dateStyle: "medium",
+                        timeStyle: "short"
+                      }).format(new Date(event.startsAt))
+                    : "Sin fecha"}
+                </Typography>
+              </Stack>
+            ))}
+          </Stack>
+        ) : (
+          <Typography color="text.secondary">
+            No hay eventos publicados todavía. El siguiente paso natural es registrar uno en el módulo de Eventos.
+          </Typography>
+        )}
+      </Stack>
+    </DashboardShell>
   );
 }

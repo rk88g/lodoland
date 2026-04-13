@@ -1,29 +1,46 @@
+import { Grid, Stack, Typography } from "@mui/material";
+import { DashboardShell } from "../../../components/dashboard-shell";
 import { requireAdmin } from "../../../lib/auth/session";
+import { controlNavItems } from "../../../lib/navigation";
+import { signOutAction } from "../../login/actions";
 
 export default async function AdminPromocionesPage() {
   await requireAdmin();
 
   return (
-    <main className="page-frame">
-      <section className="page-card">
-        <span className="eyebrow">Promocion</span>
-        <h1>Motor Comercial</h1>
-        <p>
-          Aqui vamos a operar rifas, quinielas, ventas directas, viajes, regalos, campañas y
-          promociones destacadas para la web y para la intranet del cliente.
-        </p>
+    <DashboardShell
+      navItems={controlNavItems}
+      signOutAction={signOutAction}
+      subtitle="Rifas, quinielas y motor comercial"
+      title="Promoción"
+    >
+      <Stack spacing={1.5}>
+        <Typography variant="h2">Promociones visibles</Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Typography>Controlaremos las 4 promociones principales visibles en la home pública.</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography color="text.secondary">
+              La estructura ya está prevista con `promotions`, `promotion_feature_slots` y `promotion_offers`.
+            </Typography>
+          </Grid>
+        </Grid>
+      </Stack>
 
-        <div className="grid-two">
-          <article className="list-card">
-            <strong>Frente publico</strong>
-            <p>Seleccion de las 4 promociones principales visibles en la home publica.</p>
-          </article>
-          <article className="list-card">
-            <strong>Frente privado</strong>
-            <p>Catalogo completo de promociones para clientes ya autenticados en intranet.</p>
-          </article>
-        </div>
-      </section>
-    </main>
+      <Stack spacing={1.5}>
+        <Typography variant="h2">Operación interna</Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Typography>Rifas, quinielas, venta directa, campañas, regalos y otros esquemas escalables.</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography color="text.secondary">
+              Aquí conectaremos inventario, reglas, premios, fechas, números vendidos y resultados.
+            </Typography>
+          </Grid>
+        </Grid>
+      </Stack>
+    </DashboardShell>
   );
 }

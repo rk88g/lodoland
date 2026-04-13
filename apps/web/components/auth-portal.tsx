@@ -1,8 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import styles from "./auth-portal.module.css";
+import { useState } from "react";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import FacebookRoundedIcon from "@mui/icons-material/FacebookRounded";
+import GoogleIcon from "@mui/icons-material/Google";
+import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
+import NightlightRoundOutlinedIcon from "@mui/icons-material/NightlightRoundOutlined";
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Alert,
+  Box,
+  Button,
+  Divider,
+  Paper,
+  Stack,
+  TextField,
+  Typography
+} from "@mui/material";
+import { useMaterialMode } from "./material-theme-provider";
 
 type AuthPortalProps = {
   errorMessage?: string | null;
@@ -15,45 +33,6 @@ type AuthPortalProps = {
   signInStaffAction?: (formData: FormData) => Promise<void>;
 };
 
-type ThemeMode = "dark" | "light";
-type CustomerPanel = "signin" | "signup";
-
-const themeStorageKey = "lodoland-auth-theme";
-
-function GoogleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M21.8 12.23c0-.73-.06-1.43-.2-2.09H12v3.95h5.49a4.7 4.7 0 0 1-2.04 3.08v2.56h3.3c1.93-1.78 3.05-4.4 3.05-7.5Z"
-        fill="#4285F4"
-      />
-      <path
-        d="M12 22c2.76 0 5.08-.91 6.77-2.47l-3.3-2.56c-.92.62-2.08.98-3.47.98-2.67 0-4.94-1.8-5.74-4.22H2.85v2.64A10 10 0 0 0 12 22Z"
-        fill="#34A853"
-      />
-      <path
-        d="M6.26 13.73a5.98 5.98 0 0 1 0-3.46V7.63H2.85a10 10 0 0 0 0 8.74l3.41-2.64Z"
-        fill="#FBBC05"
-      />
-      <path
-        d="M12 6.05c1.5 0 2.85.52 3.91 1.53l2.93-2.93C17.07 2.98 14.76 2 12 2A10 10 0 0 0 2.85 7.63l3.41 2.64C7.06 7.85 9.33 6.05 12 6.05Z"
-        fill="#EA4335"
-      />
-    </svg>
-  );
-}
-
-function FacebookIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07c0 6.03 4.39 11.02 10.13 11.93v-8.44H7.08v-3.5h3.05V9.39c0-3.03 1.79-4.7 4.54-4.7 1.31 0 2.69.24 2.69.24v2.98h-1.52c-1.5 0-1.96.94-1.96 1.89v2.26h3.34l-.53 3.5h-2.81V24C19.61 23.09 24 18.1 24 12.07Z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
-
 export function AuthPortal({
   errorMessage,
   message,
@@ -64,287 +43,224 @@ export function AuthPortal({
   signInStaffAction,
   signUpEmailAction
 }: AuthPortalProps) {
-  const [theme, setTheme] = useState<ThemeMode>("dark");
-  const [activePanel, setActivePanel] = useState<CustomerPanel>("signin");
-
-  useEffect(() => {
-    const storedTheme = window.localStorage.getItem(themeStorageKey);
-
-    if (storedTheme === "light" || storedTheme === "dark") {
-      setTheme(storedTheme);
-    }
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem(themeStorageKey, theme);
-  }, [theme]);
-
+  const { mode: paletteMode, toggleMode } = useMaterialMode();
+  const [expanded, setExpanded] = useState(mode === "customer" ? "signin" : "staff");
   const isCustomer = mode === "customer";
 
   return (
-    <main className={styles.shell} data-theme={theme}>
-      <section className={styles.frame}>
-        <aside className={styles.brandPanel}>
-          <div className={styles.panelTop}>
-            <div className={styles.brandMark}>
-              <span className={styles.brandMarkBadge} />
-              <span>LODO LAND</span>
-            </div>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "grid",
+        placeItems: "center",
+        px: { xs: 2, sm: 3 },
+        py: { xs: 3, md: 4 },
+        background:
+          paletteMode === "dark"
+            ? "linear-gradient(180deg, #09101c 0%, #0b111d 100%)"
+            : "linear-gradient(180deg, #edf2f7 0%, #dbe4ef 100%)"
+      }}
+    >
+      <Paper
+        sx={{
+          width: "100%",
+          maxWidth: 560,
+          border: "1px solid",
+          borderColor: "divider",
+          px: { xs: 2, sm: 3 },
+          py: { xs: 2.5, sm: 3 },
+          display: "grid",
+          gap: 2.5
+        }}
+      >
+        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+          <Stack spacing={0.5}>
+            <Typography variant="overline" sx={{ letterSpacing: "0.12em", opacity: 0.72 }}>
+              {isCustomer ? "Intranet" : "Control"}
+            </Typography>
+            <Typography variant="h1">
+              {isCustomer ? "Acceso" : "Administración"}
+            </Typography>
+          </Stack>
 
-            <button
-              className={styles.themeToggle}
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              type="button"
-            >
-              <span>{theme === "dark" ? "Oscuro" : "Claro"}</span>
-            </button>
-          </div>
+          <Button
+            color="inherit"
+            onClick={toggleMode}
+            startIcon={
+              paletteMode === "dark" ? <NightlightRoundOutlinedIcon /> : <LightModeOutlinedIcon />
+            }
+            variant="outlined"
+          >
+            {paletteMode === "dark" ? "Oscuro" : "Claro"}
+          </Button>
+        </Stack>
 
-          <div className={styles.brandCopy}>
-            <span className={styles.eyebrow}>{isCustomer ? "Intranet" : "Control"}</span>
-            <h1>{isCustomer ? "Acceso de clientes" : "Acceso organizacional"}</h1>
-            <p>
-              {isCustomer
-                ? "Un solo punto de acceso para entrar, registrarte y verificar tu cuenta antes de comprar, apartar o participar."
-                : "Ingreso exclusivo para administracion, ventas, supervisores y gerencias con correo de la organizacion."}
-            </p>
+        {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
+        {message ? <Alert severity="success">{message}</Alert> : null}
 
-            <div className={styles.featureList}>
-              <div className={styles.featureItem}>
-                <span className={styles.featureDot} />
-                <span>{isCustomer ? "Google, Facebook o correo" : "Correo organizacional y contrasena"}</span>
-              </div>
-              <div className={styles.featureItem}>
-                <span className={styles.featureDot} />
-                <span>{isCustomer ? "Verificacion por correo antes de cualquier movimiento" : "Acceso protegido para control interno"}</span>
-              </div>
-              <div className={styles.featureItem}>
-                <span className={styles.featureDot} />
-                <span>{isCustomer ? "Preparado para tickets, rifas, quinielas y compras" : "Listo para gestionar contenido, ventas y operaciones"}</span>
-              </div>
-            </div>
-          </div>
-        </aside>
+        <Stack spacing={1}>
+          {isCustomer ? (
+            <>
+              <Accordion expanded={expanded === "signin"} onChange={() => setExpanded("signin")}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Stack spacing={0.25}>
+                    <Typography variant="h2">Iniciar sesión</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Google, Facebook o correo electrónico
+                    </Typography>
+                  </Stack>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Stack spacing={2}>
+                    <Stack spacing={1.25}>
+                      {signInGoogleAction ? (
+                        <form action={signInGoogleAction}>
+                          <Button
+                            fullWidth
+                            startIcon={<GoogleIcon />}
+                            sx={{
+                              justifyContent: "flex-start",
+                              bgcolor: "#ffffff",
+                              color: "#111827",
+                              border: "1px solid rgba(17,24,39,0.08)",
+                              "&:hover": { bgcolor: "#f8fafc" }
+                            }}
+                            type="submit"
+                            variant="contained"
+                          >
+                            Continuar con Google
+                          </Button>
+                        </form>
+                      ) : null}
 
-        <section className={styles.card}>
-          <div className={styles.cardTop}>
-            <div>
-              <span className={styles.eyebrow}>{isCustomer ? "Sesión" : "Control"}</span>
-            </div>
-          </div>
+                      {signInFacebookAction ? (
+                        <form action={signInFacebookAction}>
+                          <Button
+                            fullWidth
+                            startIcon={<FacebookRoundedIcon />}
+                            sx={{
+                              justifyContent: "flex-start",
+                              bgcolor: "#1877f2",
+                              color: "#f8fbff",
+                              "&:hover": { bgcolor: "#1464d2" }
+                            }}
+                            type="submit"
+                            variant="contained"
+                          >
+                            Continuar con Facebook
+                          </Button>
+                        </form>
+                      ) : null}
+                    </Stack>
 
-          <div className={styles.cardBody}>
-            {errorMessage ? <div className={`${styles.status} ${styles.statusError}`}>{errorMessage}</div> : null}
-            {message ? <div className={`${styles.status} ${styles.statusSuccess}`}>{message}</div> : null}
+                    <Divider>o</Divider>
 
-            {isCustomer ? (
-              <div className={styles.accordion}>
-                <section className={`${styles.section} ${activePanel === "signin" ? styles.sectionOpen : ""}`}>
-                  <button
-                    className={styles.sectionHeader}
-                    onClick={() => setActivePanel("signin")}
-                    type="button"
-                  >
-                    <div className={styles.sectionTitle}>
-                      <strong>Iniciar sesión</strong>
-                      <span>Google, Facebook o correo electrónico</span>
-                    </div>
-                    <span className={styles.sectionChevron}>+</span>
-                  </button>
-
-                  {activePanel === "signin" ? (
-                    <div className={styles.sectionBody}>
-                      <p>Elige una forma de acceso para entrar a tu cuenta de cliente.</p>
-
-                      <div className={styles.socialStack}>
-                        {signInGoogleAction ? (
-                          <form action={signInGoogleAction}>
-                            <button className={`${styles.socialButton} ${styles.socialGoogle}`} type="submit">
-                              <span className={styles.socialIcon}>
-                                <GoogleIcon />
-                              </span>
-                              <span>Continuar con Google</span>
-                            </button>
-                          </form>
-                        ) : null}
-
-                        {signInFacebookAction ? (
-                          <form action={signInFacebookAction}>
-                            <button className={`${styles.socialButton} ${styles.socialFacebook}`} type="submit">
-                              <span className={styles.socialIcon}>
-                                <FacebookIcon />
-                              </span>
-                              <span>Continuar con Facebook</span>
-                            </button>
-                          </form>
-                        ) : null}
-                      </div>
-
-                      <div className={styles.divider}>o</div>
-
-                      <form action={signInEmailAction} className={styles.formStack}>
-                        <div className={styles.field}>
-                          <label htmlFor="customer-login-email">Correo electrónico</label>
-                          <input
-                            className={styles.input}
-                            id="customer-login-email"
-                            name="email"
-                            type="email"
-                            placeholder="cliente@correo.com"
-                            required
-                          />
-                        </div>
-
-                        <div className={styles.field}>
-                          <label htmlFor="customer-login-password">Contraseña</label>
-                          <input
-                            className={styles.input}
-                            id="customer-login-password"
-                            name="password"
-                            type="password"
-                            required
-                          />
-                        </div>
-
-                        <button className={styles.primaryButton} type="submit">
+                    <form action={signInEmailAction}>
+                      <Stack spacing={2}>
+                        <TextField label="Correo electrónico" name="email" required type="email" />
+                        <TextField label="Contraseña" name="password" required type="password" />
+                        <Button fullWidth type="submit" variant="contained">
                           Entrar a mi cuenta
-                        </button>
-                      </form>
-                    </div>
-                  ) : null}
-                </section>
+                        </Button>
+                      </Stack>
+                    </form>
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
 
-                <section className={`${styles.section} ${activePanel === "signup" ? styles.sectionOpen : ""}`}>
-                  <button
-                    className={styles.sectionHeader}
-                    onClick={() => setActivePanel("signup")}
-                    type="button"
-                  >
-                    <div className={styles.sectionTitle}>
-                      <strong>Crear cuenta</strong>
-                      <span>Registro con correo y verificación obligatoria</span>
-                    </div>
-                    <span className={styles.sectionChevron}>+</span>
-                  </button>
+              <Accordion expanded={expanded === "signup"} onChange={() => setExpanded("signup")}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Stack spacing={0.25}>
+                    <Typography variant="h2">Crear cuenta</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Registro con verificación obligatoria
+                    </Typography>
+                  </Stack>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Stack spacing={2}>
+                    <Typography color="text.secondary" variant="body2">
+                      Antes de cualquier compra, pedido, acceso o movimiento, deberás verificar tu correo.
+                    </Typography>
 
-                  {activePanel === "signup" && signUpEmailAction ? (
-                    <div className={styles.sectionBody}>
-                      <p>
-                        Antes de cualquier movimiento como cliente, el sistema te pedirá verificar este correo.
-                      </p>
-
-                      <form action={signUpEmailAction} className={styles.formStack}>
-                        <div className={styles.field}>
-                          <label htmlFor="customer-signup-email">Correo electrónico</label>
-                          <input
-                            className={styles.input}
-                            id="customer-signup-email"
-                            name="email"
-                            type="email"
-                            placeholder="cliente@correo.com"
-                            required
-                          />
-                        </div>
-
-                        <div className={styles.field}>
-                          <label htmlFor="customer-signup-password">Contraseña</label>
-                          <input
-                            className={styles.input}
-                            id="customer-signup-password"
-                            name="password"
-                            type="password"
-                            minLength={8}
-                            required
-                          />
-                        </div>
-
-                        <div className={styles.field}>
-                          <label htmlFor="customer-signup-password-confirm">Confirmar contraseña</label>
-                          <input
-                            className={styles.input}
-                            id="customer-signup-password-confirm"
-                            name="passwordConfirm"
-                            type="password"
-                            minLength={8}
-                            required
-                          />
-                        </div>
-
-                        <p className={styles.fieldHint}>
-                          Si no verificas el correo, no podrás avanzar a compras, rifas, quinielas ni pedidos.
-                        </p>
-
-                        <button className={styles.primaryButton} type="submit">
+                    <form action={signUpEmailAction}>
+                      <Stack spacing={2}>
+                        <TextField label="Correo electrónico" name="email" required type="email" />
+                        <TextField
+                          inputProps={{ minLength: 8 }}
+                          label="Contraseña"
+                          name="password"
+                          required
+                          type="password"
+                        />
+                        <TextField
+                          inputProps={{ minLength: 8 }}
+                          label="Confirmar contraseña"
+                          name="passwordConfirm"
+                          required
+                          type="password"
+                        />
+                        <Button fullWidth type="submit" variant="contained">
                           Crear cuenta
-                        </button>
-                      </form>
-                    </div>
-                  ) : null}
-                </section>
-              </div>
-            ) : (
-              <div className={styles.accordion}>
-                <section className={`${styles.section} ${styles.sectionOpen}`}>
-                  <div className={styles.sectionHeader}>
-                    <div className={styles.sectionTitle}>
-                      <strong>Iniciar sesión</strong>
-                      <span>Solo correo organizacional @lodoland.mx</span>
-                    </div>
-                    <span className={styles.sectionChevron}>+</span>
-                  </div>
+                        </Button>
+                      </Stack>
+                    </form>
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
+            </>
+          ) : (
+            <Accordion expanded={expanded === "staff"} onChange={() => setExpanded("staff")}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Stack spacing={0.25}>
+                  <Typography variant="h2">Iniciar sesión</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Solo correo organizacional
+                  </Typography>
+                </Stack>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Stack spacing={2}>
+                  <Typography color="text.secondary" variant="body2">
+                    Acceso exclusivo para administración, ventas, supervisión y gerencia.
+                  </Typography>
 
-                  <div className={styles.sectionBody}>
-                    <p>Entra con tu correo de la organización para acceder al panel de control.</p>
+                  <form action={signInStaffAction}>
+                    <Stack spacing={2}>
+                      <TextField
+                        label="Correo organizacional"
+                        name="email"
+                        placeholder="ventas2@lodoland.mx"
+                        required
+                        type="email"
+                      />
+                      <TextField label="Contraseña" name="password" required type="password" />
+                      <Button fullWidth type="submit" variant="contained">
+                        Entrar al control
+                      </Button>
+                    </Stack>
+                  </form>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+          )}
+        </Stack>
 
-                    {signInStaffAction ? (
-                      <form action={signInStaffAction} className={styles.formStack}>
-                        <div className={styles.field}>
-                          <label htmlFor="staff-email">Correo organizacional</label>
-                          <input
-                            className={styles.input}
-                            id="staff-email"
-                            name="email"
-                            type="email"
-                            placeholder="ventas2@lodoland.mx"
-                            required
-                          />
-                        </div>
-
-                        <div className={styles.field}>
-                          <label htmlFor="staff-password">Contraseña</label>
-                          <input
-                            className={styles.input}
-                            id="staff-password"
-                            name="password"
-                            type="password"
-                            required
-                          />
-                        </div>
-
-                        <button className={styles.primaryButton} type="submit">
-                          Entrar al control
-                        </button>
-                      </form>
-                    ) : null}
-                  </div>
-                </section>
-              </div>
-            )}
-
-            <div className={styles.footerRow}>
-              <div className={styles.linkRow}>
-                {isCustomer ? (
-                  <Link href="/admin/login">Acceso de control</Link>
-                ) : (
-                  <Link href="/login">Acceso de clientes</Link>
-                )}
-                <Link href="/">Volver al inicio</Link>
-              </div>
-              <span className={styles.subtle}>LODO LAND</span>
-            </div>
-          </div>
-        </section>
-      </section>
-    </main>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          justifyContent="space-between"
+          spacing={1}
+          sx={{ pt: 0.5 }}
+        >
+          <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
+            {isCustomer ? <Link href="/admin/login">Acceso de control</Link> : <Link href="/login">Acceso de clientes</Link>}
+            <Link href="/">Volver al inicio</Link>
+          </Stack>
+          <Typography color="text.secondary" variant="body2">
+            LODO LAND
+          </Typography>
+        </Stack>
+      </Paper>
+    </Box>
   );
 }

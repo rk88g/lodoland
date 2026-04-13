@@ -1,29 +1,46 @@
+import { Grid, Stack, Typography } from "@mui/material";
+import { DashboardShell } from "../../../components/dashboard-shell";
 import { requireAdmin } from "../../../lib/auth/session";
+import { controlNavItems } from "../../../lib/navigation";
+import { signOutAction } from "../../login/actions";
 
 export default async function AdminCatalogoPage() {
   await requireAdmin();
 
   return (
-    <main className="page-frame">
-      <section className="page-card">
-        <span className="eyebrow">Catalogo</span>
-        <h1>Productos y Merch</h1>
-        <p>
-          Esta seccion va a gobernar productos, variantes, precios, imagenes, tallas, colores,
-          SKU, stock, inventario y publicaciones visibles al cliente.
-        </p>
+    <DashboardShell
+      navItems={controlNavItems}
+      signOutAction={signOutAction}
+      subtitle="Merch y productos"
+      title="Catálogo"
+    >
+      <Stack spacing={1.5}>
+        <Typography variant="h2">Producto base</Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Typography>Nombre, slug, descripción, imagen principal, estado, categoría y precio.</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography color="text.secondary">
+              Este módulo se conectará con `products`, `product_variants` y assets del bucket.
+            </Typography>
+          </Grid>
+        </Grid>
+      </Stack>
 
-        <div className="grid-two">
-          <article className="list-card">
-            <strong>Producto base</strong>
-            <p>Nombre, slug, descripcion, imagenes, estado, categoria, precio y costo.</p>
-          </article>
-          <article className="list-card">
-            <strong>Variantes</strong>
-            <p>Talla, color, combinaciones, stock por variante y movimientos de inventario.</p>
-          </article>
-        </div>
-      </section>
-    </main>
+      <Stack spacing={1.5}>
+        <Typography variant="h2">Variantes</Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Typography>Talla, color, SKU, costo, precio y stock por variante.</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography color="text.secondary">
+              Después conectaremos inventario, movimientos, assets por variante y disponibilidad.
+            </Typography>
+          </Grid>
+        </Grid>
+      </Stack>
+    </DashboardShell>
   );
 }

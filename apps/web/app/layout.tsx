@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
-import { Bebas_Neue, Manrope } from "next/font/google";
+import { Roboto } from "next/font/google";
+import { MaterialThemeProvider } from "../components/material-theme-provider";
 import "./globals.css";
 
-const headingFont = Bebas_Neue({
+const bodyFont = Roboto({
   subsets: ["latin"],
-  weight: "400",
-  variable: "--font-heading"
-});
-
-const bodyFont = Manrope({
-  subsets: ["latin"],
+  weight: ["300", "400", "500", "700"],
   variable: "--font-body"
 });
 
@@ -25,10 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${headingFont.variable} ${bodyFont.variable}`}>
-        {children}
+      <body className={bodyFont.variable}>
+        <MaterialThemeProvider>{children}</MaterialThemeProvider>
       </body>
     </html>
   );
 }
-

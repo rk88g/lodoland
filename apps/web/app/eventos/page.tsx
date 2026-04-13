@@ -1,15 +1,75 @@
-export default function EventsPage() {
-  return (
-    <main className="page-frame">
-      <section className="page-card">
-        <span className="eyebrow">Catalogo publico</span>
-        <h1>Eventos</h1>
-        <p>
-          Esta vista servira para listar eventos disponibles, fechas, sedes y tipos de boleto
-          antes de iniciar el checkout.
-        </p>
-      </section>
-    </main>
-  );
+import { Box, Chip, Grid, Stack, Typography } from "@mui/material";
+import { requireUser } from "../../lib/auth/session";
+import { getUpcomingEvents } from "../../lib/data/portal";
+import { customerNavItems } from "../../lib/navigation";
+import { DashboardShell } from "../../components/dashboard-shell";
+import { signOutAction } from "../login/actions";
+
+function formatDate(dateValue: string | null) {
+  if (!dateValue) {
+    return "Sin fecha";
+  }
+
+  return new Intl.DateTimeFormat("es-MX", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(new Date(dateValue));
 }
 
+export default async function EventsPage() {
+  await requireUser();
+  const upcomingEvents = await getUpcomingEvents(5);
+
+  return (
+    <DashboardShell
+      navItems={customerNavItems}
+      signOutAction={signOutAction}
+      subtitle="Calendario visible"
+      title="Eventos"
+    >
+      <Stack spacing={1.5}>
+        <Typography variant="h2">Próximos eventos</Typography>
+        {upcomingEvents.length ? (
+          <Grid container spacing={2}>
+            {upcomingEvents.map((event) => (
+              <Grid item xs={12} key={event.id}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={3}>
+                    <Box
+                      sx={{
+                        minHeight: 148,
+                        border: 1,
+                        borderColor: "divider",
+                        backgroundColor: "background.default",
+                        backgroundImage: event.cover?.url ? `url(${event.cover.url})` : "none",
+                        backgroundSize: "cover",
+                        backgroundPosition: "center"
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={9}>
+                    <Stack spacing={1}>
+                      <Typography variant="h3">{event.title}</Typography>
+                      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                        <Chip label={formatDate(event.startsAt)} size="small" />
+                        <Chip label={event.venueName || "Sede"} size="small" />
+                        <Chip label={event.city || "Ciudad"} size="small" />
+                      </Stack>
+                      {event.shortDescription ? (
+                        <Typography color="text.secondary">{event.shortDescription}</Typography>
+                      ) : null}
+                    </Stack>
+                  </Grid>
+                </Grid>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <Typography color="text.secondary">
+            Aún no hay eventos publicados.
+          </Typography>
+        )}
+      </Stack>
+    </DashboardShell>
+  );
+}
