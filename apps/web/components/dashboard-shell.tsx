@@ -146,8 +146,7 @@ export function DashboardShell({
           borderBottom: 1,
           borderColor: "divider",
           backdropFilter: "blur(12px)",
-          bgcolor: (theme) =>
-            theme.palette.mode === "dark" ? "rgba(18, 26, 39, 0.72)" : "rgba(255, 255, 255, 0.82)"
+          bgcolor: "rgba(18, 26, 39, 0.72)"
         }}
       >
         <Toolbar sx={{ minHeight: 64 }}>

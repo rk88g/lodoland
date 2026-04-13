@@ -110,10 +110,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
               sx={{
                 border: 1,
                 borderColor: "divider",
-                background: (theme) =>
-                  theme.palette.mode === "dark"
-                    ? "linear-gradient(180deg, rgba(26,35,50,0.92), rgba(18,26,39,0.92))"
-                    : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,247,252,0.98))",
+                background: "linear-gradient(180deg, rgba(26,35,50,0.92), rgba(18,26,39,0.92))",
                 overflow: "hidden"
               }}
             >
