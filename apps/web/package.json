@@ -11,8 +11,10 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@mui/icons-material": "^7.3.4",
-    "@mui/material": "^7.3.4",
+    "@mui/icons-material": "5.16.7",
+    "@mui/material": "5.16.7",
+    "@mui/system": "5.16.7",
+    "@mui/utils": "5.16.6",
     "@supabase/ssr": "0.5.2",
     "@supabase/supabase-js": "2.49.1",
     "next": "14.2.13",
