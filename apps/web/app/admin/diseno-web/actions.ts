@@ -16,17 +16,56 @@ function toSlug(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function buildAssetPath(folder: string, originalName: string, customPath: string) {
+  if (customPath) {
+    return customPath.replace(/^\/+/, "");
+  }
+
+  const normalizedFolder = folder
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/\s+/g, "-")
+    .toLowerCase();
+
+  const extensionMatch = originalName.toLowerCase().match(/\.(png|jpe?g|webp|gif|svg)$/);
+  const extension = extensionMatch ? extensionMatch[0] : ".webp";
+  const baseName = toSlug(originalName.replace(/\.[^.]+$/, "")) || "asset";
+
+  return `${normalizedFolder}/${Date.now()}-${baseName}-${crypto.randomUUID().slice(0, 8)}${extension}`;
+}
+
 export async function registerMediaAssetAction(formData: FormData) {
   const session = await requireAdmin();
   const supabase = createClient();
 
-  const path = String(formData.get("path") ?? "").trim();
+  const customPath = String(formData.get("path") ?? "").trim();
+  const folder = String(formData.get("folder") ?? "").trim() || "home/general";
   const title = String(formData.get("title") ?? "").trim();
   const altText = String(formData.get("altText") ?? "").trim();
   const isPublic = String(formData.get("isPublic") ?? "") === "on";
+  const file = formData.get("file");
+
+  let path = customPath;
+
+  if (file instanceof File && file.size > 0) {
+    path = buildAssetPath(folder, file.name || title || "asset", customPath);
+
+    const arrayBuffer = await file.arrayBuffer();
+    const { error: uploadError } = await supabase.storage
+      .from(MEDIA_BUCKET)
+      .upload(path, Buffer.from(arrayBuffer), {
+        cacheControl: "3600",
+        contentType: file.type || "application/octet-stream",
+        upsert: false
+      });
+
+    if (uploadError) {
+      redirect(`/admin/diseno-web?error=${encodeURIComponent(uploadError.message)}`);
+    }
+  }
 
   if (!path) {
-    redirect("/admin/diseno-web?error=Debes indicar la ruta del archivo en Storage.");
+    redirect("/admin/diseno-web?error=Debes subir un archivo o indicar la ruta del asset.");
   }
 
   const { error } = await supabase.from("media_assets").insert({

@@ -36,6 +36,55 @@ type AdminDisenoWebPageProps = {
   };
 };
 
+const editorSectionOrder = [
+  "evento_reciente",
+  "redes_sociales",
+  "patrocinadores",
+  "influencers",
+  "ventas_destacadas",
+  "merch_destacado",
+  "menu_overlay",
+  "footer"
+] as const;
+
+const sectionFieldKeys: Record<string, string[]> = {
+  evento_reciente: ["title", "description", "primary_cta_label", "secondary_cta_label", "hero_image_alt", "side_banner_alt"],
+  patrocinadores: ["title", "description", "banner_alt"],
+  influencers: ["modal_button_label", "modal_title"],
+  merch_destacado: ["title", "catalog_button_label"],
+  footer: ["title", "description", "privacy_label", "contact_label", "terms_label"]
+};
+
+const groupFieldKeys: Record<string, string[]> = {
+  menu_links: ["label", "url"],
+  official_sponsor_modal: ["title", "description", "website_label", "website_url", "social_label", "social_url", "media"],
+  event_side_banner: ["media", "target_url"],
+  social_profiles: ["platform", "target_url", "embed_url", "preview_media"],
+  sponsor_tiles: ["name", "target_url", "logo_media"],
+  sponsor_main_banner: ["media", "target_url"],
+  influencer_collage: ["media"],
+  influencer_profiles: ["name", "role", "description", "cover_media", "instagram_url", "facebook_url", "youtube_url", "tiktok_url"],
+  sales_panels: ["title", "subtitle", "price", "cover_media"],
+  merch_gallery: ["title", "media"],
+  footer_marquee: ["label", "logo_media", "target_url"]
+};
+
+function getVisibleSectionFields(sectionKey: string, fields: Record<string, CmsFieldValue>) {
+  const allowed = new Set(sectionFieldKeys[sectionKey] || []);
+
+  return Object.values(fields)
+    .filter((field) => field.isVisible && (allowed.size === 0 || allowed.has(field.fieldKey)))
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+function getVisibleGroupFields(groupKey: string, fields: Record<string, CmsFieldValue>) {
+  const allowed = new Set(groupFieldKeys[groupKey] || []);
+
+  return Object.values(fields)
+    .filter((field) => field.isVisible && (allowed.size === 0 || allowed.has(field.fieldKey)))
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
 export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWebPageProps) {
   await requireAdmin();
   const [mediaAssets, mediaCollections, sectionBindings, avatarPresets, homeConfig] = await Promise.all([
@@ -53,27 +102,46 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
       {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
 
       <Stack spacing={1.5}>
-        <Typography variant="h2">Registrar imagen ya subida</Typography>
+        <Typography variant="h2">Subir asset a Supabase</Typography>
         <Typography color="text.secondary">
-          Sube primero el archivo al bucket `lodoland-media` en Supabase Storage y despues registralo aqui.
+          Carga aqui mismo la imagen al bucket `lodoland-media`. La ruta se genera sola y despues queda lista para
+          asignarse a cualquier seccion.
         </Typography>
 
-        <form action={registerMediaAssetAction} autoComplete="off">
+        <form action={registerMediaAssetAction} autoComplete="off" encType="multipart/form-data">
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
-              <TextField autoComplete="off" label="Ruta en Storage" name="path" placeholder="home/evento/flayer-principal.webp" required />
+              <TextField
+                autoComplete="off"
+                helperText="Formato recomendado: WebP, PNG o JPG. Maximo 10 MB."
+                inputProps={{ accept: "image/png,image/jpeg,image/webp,image/gif,image/svg+xml" }}
+                InputLabelProps={{ shrink: true }}
+                label="Archivo"
+                name="file"
+                required
+                type="file"
+              />
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
+              <TextField autoComplete="off" defaultValue="home/general" helperText="Carpeta dentro del bucket." label="Seccion / carpeta" name="folder" />
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
+              <TextField autoComplete="off" helperText="Opcional. Si lo dejas vacio se genera automaticamente." label="Ruta manual" name="path" placeholder="home/evento/flayer-principal.webp" />
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
               <TextField autoComplete="off" label="Titulo" name="title" />
             </Box>
-            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
               <TextField autoComplete="off" label="Alt" name="altText" />
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
+              <TextField autoComplete="off" disabled label="Bucket" value="lodoland-media" />
             </Box>
             <Box sx={{ gridColumn: "1 / -1" }}>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
                 <FormControlLabel control={<Checkbox name="isPublic" />} label="Visible publicamente" />
                 <Button type="submit" variant="contained">
-                  Registrar asset
+                  Subir y registrar asset
                 </Button>
               </Stack>
             </Box>
@@ -121,54 +189,94 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Configuracion de portada</Typography>
-        <Typography color="text.secondary">
-          Cada texto, link e imagen de la home ya puede salir desde aqui. Los botones de tickets y merch se
-          mantienen estaticos hacia login, pero el resto de labels, banners y componentes ya son editables.
-        </Typography>
+        <Typography color="text.secondary">Aqui solo aparecen los campos que la home usa realmente.</Typography>
 
         {homeConfig ? (
           <Stack spacing={3}>
-            {Object.values(homeConfig.sections)
-              .sort((a, b) => a.sortOrder - b.sortOrder)
+            {editorSectionOrder
+              .map((sectionKey) => homeConfig.sections[sectionKey])
+              .filter((section): section is NonNullable<(typeof homeConfig.sections)[string]> => Boolean(section))
               .map((section) => (
-                <Box key={section.id} sx={{ border: 1, borderColor: "divider", p: 2, display: "grid", gap: 2 }}>
-                  <Stack spacing={0.5}>
-                    <Typography variant="h3">{section.label}</Typography>
-                    <Typography color="text.secondary" variant="body2">
-                      {section.sectionKey}
-                    </Typography>
-                  </Stack>
-
+                <Box
+                  key={section.id}
+                  sx={{
+                    border: 1,
+                    borderColor: "divider",
+                    background: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? "linear-gradient(180deg, rgba(26,35,50,0.92), rgba(18,26,39,0.92))"
+                        : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,247,252,0.98))",
+                    overflow: "hidden"
+                  }}
+                >
                   <Box
                     sx={{
-                      display: "grid",
-                      gap: 2,
-                      gridTemplateColumns: { xs: "1fr", xl: "repeat(2, minmax(0, 1fr))" }
+                      px: { xs: 2, md: 2.5 },
+                      py: 1.5,
+                      borderBottom: 1,
+                      borderColor: "divider",
+                      background:
+                        "linear-gradient(90deg, rgba(124,77,255,0.18), rgba(0,188,212,0.14), rgba(255,193,7,0.18))"
                     }}
                   >
-                    {Object.values(section.fields)
-                      .sort((a, b) => a.sortOrder - b.sortOrder)
-                      .map((field) => (
-                        <Box key={field.id} sx={{ border: 1, borderColor: "divider", p: 2 }}>
-                          <CmsFieldEditor
-                            action={updateSectionFieldAction}
-                            field={field}
-                            helperText={getFieldHint(section.sectionKey, field.fieldKey)}
-                            mediaAssets={mediaAssets}
-                          />
-                        </Box>
-                      ))}
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1} useFlexGap justifyContent="space-between">
+                      <Typography variant="h3">{section.label}</Typography>
+                      <Chip label={section.sectionKey} size="small" />
+                    </Stack>
                   </Box>
 
-                  {Object.values(section.groups)
-                    .sort((a, b) => a.sortOrder - b.sortOrder)
-                    .map((group) => (
-                      <Box key={group.id} sx={{ borderTop: 1, borderColor: "divider", pt: 2 }}>
-                        <Stack spacing={1.25}>
-                          <Typography variant="h3">{group.label}</Typography>
-                          <Typography color="text.secondary" variant="body2">
-                            {group.groupKey}
-                          </Typography>
+                  <Stack spacing={2} sx={{ p: { xs: 2, md: 2.5 } }}>
+                    {getVisibleSectionFields(section.sectionKey, section.fields).length ? (
+                      <Box
+                        sx={{
+                          display: "grid",
+                          gap: 2,
+                          gridTemplateColumns: { xs: "1fr", xl: "repeat(2, minmax(0, 1fr))" }
+                        }}
+                      >
+                        {getVisibleSectionFields(section.sectionKey, section.fields).map((field) => (
+                          <Box
+                            key={field.id}
+                            sx={{
+                              border: 1,
+                              borderColor: "divider",
+                              bgcolor: "background.paper",
+                              p: 2
+                            }}
+                          >
+                            <CmsFieldEditor
+                              action={updateSectionFieldAction}
+                              field={field}
+                              helperText={getFieldHint(section.sectionKey, field.fieldKey)}
+                              mediaAssets={mediaAssets}
+                            />
+                          </Box>
+                        ))}
+                      </Box>
+                    ) : null}
+
+                    {Object.values(section.groups)
+                      .sort((a, b) => a.sortOrder - b.sortOrder)
+                      .filter((group) => getVisibleGroupFields(group.groupKey, group.items[0]?.fields || {}).length || group.items.some((item) => getVisibleGroupFields(group.groupKey, item.fields).length))
+                      .map((group) => (
+                        <Box key={group.id} sx={{ display: "grid", gap: 1.5 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1.25,
+                              py: 1,
+                              borderTop: 1,
+                              borderBottom: 1,
+                              borderColor: "divider",
+                              background:
+                                "linear-gradient(90deg, rgba(255,255,255,0), rgba(124,77,255,0.08), rgba(0,188,212,0.08), rgba(255,255,255,0))"
+                            }}
+                          >
+                            <Box sx={{ width: 42, height: 4, bgcolor: "primary.main" }} />
+                            <Typography variant="h3">{group.label}</Typography>
+                            <Chip label={group.groupKey} size="small" />
+                          </Box>
 
                           <Box
                             sx={{
@@ -177,20 +285,41 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                               gridTemplateColumns: { xs: "1fr", lg: "repeat(2, minmax(0, 1fr))" }
                             }}
                           >
-                            {group.items.map((item) => (
-                              <Box key={item.id} sx={{ border: 1, borderColor: "divider", p: 2, display: "grid", gap: 1.5 }}>
-                                <Stack spacing={0.25}>
-                                  <Typography sx={{ fontWeight: 700 }}>{item.label}</Typography>
-                                  <Typography color="text.secondary" variant="body2">
-                                    {item.itemKey}
-                                  </Typography>
-                                </Stack>
+                            {group.items.map((item) => {
+                              const visibleFields = getVisibleGroupFields(group.groupKey, item.fields);
 
-                                <Box sx={{ display: "grid", gap: 1.5 }}>
-                                  {Object.values(item.fields)
-                                    .sort((a, b) => a.sortOrder - b.sortOrder)
-                                    .map((field) => (
-                                      <Box key={field.id} sx={{ border: 1, borderColor: "divider", p: 1.5 }}>
+                              if (!visibleFields.length) {
+                                return null;
+                              }
+
+                              return (
+                                <Box
+                                  key={item.id}
+                                  sx={{
+                                    border: 1,
+                                    borderColor: "divider",
+                                    bgcolor: "background.paper",
+                                    p: 2,
+                                    display: "grid",
+                                    gap: 1.5
+                                  }}
+                                >
+                                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1} useFlexGap justifyContent="space-between">
+                                    <Typography sx={{ fontWeight: 700 }}>{item.label}</Typography>
+                                    <Chip label={item.itemKey} size="small" />
+                                  </Stack>
+
+                                  <Box sx={{ display: "grid", gap: 1.5 }}>
+                                    {visibleFields.map((field) => (
+                                      <Box
+                                        key={field.id}
+                                        sx={{
+                                          border: 1,
+                                          borderColor: "divider",
+                                          bgcolor: "background.default",
+                                          p: 1.5
+                                        }}
+                                      >
                                         <CmsFieldEditor
                                           action={updateGroupItemFieldAction}
                                           field={field}
@@ -199,13 +328,14 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                                         />
                                       </Box>
                                     ))}
+                                  </Box>
                                 </Box>
-                              </Box>
-                            ))}
+                              );
+                            })}
                           </Box>
-                        </Stack>
-                      </Box>
-                    ))}
+                        </Box>
+                      ))}
+                  </Stack>
                 </Box>
               ))}
           </Stack>
@@ -395,9 +525,12 @@ function CmsFieldEditor({ action, field, helperText, mediaAssets }: CmsFieldEdit
 
 function getFieldHint(sectionKey: string, fieldKey: string) {
   const hints: Record<string, string> = {
-    "menu_overlay.menu_ads.media": "Banner menu cuadrado: 1080x1080 o rectangular: 1920x1080, segun el item.",
+    "menu_overlay.menu_links.label": "Texto que se vera en el menu principal.",
+    "menu_overlay.menu_links.url": "Ancla o ruta. Ejemplo: #ventas o /login.",
+    "evento_reciente.hero_image_alt": "Texto alternativo del flyer del proximo evento.",
+    "evento_reciente.official_sponsor_modal.media": "Imagen grande del patrocinador oficial. Recomendado: 1800x2200 px.",
     "evento_reciente.event_side_banner.media": "Banner vertical recomendado: 1080x1920 px.",
-    "redes_sociales.social_profiles.embed_url": "Usa URL publica/embed. Si no hay embed, se mostrara la imagen preview.",
+    "redes_sociales.social_profiles.embed_url": "Usa una URL publica de embed. Si no existe, deja solo la preview.",
     "redes_sociales.social_profiles.preview_media": "Preview recomendada: 1290x2796 px o equivalente vertical.",
     "patrocinadores.sponsor_tiles.logo_media": "Logo sponsor recomendado en PNG transparente o WebP horizontal.",
     "patrocinadores.sponsor_main_banner.media": "Banner horizontal recomendado: 1920x640 px.",

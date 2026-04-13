@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { InfluencerCollage } from "./influencer-collage";
 import type { HomePageViewModel } from "../lib/data/home";
 
 type HomeExperienceProps = {
   data: HomePageViewModel;
 };
+
+const saleToneClasses = ["sale-mud", "sale-gold", "sale-blue", "sale-pink"] as const;
 
 function getStaticIntentHref(intent: "tickets" | "merch") {
   return `/login?intent=${intent}`;
@@ -17,13 +19,14 @@ export function HomeExperience({ data }: HomeExperienceProps) {
   const menuCollapsesRef = useRef<HTMLDivElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [sponsorModalOpen, setSponsorModalOpen] = useState(true);
+  const [eventModalOpen, setEventModalOpen] = useState(false);
   const [influencerModalOpen, setInfluencerModalOpen] = useState(false);
   const [merchModalOpen, setMerchModalOpen] = useState(false);
   const [activeSale, setActiveSale] = useState(0);
   const [saleModalIndex, setSaleModalIndex] = useState<number | null>(null);
   const [activeMenuPanel, setActiveMenuPanel] = useState(0);
   const isOverlayOpen =
-    sponsorModalOpen || menuOpen || influencerModalOpen || merchModalOpen || saleModalIndex !== null;
+    sponsorModalOpen || eventModalOpen || menuOpen || influencerModalOpen || merchModalOpen || saleModalIndex !== null;
   const currentYear = new Date().getFullYear();
   const menuPageCount = data.menuSponsorPanels.length + 1;
 
@@ -35,6 +38,11 @@ export function HomeExperience({ data }: HomeExperienceProps) {
 
     if (merchModalOpen) {
       setMerchModalOpen(false);
+      return;
+    }
+
+    if (eventModalOpen) {
+      setEventModalOpen(false);
       return;
     }
 
@@ -81,7 +89,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOverlayOpen, saleModalIndex, merchModalOpen, influencerModalOpen, menuOpen, sponsorModalOpen]);
+  }, [isOverlayOpen, saleModalIndex, merchModalOpen, eventModalOpen, influencerModalOpen, menuOpen, sponsorModalOpen]);
 
   useEffect(() => {
     if (!menuOpen) {
@@ -280,6 +288,107 @@ export function HomeExperience({ data }: HomeExperienceProps) {
         </div>
       ) : null}
 
+      {eventModalOpen ? (
+        <div aria-label="Eventos disponibles" aria-modal="true" className="overlay-shell" role="dialog">
+          <div className="event-modal">
+            <button
+              aria-label="Cerrar modal de eventos"
+              className="overlay-close"
+              onClick={() => setEventModalOpen(false)}
+              type="button"
+            >
+              x
+            </button>
+
+            <div className="overlay-header">
+              <h2>{data.event.title}</h2>
+              <p>{data.event.description}</p>
+            </div>
+
+            {data.event.latest ? (
+              <section className="event-modal-featured">
+                <div
+                  className="event-modal-cover"
+                  style={
+                    data.event.latest.cover
+                      ? {
+                          backgroundImage: `url(${data.event.latest.cover.url})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center"
+                        }
+                      : undefined
+                  }
+                />
+                <div className="event-modal-copy">
+                  <span className="event-modal-chip">Evento mas reciente</span>
+                  <strong>{data.event.latest.title}</strong>
+                  <p>{data.event.latest.shortDescription || "Evento principal listo para promocion y venta de accesos."}</p>
+                  <div className="meta-row">
+                    {[
+                      data.event.latest.startsAt
+                        ? new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" }).format(
+                            new Date(data.event.latest.startsAt)
+                          )
+                        : null,
+                      data.event.latest.city,
+                      data.event.latest.venueName
+                    ]
+                      .filter(Boolean)
+                      .map((item) => (
+                        <span key={item}>{item}</span>
+                      ))}
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
+            <div className="event-modal-list">
+              {data.event.upcoming.map((eventItem) => (
+                <article className="event-modal-row" key={eventItem.id}>
+                  <div
+                    className="event-modal-thumb"
+                    style={
+                      eventItem.cover
+                        ? {
+                            backgroundImage: `url(${eventItem.cover.url})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center"
+                          }
+                        : undefined
+                    }
+                  />
+                  <div>
+                    <strong>{eventItem.title}</strong>
+                    <p>{eventItem.shortDescription || "Evento programado en la agenda de LODO LAND."}</p>
+                    <div className="meta-row">
+                      {[
+                        eventItem.startsAt
+                          ? new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" }).format(
+                              new Date(eventItem.startsAt)
+                            )
+                          : null,
+                        eventItem.city,
+                        eventItem.venueName
+                      ]
+                        .filter(Boolean)
+                        .map((item) => (
+                          <span key={item}>{item}</span>
+                        ))}
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="overlay-actions">
+              <a className="cta-solid" href={getStaticIntentHref("tickets")}>
+                Comprar tickets
+              </a>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {influencerModalOpen ? (
         <div aria-label="Influencers colaboradores" aria-modal="true" className="overlay-shell" role="dialog">
           <div className="influencer-modal">
@@ -449,9 +558,9 @@ export function HomeExperience({ data }: HomeExperienceProps) {
               ))}
             </div>
             <div className="scene-actions">
-              <Link className="cta-solid" href="/eventos">
+              <button className="cta-solid" onClick={() => setEventModalOpen(true)} type="button">
                 {data.event.primaryLabel}
-              </Link>
+              </button>
               <a className="cta-outline" href={getStaticIntentHref("tickets")}>
                 {data.event.secondaryLabel}
               </a>
@@ -609,18 +718,18 @@ export function HomeExperience({ data }: HomeExperienceProps) {
           <div aria-label="Ofertas disponibles" className="sales-panels" role="tablist">
             {data.salesPanels.map((offer, index) => (
               <button
-                className={`sales-panel ${activeSale === index ? "is-active" : ""}`}
+                className={`sales-panel ${saleToneClasses[index % saleToneClasses.length]} ${activeSale === index ? "is-active" : ""}`}
                 key={offer.id}
                 onClick={() => setSaleModalIndex(index)}
                 onFocus={() => setActiveSale(index)}
                 onMouseEnter={() => setActiveSale(index)}
                 style={
                   offer.image
-                    ? {
-                        backgroundImage: `linear-gradient(180deg, rgba(8,10,18,0.18), rgba(8,10,18,0.74)), url(${offer.image.url})`,
+                    ? ({
+                        ["--sales-panel-art" as string]: `linear-gradient(180deg, rgba(8,10,18,0.22), rgba(8,10,18,0.74)), url(${offer.image.url})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center"
-                      }
+                      } as CSSProperties)
                     : undefined
                 }
                 type="button"
@@ -644,15 +753,15 @@ export function HomeExperience({ data }: HomeExperienceProps) {
           <div className="scene-copy left-copy">
             <h2 className="scene-title">{data.merch.title}</h2>
             <div className="scene-actions">
-              <a className="cta-solid" href={getStaticIntentHref("merch")}>
+              <button className="cta-solid" onClick={() => setMerchModalOpen(true)} type="button">
                 {data.merch.buttonLabel}
-              </a>
+              </button>
             </div>
           </div>
 
           <div className="merch-hero-grid">
             {data.merch.items.map((item, index) => (
-              <a className="merch-hero-card" href={getStaticIntentHref("merch")} key={item.id}>
+              <button className="merch-hero-card" key={item.id} onClick={() => setMerchModalOpen(true)} type="button">
                 <div
                   className={`merch-photo merch-photo-${(index % 3) + 1}`}
                   style={
@@ -666,7 +775,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
                   }
                 />
                 <span>{item.title}</span>
-              </a>
+              </button>
             ))}
           </div>
         </div>

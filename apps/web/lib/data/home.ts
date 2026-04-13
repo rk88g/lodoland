@@ -1,5 +1,5 @@
 import { getCmsPageConfig, type CmsItem, type CmsMediaAsset } from "./cms";
-import { getNextEvent } from "./portal";
+import { getNextEvent, getUpcomingEvents, type EventCard } from "./portal";
 
 type SocialLink = {
   label: string;
@@ -69,6 +69,8 @@ export type HomePageViewModel = {
     sideBannerImage: CmsMediaAsset | null;
     sideBannerAlt: string;
     sideBannerUrl: string;
+    latest: EventCard | null;
+    upcoming: EventCard[];
   };
   socialProfiles: HomeSocialProfile[];
   sponsors: {
@@ -127,7 +129,11 @@ function normalizeIntentLink(intent: "tickets" | "merch") {
 }
 
 export async function getHomePageViewModel(): Promise<HomePageViewModel> {
-  const [config, nextEvent] = await Promise.all([getCmsPageConfig("home"), getNextEvent()]);
+  const [config, nextEvent, upcomingEvents] = await Promise.all([
+    getCmsPageConfig("home"),
+    getNextEvent(),
+    getUpcomingEvents(5)
+  ]);
 
   const sections = config?.sections || {};
   const menuSection = sections.menu_overlay;
@@ -201,7 +207,9 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
         "Imagen principal del evento",
       sideBannerImage: eventBannerItem?.fields.media?.media || null,
       sideBannerAlt: eventSection?.fields.side_banner_alt?.textValue || "Banner vertical del evento",
-      sideBannerUrl: eventBannerItem ? linkFromItem(eventBannerItem, "target_url", "https://example.com") : "https://example.com"
+      sideBannerUrl: eventBannerItem ? linkFromItem(eventBannerItem, "target_url", "https://example.com") : "https://example.com",
+      latest: nextEvent,
+      upcoming: upcomingEvents
     },
     socialProfiles: socialItems.map((item) => ({
       id: item.id,

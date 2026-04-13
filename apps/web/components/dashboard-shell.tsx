@@ -210,7 +210,7 @@ export function DashboardShell({
           {drawerContent}
         </Drawer>
 
-        <Box component="main" sx={{ flexGrow: 1, ml: { md: `${drawerWidth}px` }, width: "100%", minWidth: 0 }}>
+        <Box component="main" sx={{ flexGrow: 1, minWidth: 0 }}>
           <Toolbar sx={{ minHeight: 64 }} />
           <Stack spacing={2} sx={{ p: { xs: 2, md: 3 } }}>
             <Paper

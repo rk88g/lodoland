@@ -241,6 +241,7 @@ main {
 
 .spotlight-modal,
 .influencer-modal,
+.event-modal,
 .sale-modal,
 .merch-modal {
   position: relative;
@@ -259,6 +260,7 @@ main {
 
 .spotlight-modal::before,
 .influencer-modal::before,
+.event-modal::before,
 .sale-modal::before,
 .merch-modal::before {
   content: "";
@@ -285,6 +287,7 @@ main {
 
 .spotlight-copy,
 .overlay-header,
+.event-modal,
 .sale-modal,
 .merch-modal {
   padding: 44px;
@@ -298,6 +301,7 @@ main {
 
 .spotlight-copy h1,
 .overlay-header h2,
+.event-modal h2,
 .sale-modal h2,
 .merch-modal h2 {
   margin: 16px 0 12px;
@@ -309,6 +313,7 @@ main {
 }
 
 .spotlight-copy p,
+.event-modal p,
 .sale-modal p,
 .merch-modal p,
 .overlay-header p {
@@ -660,9 +665,79 @@ main {
 }
 
 .sale-modal,
+.event-modal,
 .merch-modal {
   display: grid;
   gap: 24px;
+}
+
+.event-modal {
+  width: min(100%, 1040px);
+}
+
+.event-modal-featured {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.event-modal-cover,
+.event-modal-thumb {
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(145deg, rgba(255, 107, 159, 0.18), rgba(139, 185, 255, 0.24)),
+    rgba(8, 10, 18, 0.72);
+}
+
+.event-modal-cover {
+  min-height: 320px;
+}
+
+.event-modal-copy,
+.event-modal-row {
+  padding: 20px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.event-modal-copy strong,
+.event-modal-row strong {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 1.28rem;
+}
+
+.event-modal-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.event-modal-list {
+  display: grid;
+  gap: 14px;
+}
+
+.event-modal-row {
+  display: grid;
+  grid-template-columns: 124px minmax(0, 1fr);
+  gap: 16px;
+}
+
+.event-modal-thumb {
+  min-height: 124px;
 }
 
 .influencer-row,
@@ -1842,6 +1917,9 @@ main {
   padding: 28px;
   transition: flex 220ms ease, transform 220ms ease;
   overflow: hidden;
+  background-image: var(--sales-panel-art, none), var(--sales-panel-tone, none);
+  background-size: cover, cover;
+  background-position: center, center;
 }
 
 .sales-panel::after {
@@ -1860,20 +1938,20 @@ main {
 }
 
 .sale-mud {
-  background: linear-gradient(180deg, rgba(160, 74, 33, 0.92), rgba(73, 33, 15, 0.94));
+  --sales-panel-tone: linear-gradient(180deg, rgba(160, 74, 33, 0.92), rgba(73, 33, 15, 0.94));
 }
 
 .sale-gold {
-  background: linear-gradient(180deg, rgba(255, 186, 87, 0.88), rgba(169, 97, 17, 0.92));
+  --sales-panel-tone: linear-gradient(180deg, rgba(255, 186, 87, 0.88), rgba(169, 97, 17, 0.92));
   color: #2f1b0c;
 }
 
 .sale-blue {
-  background: linear-gradient(180deg, rgba(139, 185, 255, 0.9), rgba(44, 75, 127, 0.94));
+  --sales-panel-tone: linear-gradient(180deg, rgba(139, 185, 255, 0.9), rgba(44, 75, 127, 0.94));
 }
 
 .sale-pink {
-  background: linear-gradient(180deg, rgba(255, 107, 159, 0.92), rgba(111, 32, 64, 0.96));
+  --sales-panel-tone: linear-gradient(180deg, rgba(255, 107, 159, 0.92), rgba(111, 32, 64, 0.96));
 }
 
 .sales-label,
@@ -2398,6 +2476,7 @@ main {
 
   .spotlight-modal,
   .influencer-modal,
+  .event-modal,
   .sale-modal,
   .merch-modal {
     width: min(100%, 920px);
@@ -2515,6 +2594,7 @@ main {
 
   .spotlight-modal,
   .influencer-modal,
+  .event-modal,
   .sale-modal,
   .merch-modal {
     border-radius: 30px;
@@ -2522,6 +2602,7 @@ main {
 
   .spotlight-modal::before,
   .influencer-modal::before,
+  .event-modal::before,
   .sale-modal::before,
   .merch-modal::before {
     inset: 10px;
@@ -2530,14 +2611,26 @@ main {
 
   .spotlight-copy,
   .overlay-header,
+  .event-modal,
   .sale-modal,
   .merch-modal {
     padding: 30px 22px 24px;
   }
 
   .influencer-modal-list,
+  .event-modal-list,
   .merch-modal-grid {
     padding: 0 22px 22px;
+  }
+
+  .event-modal-featured,
+  .event-modal-row {
+    grid-template-columns: 1fr;
+  }
+
+  .event-modal-cover,
+  .event-modal-thumb {
+    min-height: 220px;
   }
 
   .menu-overlay-inner {
