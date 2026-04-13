@@ -25,6 +25,8 @@ import {
   registerMediaAssetAction
 } from "./actions";
 
+export const dynamic = "force-dynamic";
+
 type AdminDisenoWebPageProps = {
   searchParams?: {
     error?: string;

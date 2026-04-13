@@ -15,6 +15,8 @@ import { controlNavItems } from "../../../lib/navigation";
 import { signOutAction } from "../../login/actions";
 import { createEventAction } from "./actions";
 
+export const dynamic = "force-dynamic";
+
 type AdminEventsPageProps = {
   searchParams?: {
     error?: string;

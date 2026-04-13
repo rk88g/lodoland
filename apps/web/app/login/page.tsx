@@ -8,6 +8,8 @@ import {
   signUpWithEmailAction
 } from "./actions";
 
+export const dynamic = "force-dynamic";
+
 type LoginPageProps = {
   searchParams?: {
     error?: string;

@@ -6,6 +6,8 @@ import { getMediaAssets, getUpcomingEvents } from "../../lib/data/portal";
 import { controlNavItems } from "../../lib/navigation";
 import { signOutAction } from "../login/actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage() {
   await requireAdmin();
   const [upcomingEvents, mediaAssets] = await Promise.all([getUpcomingEvents(5), getMediaAssets(8)]);

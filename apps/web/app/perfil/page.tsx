@@ -13,6 +13,8 @@ import { getAvatarPresets, getNextEvent } from "../../lib/data/portal";
 import { customerNavItems } from "../../lib/navigation";
 import { signOutAction } from "../login/actions";
 
+export const dynamic = "force-dynamic";
+
 function formatDate(dateValue: string | null) {
   if (!dateValue) {
     return "Sin fecha";

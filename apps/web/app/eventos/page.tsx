@@ -5,6 +5,8 @@ import { customerNavItems } from "../../lib/navigation";
 import { DashboardShell } from "../../components/dashboard-shell";
 import { signOutAction } from "../login/actions";
 
+export const dynamic = "force-dynamic";
+
 function formatDate(dateValue: string | null) {
   if (!dateValue) {
     return "Sin fecha";

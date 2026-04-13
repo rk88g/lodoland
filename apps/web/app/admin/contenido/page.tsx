@@ -1,5 +1,7 @@
 import { requireAdmin } from "../../../lib/auth/session";
 
+export const dynamic = "force-dynamic";
+
 const editableFields = [
   "Titulos",
   "Subtitulos",
