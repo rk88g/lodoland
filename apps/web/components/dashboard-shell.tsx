@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { useMemo, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
@@ -44,7 +45,7 @@ type NavIcon =
   | "profile";
 
 export type DashboardNavItem = {
-  href: string;
+  href: Route;
   icon: NavIcon;
   label: string;
 };
