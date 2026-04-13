@@ -53,9 +53,9 @@ export default async function AdminPage() {
               <Box key={item.href}>
                 <Stack spacing={1.25}>
                   <Typography variant="h3">{item.label}</Typography>
-                  <Button component={Link} href={item.href} variant="outlined">
-                    Abrir módulo
-                  </Button>
+                  <Link href={item.href} style={{ textDecoration: "none" }}>
+                    <Button variant="outlined">Abrir módulo</Button>
+                  </Link>
                 </Stack>
               </Box>
             ))}

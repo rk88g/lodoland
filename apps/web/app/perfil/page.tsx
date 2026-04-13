@@ -65,9 +65,9 @@ export default async function ProfilePage() {
                   <Typography color="text.secondary">{nextEvent.shortDescription}</Typography>
                 ) : null}
                 <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap">
-                  <Button component={Link} href="/eventos" variant="contained">
-                    Ver evento
-                  </Button>
+                  <Link href="/eventos" style={{ textDecoration: "none" }}>
+                    <Button variant="contained">Ver evento</Button>
+                  </Link>
                   <Button variant="outlined">Comprar después</Button>
                 </Stack>
               </Stack>

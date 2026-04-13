@@ -105,22 +105,21 @@ export function DashboardShell({
             const active = pathname === item.href;
 
             return (
-              <ListItemButton
-                component={Link}
-                href={item.href}
-                key={item.href}
-                onClick={() => setMobileOpen(false)}
-                selected={active}
-                sx={{
-                  mb: 0.5,
-                  "&.Mui-selected": {
-                    bgcolor: "action.selected"
-                  }
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 36 }}>{resolveIcon(item.icon)}</ListItemIcon>
-                <ListItemText primary={item.label} />
-              </ListItemButton>
+              <Link href={item.href} key={item.href} style={{ color: "inherit", textDecoration: "none" }}>
+                <ListItemButton
+                  onClick={() => setMobileOpen(false)}
+                  selected={active}
+                  sx={{
+                    mb: 0.5,
+                    "&.Mui-selected": {
+                      bgcolor: "action.selected"
+                    }
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 36 }}>{resolveIcon(item.icon)}</ListItemIcon>
+                  <ListItemText primary={item.label} />
+                </ListItemButton>
+              </Link>
             );
           })}
         </List>
