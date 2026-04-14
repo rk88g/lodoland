@@ -77,20 +77,21 @@ export async function getTicketPassDetail(
   }
 
   const supabase = createClient();
-  let query = supabase
-    .from("issued_tickets")
-    .select(
-      "id, ticket_type_id, ticket_lot_id, owner_user_id, purchaser_name, purchaser_email, purchaser_phone, ticket_code, qr_payload, status, issued_at, checked_in_at, created_at"
-    )
-    .eq("id", ticketId);
+  const buildQuery = () =>
+    supabase
+      .from("issued_tickets")
+      .select(
+        "id, ticket_type_id, ticket_lot_id, owner_user_id, purchaser_name, purchaser_email, purchaser_phone, ticket_code, qr_payload, status, issued_at, checked_in_at, created_at"
+      )
+      .eq("id", ticketId);
 
-  if (options?.ownerUserId && options?.userEmail) {
-    query = query.or(`owner_user_id.eq.${options.ownerUserId},purchaser_email.eq.${options.userEmail}`);
-  } else if (options?.ownerUserId) {
-    query = query.eq("owner_user_id", options.ownerUserId);
-  }
+  const [ownerMatch, emailMatch] = await Promise.all([
+    options?.ownerUserId ? buildQuery().eq("owner_user_id", options.ownerUserId).maybeSingle() : Promise.resolve({ data: null, error: null }),
+    options?.userEmail ? buildQuery().eq("purchaser_email", options.userEmail).maybeSingle() : Promise.resolve({ data: null, error: null })
+  ]);
 
-  const { data: ticket, error } = await query.maybeSingle();
+  const ticket = ownerMatch.data || emailMatch.data;
+  const error = ownerMatch.error || emailMatch.error;
 
   if (error || !ticket) {
     return null;

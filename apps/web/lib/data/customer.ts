@@ -134,19 +134,26 @@ export async function getCustomerTickets(userId: string, userEmail?: string | nu
   }
 
   const supabase = createClient();
-  let query = supabase
+  const ownerQuery = supabase
     .from("issued_tickets")
     .select("id, ticket_code, status, issued_at, ticket_type_id")
+    .eq("owner_user_id", userId)
     .order("created_at", { ascending: false })
     .limit(24);
 
-  if (userEmail) {
-    query = query.or(`owner_user_id.eq.${userId},purchaser_email.eq.${userEmail}`);
-  } else {
-    query = query.eq("owner_user_id", userId);
-  }
+  const emailQuery = userEmail
+    ? supabase
+        .from("issued_tickets")
+        .select("id, ticket_code, status, issued_at, ticket_type_id")
+        .eq("purchaser_email", userEmail)
+        .order("created_at", { ascending: false })
+        .limit(24)
+    : Promise.resolve({ data: [] as Array<{ id: string; ticket_code: string; status: string; issued_at: string | null; ticket_type_id: string }> });
 
-  const { data: issuedTickets } = await query;
+  const [{ data: ownerTickets }, { data: emailTickets }] = await Promise.all([ownerQuery, emailQuery]);
+  const issuedTickets = [...(ownerTickets || []), ...(emailTickets || [])].filter(
+    (ticket, index, collection) => collection.findIndex((candidate) => candidate.id === ticket.id) === index
+  );
 
   if (!issuedTickets?.length) {
     return [] as CustomerTicketSummary[];

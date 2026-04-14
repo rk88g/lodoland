@@ -1,4 +1,4 @@
-import { Box, Chip, Stack, Typography } from "@mui/material";
+import { Alert, Box, Chip, Stack, Typography } from "@mui/material";
 import { formatEventDateTimeWallClock } from "../lib/date-format";
 import type { TicketPassDetail } from "../lib/data/ticket-pass";
 
@@ -70,6 +70,24 @@ export function TicketPass({ ticket, adminMode = false }: { ticket: TicketPassDe
         </Box>
 
         <Stack spacing={2.5} sx={{ p: { xs: 3, lg: 4 } }}>
+          {ticket.status === "checked_in" ? (
+            <Alert
+              severity="error"
+              sx={{
+                border: 2,
+                borderColor: "error.main",
+                bgcolor: "rgba(211, 47, 47, 0.18)",
+                "& .MuiAlert-message": {
+                  fontSize: 18,
+                  fontWeight: 800,
+                  lineHeight: 1.35
+                }
+              }}
+            >
+              ESTA ENTRADA YA SE UTILIZO. REVISA TU COMPRA Y NO COMPARTAS TU TICKET.
+            </Alert>
+          ) : null}
+
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="space-between" alignItems="flex-start">
             <Stack spacing={1}>
               <Typography variant="h2">{ticket.eventTitle}</Typography>

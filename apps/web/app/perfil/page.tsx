@@ -35,7 +35,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const [nextEvent, avatarPresets, tickets, raffles, pools] = await Promise.all([
     getNextEvent(),
     getAvatarPresets(),
-    getCustomerTickets(user.id),
+    getCustomerTickets(user.id, user.email),
     getCustomerRaffles(user.id),
     getCustomerPools(user.id)
   ]);

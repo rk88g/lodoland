@@ -11,6 +11,7 @@ import { AdminIssuedTicketsPanel } from "../../../components/admin-issued-ticket
 import { AdminSectionCard } from "../../../components/admin-section-card";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { FlashAlert } from "../../../components/flash-alert";
+import { TicketQrScanner } from "../../../components/ticket-qr-scanner";
 import { requireAdmin } from "../../../lib/auth/session";
 import { readFlashMessage } from "../../../lib/flash";
 import { getCustomerAccountOptions } from "../../../lib/data/admin-sales";
@@ -70,14 +71,15 @@ export default async function AdminTicketsPage() {
       </Stack>
 
       <AdminSectionCard description="Escanea el QR o pega el codigo visible del ticket para validar acceso y quemarlo." title="Validar acceso">
-        <form action={validateIssuedTicketAction} autoComplete="off" method="post">
+        <form action={validateIssuedTicketAction} autoComplete="off" id="ticket-scan-form" method="post">
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) 220px" } }}>
-            <TextField label="QR o codigo del ticket" name="scanValue" required />
+            <TextField id="ticket-scan-input" label="QR o codigo del ticket" name="scanValue" required />
             <Button sx={{ minHeight: 56 }} type="submit" variant="contained">
               Validar acceso
             </Button>
           </Box>
         </form>
+        <TicketQrScanner formId="ticket-scan-form" inputId="ticket-scan-input" />
       </AdminSectionCard>
 
       <AdminSectionCard description="Define la categoria comercial del boleto: General, VIP, Preventa o la fase que quieras vender." title="Crear tipo de ticket">
