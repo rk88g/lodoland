@@ -81,9 +81,6 @@ export type HomePageViewModel = {
     showcaseTitle: string;
     showcaseSubtitle: string;
     items: HomeSponsorItem[];
-    bannerImage: CmsMediaAsset | null;
-    bannerUrl: string;
-    bannerAlt: string;
   };
   influencers: {
     modalButtonLabel: string;
@@ -301,8 +298,6 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
   const collageItems = influencerSection?.groups.influencer_collage?.items || [];
   const salesItems = salesSection?.groups.sales_panels?.items || [];
   const merchItems = merchSection?.groups.merch_gallery?.items || [];
-  const footerItems = footerSection?.groups.footer_marquee?.items || [];
-
   const [
     { data: featuredEventRowRaw },
     { data: sponsorRowsRaw },
@@ -508,17 +503,7 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
     sponsors: {
       showcaseTitle: sponsorSection?.fields.title?.textValue || "Marcas aliadas",
       showcaseSubtitle: sponsorSection?.fields.description?.textValue || "Zona de exhibicion principal",
-      items: sponsorItems,
-      bannerImage: optimizeMedia(sponsorSection?.groups.sponsor_main_banner?.items[0]?.fields.media?.media || null, {
-        width: 1680,
-        height: 360,
-        quality: 78,
-        resize: "cover"
-      }),
-      bannerUrl: sponsorSection?.groups.sponsor_main_banner?.items[0]
-        ? linkFromItem(sponsorSection.groups.sponsor_main_banner.items[0], "target_url", "https://example.com")
-        : "https://example.com",
-      bannerAlt: sponsorSection?.fields.banner_alt?.textValue || "Banner patrocinadores"
+      items: sponsorItems
     },
     influencers: {
       modalButtonLabel: influencerSection?.fields.modal_button_label?.textValue || "Ver colaboradores",
@@ -604,17 +589,35 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
       privacyLabel: footerSection?.fields.privacy_label?.textValue || "Aviso de privacidad",
       contactLabel: footerSection?.fields.contact_label?.textValue || "Contacto",
       termsLabel: footerSection?.fields.terms_label?.textValue || "Terminos",
-      marquee: footerItems.map((item) => ({
-        id: item.id,
-        label: textFromItem(item, "label", item.label),
-        image: optimizeMedia(item.fields.logo_media?.media || null, {
-          width: 480,
-          height: 240,
-          quality: 72,
-          resize: "contain"
-        }),
-        href: linkFromItem(item, "target_url", "#")
-      }))
+      marquee: [
+        ...sponsorRows.map((item) => ({
+          id: `sponsor-${item.id}`,
+          label: item.name,
+          image: optimizeMedia(item.logo_asset_id ? mediaMap.get(item.logo_asset_id) || null : null, {
+            width: 360,
+            height: 160,
+            quality: 72,
+            resize: "contain"
+          }),
+          href: item.website_url || "#"
+        })),
+        ...influencerRows.map((item) => ({
+          id: `influencer-${item.id}`,
+          label: item.display_name,
+          image: optimizeMedia(item.cover_asset_id ? mediaMap.get(item.cover_asset_id) || null : null, {
+            width: 360,
+            height: 160,
+            quality: 72,
+            resize: "contain"
+          }),
+          href:
+            item.instagram_url ||
+            item.facebook_url ||
+            item.youtube_url ||
+            item.tiktok_url ||
+            "#"
+        }))
+      ]
     }
   };
 }
