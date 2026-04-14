@@ -19,11 +19,18 @@ type EventRow = {
 type RaffleRow = {
   id: string;
   title: string;
+  description: string | null;
   ends_at: string | null;
   draw_at: string | null;
   entry_price: number;
   currency: string;
   status: string;
+  total_numbers: number | null;
+  numbers_start: number;
+  numbers_end: number | null;
+  number_digits: number;
+  allow_manual_pick: boolean;
+  price_mode: string;
 };
 
 type PoolRow = {
@@ -58,6 +65,7 @@ export type CustomerRaffleSummary = {
   endsAt: string | null;
   drawAt: string | null;
   createdAt: string;
+  numbers: number[];
 };
 
 export type CustomerPoolSummary = {
@@ -75,11 +83,20 @@ export type CustomerPoolSummary = {
 export type CustomerAvailableRaffle = {
   id: string;
   title: string;
+  description: string | null;
   entryPrice: number;
   currency: string;
   endsAt: string | null;
   drawAt: string | null;
   status: string;
+  totalNumbers: number | null;
+  numbersStart: number;
+  numbersEnd: number | null;
+  numberDigits: number;
+  allowManualPick: boolean;
+  priceMode: string;
+  soldNumbers: number[];
+  prizes: string[];
 };
 
 export type CustomerAvailablePool = {
@@ -181,10 +198,23 @@ export async function getCustomerRaffles(userId: string) {
   const raffleIds = Array.from(new Set(entries.map((entry) => entry.raffle_id)));
   const { data: raffles } = await supabase
     .from("raffles")
-    .select("id, title, ends_at, draw_at, entry_price, currency, status")
+    .select("id, title, description, ends_at, draw_at, entry_price, currency, status, total_numbers, numbers_start, numbers_end, number_digits, allow_manual_pick, price_mode")
     .in("id", raffleIds);
 
+  const entryIds = entries.map((entry) => entry.id);
+  const { data: entryNumbers } = await supabase
+    .from("raffle_entry_numbers")
+    .select("raffle_entry_id, number_value")
+    .in("raffle_entry_id", entryIds);
+
   const raffleMap = new Map(((raffles || []) as RaffleRow[]).map((raffle) => [raffle.id, raffle]));
+  const numbersMap = new Map<string, number[]>();
+
+  (entryNumbers || []).forEach((row) => {
+    const current = numbersMap.get(row.raffle_entry_id) || [];
+    current.push(row.number_value);
+    numbersMap.set(row.raffle_entry_id, current);
+  });
 
   return entries.map((entry) => {
     const raffle = raffleMap.get(entry.raffle_id);
@@ -198,7 +228,8 @@ export async function getCustomerRaffles(userId: string) {
       status: entry.status,
       endsAt: raffle?.ends_at || null,
       drawAt: raffle?.draw_at || null,
-      createdAt: entry.created_at
+      createdAt: entry.created_at,
+      numbers: (numbersMap.get(entry.id) || []).sort((left, right) => left - right)
     } satisfies CustomerRaffleSummary;
   });
 }
@@ -253,19 +284,54 @@ export async function getAvailableRaffles(limit = 12) {
   const supabase = createClient();
   const { data } = await supabase
     .from("raffles")
-    .select("id, title, ends_at, draw_at, entry_price, currency, status")
+    .select("id, title, description, ends_at, draw_at, entry_price, currency, status, total_numbers, numbers_start, numbers_end, number_digits, allow_manual_pick, price_mode")
     .in("status", ["published", "draft"])
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  return ((data || []) as RaffleRow[]).map((raffle) => ({
+  const raffleRows = (data || []) as RaffleRow[];
+  if (!raffleRows.length) {
+    return [] as CustomerAvailableRaffle[];
+  }
+
+  const raffleIds = raffleRows.map((raffle) => raffle.id);
+  const [{ data: soldNumbers }, { data: prizes }] = await Promise.all([
+    supabase.from("raffle_entry_numbers").select("raffle_id, number_value").in("raffle_id", raffleIds),
+    supabase.from("raffle_prizes").select("raffle_id, title").in("raffle_id", raffleIds).order("sort_order", { ascending: true })
+  ]);
+
+  const soldMap = new Map<string, number[]>();
+  const prizeMap = new Map<string, string[]>();
+
+  (soldNumbers || []).forEach((row) => {
+    const current = soldMap.get(row.raffle_id) || [];
+    current.push(row.number_value);
+    soldMap.set(row.raffle_id, current);
+  });
+
+  (prizes || []).forEach((row) => {
+    const current = prizeMap.get(row.raffle_id) || [];
+    current.push(row.title);
+    prizeMap.set(row.raffle_id, current);
+  });
+
+  return raffleRows.map((raffle) => ({
     id: raffle.id,
     title: raffle.title,
+    description: raffle.description,
     entryPrice: raffle.entry_price,
     currency: raffle.currency,
     endsAt: raffle.ends_at,
     drawAt: raffle.draw_at,
-    status: raffle.status
+    status: raffle.status,
+    totalNumbers: raffle.total_numbers,
+    numbersStart: raffle.numbers_start,
+    numbersEnd: raffle.numbers_end,
+    numberDigits: raffle.number_digits,
+    allowManualPick: raffle.allow_manual_pick,
+    priceMode: raffle.price_mode,
+    soldNumbers: (soldMap.get(raffle.id) || []).sort((left, right) => left - right),
+    prizes: prizeMap.get(raffle.id) || []
   }));
 }
 

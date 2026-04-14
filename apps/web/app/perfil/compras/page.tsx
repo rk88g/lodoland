@@ -47,7 +47,8 @@ export default async function CustomerPurchasesPage() {
           detailLines: [
             `Cierre: ${formatDate(raffle.endsAt)}`,
             `Sorteo: ${formatDate(raffle.drawAt)}`,
-            `Compra: ${formatDate(raffle.createdAt)}`
+            `Compra: ${formatDate(raffle.createdAt)}`,
+            raffle.numbers.length ? `Numeros: ${raffle.numbers.map((numberValue) => numberValue.toString().padStart(4, "0")).join(" | ")}` : "Numeros pendientes"
           ]
         }))}
         title="Rifas"

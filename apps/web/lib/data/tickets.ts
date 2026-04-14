@@ -40,6 +40,20 @@ type TicketLotRow = {
   is_active: boolean;
 };
 
+type IssuedTicketRow = {
+  id: string;
+  ticket_type_id: string;
+  ticket_lot_id: string | null;
+  owner_user_id: string | null;
+  purchaser_name: string | null;
+  purchaser_email: string | null;
+  purchaser_phone: string | null;
+  ticket_code: string;
+  status: string;
+  issued_at: string | null;
+  created_at: string;
+};
+
 type SiteSettingRow = {
   setting_key: string;
   text_value: string | null;
@@ -130,6 +144,20 @@ export type CustomerEventTicketOption = {
     saleStartsAt: string | null;
     saleEndsAt: string | null;
   }>;
+};
+
+export type AdminIssuedTicketSummary = {
+  id: string;
+  eventTitle: string;
+  ticketTypeName: string;
+  ticketLotLabel: string | null;
+  purchaserName: string | null;
+  purchaserEmail: string | null;
+  purchaserPhone: string | null;
+  ownerLabel: string | null;
+  ticketCode: string;
+  status: string;
+  issuedAt: string | null;
 };
 
 async function getEventMapByIds(eventIds: string[]) {
@@ -433,4 +461,70 @@ export async function getCustomerEventTicketOptions() {
         drops
       } satisfies CustomerEventTicketOption;
     });
+}
+
+export async function getRecentIssuedTickets(limit = 40) {
+  if (isBuildPhase()) {
+    return [] as AdminIssuedTicketSummary[];
+  }
+
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("issued_tickets")
+    .select(
+      "id, ticket_type_id, ticket_lot_id, owner_user_id, purchaser_name, purchaser_email, purchaser_phone, ticket_code, status, issued_at, created_at"
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (!data?.length) {
+    return [] as AdminIssuedTicketSummary[];
+  }
+
+  const issuedTickets = (data || []) as IssuedTicketRow[];
+  const ticketTypeIds = Array.from(new Set(issuedTickets.map((ticket) => ticket.ticket_type_id)));
+  const lotIds = Array.from(new Set(issuedTickets.map((ticket) => ticket.ticket_lot_id).filter(Boolean)));
+  const ownerIds = Array.from(new Set(issuedTickets.map((ticket) => ticket.owner_user_id).filter(Boolean)));
+
+  const [{ data: ticketTypes }, { data: lots }, { data: owners }] = await Promise.all([
+    supabase.from("ticket_types").select("id, event_id, name").in("id", ticketTypeIds),
+    lotIds.length
+      ? supabase.from("ticket_lots").select("id, label").in("id", lotIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; label: string }> }),
+    ownerIds.length
+      ? supabase.from("profiles").select("id, email, first_name, last_name").in("id", ownerIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; email: string | null; first_name: string | null; last_name: string | null }> })
+  ]);
+
+  const ticketTypeMap = new Map((ticketTypes || []).map((ticketType) => [ticketType.id, ticketType]));
+  const lotMap = new Map((lots || []).map((lot) => [lot.id, lot]));
+  const ownerMap = new Map(
+    (owners || []).map((owner) => {
+      const ownerLabel = [owner.first_name, owner.last_name].filter(Boolean).join(" ").trim() || owner.email || "Cliente";
+      return [owner.id, ownerLabel];
+    })
+  );
+  const eventMap = await getEventMapByIds(
+    Array.from(new Set((ticketTypes || []).map((ticketType) => ticketType.event_id)))
+  );
+
+  return issuedTickets.map((ticket) => {
+    const ticketType = ticketTypeMap.get(ticket.ticket_type_id);
+    const event = ticketType ? eventMap.get(ticketType.event_id) : null;
+    const lot = ticket.ticket_lot_id ? lotMap.get(ticket.ticket_lot_id) : null;
+
+    return {
+      id: ticket.id,
+      eventTitle: event?.title || "Evento pendiente",
+      ticketTypeName: ticketType?.name || "Tipo pendiente",
+      ticketLotLabel: lot?.label || null,
+      purchaserName: ticket.purchaser_name,
+      purchaserEmail: ticket.purchaser_email,
+      purchaserPhone: ticket.purchaser_phone,
+      ownerLabel: ticket.owner_user_id ? ownerMap.get(ticket.owner_user_id) || null : null,
+      ticketCode: ticket.ticket_code,
+      status: ticket.status,
+      issuedAt: ticket.issued_at
+    } satisfies AdminIssuedTicketSummary;
+  });
 }
