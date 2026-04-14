@@ -358,8 +358,7 @@ export async function saveHomeSectionAction(formData: FormData) {
     const { error: mediaError } = await supabase
       .from("media_assets")
       .update({
-        is_public: true,
-        updated_by: session.profile?.id || null
+        is_public: true
       })
       .in("id", referencedMediaIds);
 
