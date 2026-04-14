@@ -152,6 +152,7 @@ export function ManagedGroupEditor({
         data-blocking-form="true"
         data-loading-label={selectedItem ? `Guardando ${singularTitle.toLowerCase()}...` : `Creando ${singularTitle.toLowerCase()}...`}
         id={formAnchor}
+        method="post"
         sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5, display: "grid", gap: 2 }}
       >
         <input name="entityKind" type="hidden" value={entityKind} />

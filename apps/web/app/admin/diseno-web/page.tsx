@@ -244,6 +244,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                   data-blocking-form="true"
                   data-loading-label={`Guardando ${section.label}...`}
                   id={`section-form-${section.id}`}
+                  method="post"
                   sx={{ display: "grid" }}
                 >
                   <input name="sectionKey" type="hidden" value={section.sectionKey} />
@@ -458,7 +459,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                                   <TableCell align="right">
                                     <Stack direction={{ xs: "column", sm: "row" }} justifyContent="flex-end" spacing={1}>
                                       {groupItem ? (
-                                        <form action={toggleInfluencerCollageAssetAction} data-blocking-form="true" data-loading-label="Actualizando collage...">
+                                        <form action={toggleInfluencerCollageAssetAction} autoComplete="off" data-blocking-form="true" data-loading-label="Actualizando collage..." method="post">
                                           <input name="itemId" type="hidden" value={groupItem.id} />
                                           <input name="nextVisible" type="hidden" value={groupItem.isVisible ? "false" : "true"} />
                                           <Button size="small" type="submit" variant="outlined">
@@ -466,7 +467,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                                           </Button>
                                         </form>
                                       ) : null}
-                                      <form action={deleteInfluencerCollageAssetAction} data-blocking-form="true" data-loading-label="Eliminando imagen...">
+                                      <form action={deleteInfluencerCollageAssetAction} autoComplete="off" data-blocking-form="true" data-loading-label="Eliminando imagen..." method="post">
                                         <input name="itemId" type="hidden" value={groupItem?.id || ""} />
                                         <input name="mediaAssetId" type="hidden" value={asset.id} />
                                         <input name="path" type="hidden" value={asset.path} />
@@ -496,6 +497,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                       autoComplete="off"
                       data-blocking-form="true"
                       data-loading-label="Subiendo imagen del collage..."
+                      method="post"
                       sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5, display: "grid", gap: 2 }}
                     >
                       <Typography variant="h3">Agregar imagen al collage</Typography>
@@ -573,6 +575,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
             data-blocking-form="true"
             data-loading-label="Subiendo asset..."
             encType="multipart/form-data"
+            method="post"
           >
             <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
               <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>

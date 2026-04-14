@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   Alert,
   Backdrop,
@@ -46,6 +47,8 @@ export function DesignWebEditorShell({
   sectionLinks,
   successMessage
 }: DesignWebEditorShellProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [assetModalOpen, setAssetModalOpen] = useState(false);
   const [blockingMessage, setBlockingMessage] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(Boolean(successMessage || errorMessage));
@@ -62,6 +65,12 @@ export function DesignWebEditorShell({
   }, [successMessage, errorMessage, loadError]);
 
   useEffect(() => {
+    setBlockingMessage(null);
+  }, [pathname, searchParams]);
+
+  useEffect(() => {
+    let clearTimer: ReturnType<typeof setTimeout> | null = null;
+
     const handleSubmit = (event: Event) => {
       const form = event.target instanceof HTMLFormElement ? event.target : null;
 
@@ -76,18 +85,39 @@ export function DesignWebEditorShell({
         "Loading...";
 
       setBlockingMessage(message);
+
+      if (clearTimer) {
+        clearTimeout(clearTimer);
+      }
+
+      clearTimer = setTimeout(() => {
+        setBlockingMessage(null);
+      }, 15000);
     };
 
     const clearBlocking = () => {
+      if (clearTimer) {
+        clearTimeout(clearTimer);
+        clearTimer = null;
+      }
       setBlockingMessage(null);
     };
 
     window.addEventListener("submit", handleSubmit, true);
     window.addEventListener("pageshow", clearBlocking);
+    window.addEventListener("focus", clearBlocking);
+    window.addEventListener("pointerdown", clearBlocking, true);
+    document.addEventListener("visibilitychange", clearBlocking);
 
     return () => {
       window.removeEventListener("submit", handleSubmit, true);
       window.removeEventListener("pageshow", clearBlocking);
+      window.removeEventListener("focus", clearBlocking);
+      window.removeEventListener("pointerdown", clearBlocking, true);
+      document.removeEventListener("visibilitychange", clearBlocking);
+      if (clearTimer) {
+        clearTimeout(clearTimer);
+      }
     };
   }, []);
 
