@@ -51,6 +51,7 @@ type IssuedTicketRow = {
   ticket_code: string;
   status: string;
   issued_at: string | null;
+  checked_in_at: string | null;
   created_at: string;
 };
 
@@ -158,6 +159,7 @@ export type AdminIssuedTicketSummary = {
   ticketCode: string;
   status: string;
   issuedAt: string | null;
+  checkedInAt: string | null;
 };
 
 async function getEventMapByIds(eventIds: string[]) {
@@ -463,19 +465,29 @@ export async function getCustomerEventTicketOptions() {
     });
 }
 
-export async function getRecentIssuedTickets(limit = 40) {
+export async function getRecentIssuedTickets(limit = 40, searchTerm?: string | null) {
   if (isBuildPhase()) {
     return [] as AdminIssuedTicketSummary[];
   }
 
   const supabase = createClient();
-  const { data } = await supabase
+  let query = supabase
     .from("issued_tickets")
     .select(
-      "id, ticket_type_id, ticket_lot_id, owner_user_id, purchaser_name, purchaser_email, purchaser_phone, ticket_code, status, issued_at, created_at"
+      "id, ticket_type_id, ticket_lot_id, owner_user_id, purchaser_name, purchaser_email, purchaser_phone, ticket_code, status, issued_at, checked_in_at, created_at"
     )
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  const normalizedSearch = String(searchTerm || "").trim();
+
+  if (normalizedSearch) {
+    query = query.or(
+      `ticket_code.ilike.%${normalizedSearch}%,purchaser_name.ilike.%${normalizedSearch}%,purchaser_email.ilike.%${normalizedSearch}%`
+    );
+  }
+
+  const { data } = await query;
 
   if (!data?.length) {
     return [] as AdminIssuedTicketSummary[];
@@ -524,7 +536,8 @@ export async function getRecentIssuedTickets(limit = 40) {
       ownerLabel: ticket.owner_user_id ? ownerMap.get(ticket.owner_user_id) || null : null,
       ticketCode: ticket.ticket_code,
       status: ticket.status,
-      issuedAt: ticket.issued_at
+      issuedAt: ticket.issued_at,
+      checkedInAt: ticket.checked_in_at
     } satisfies AdminIssuedTicketSummary;
   });
 }

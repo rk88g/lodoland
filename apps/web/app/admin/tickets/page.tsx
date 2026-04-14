@@ -5,9 +5,16 @@ import {
   Chip,
   MenuItem,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
   Typography
 } from "@mui/material";
+import Link from "next/link";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { requireAdmin } from "../../../lib/auth/session";
 import { getCustomerAccountOptions } from "../../../lib/data/admin-sales";
@@ -26,7 +33,8 @@ import {
   createTicketLotAction,
   createTicketTypeAction,
   saveMercadoPagoSettingsAction,
-  sellTicketsAsAdminAction
+  sellTicketsAsAdminAction,
+  validateIssuedTicketAction
 } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +43,7 @@ type AdminTicketsPageProps = {
   searchParams?: {
     error?: string;
     success?: string;
+    q?: string;
   };
 };
 
@@ -42,9 +51,25 @@ function formatDate(dateValue: string | null) {
   return formatEventDateTimeWallClock(dateValue) || "Sin fecha";
 }
 
+function formatTicketStatus(status: string) {
+  switch (status) {
+    case "checked_in":
+      return "Usado";
+    case "issued":
+      return "Emitido";
+    case "cancelled":
+      return "Cancelado";
+    case "refunded":
+      return "Reembolsado";
+    default:
+      return status;
+  }
+}
+
 export default async function AdminTicketsPage({ searchParams }: AdminTicketsPageProps) {
   await requireAdmin();
 
+  const searchTerm = String(searchParams?.q || "").trim();
   const [summary, events, ticketTypes, ticketTypeOptions, ticketLots, mercadoPagoSettings, customers, issuedTickets] =
     await Promise.all([
       getTicketOperationSummary(),
@@ -54,48 +79,42 @@ export default async function AdminTicketsPage({ searchParams }: AdminTicketsPag
       getAdminTicketLots(48),
       getMercadoPagoSettings(),
       getCustomerAccountOptions(120),
-      getRecentIssuedTickets(40)
+      getRecentIssuedTickets(80, searchTerm)
     ]);
 
   const errorMessage = searchParams?.error ? decodeURIComponent(searchParams.error) : null;
   const successMessage = searchParams?.success ? decodeURIComponent(searchParams.success) : null;
 
   return (
-    <DashboardShell navItems={controlNavItems} subtitle="Drops, stock, emision y cobro" title="Tickets">
+    <DashboardShell navItems={controlNavItems} subtitle="Drops, emision, QR y validacion" title="Tickets">
       {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
       {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Operacion general</Typography>
         <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", xl: "repeat(4, minmax(0, 1fr))" } }}>
-          <SummaryCard label="Tipos activos" value={summary.ticketTypes} />
-          <SummaryCard label="Drops o lotes" value={summary.ticketLots} />
-          <SummaryCard label="Tickets emitidos" value={summary.issuedTickets} />
-          <SummaryCard label="Capacidad cortesia" value={summary.courtesyCapacity} />
+          <SummaryCard accent="#ff8a65" label="Tipos activos" subtitle="Categorias o fases comerciales" value={summary.ticketTypes} />
+          <SummaryCard accent="#66bb6a" label="Drops activos" subtitle="Stock operativo disponible" value={summary.ticketLots} />
+          <SummaryCard accent="#64b5f6" label="Tickets emitidos" subtitle="Tickets creados por ventas" value={summary.issuedTickets} />
+          <SummaryCard accent="#ffd54f" label="Cortesias" subtitle="Capacidad reservada sin costo" value={summary.courtesyCapacity} />
         </Box>
-        <Box sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5 }}>
-          <Stack spacing={0.75}>
-            <Typography variant="h3">Como funciona este flujo</Typography>
-            <Typography color="text.secondary">
-              Tipo de ticket: es la oferta comercial que vendes, por ejemplo General, VIP, Preventa 1 o Confort.
-            </Typography>
-            <Typography color="text.secondary">
-              Capacidad total: es el limite maximo que puede vender ese tipo sumando todos sus drops.
-            </Typography>
-            <Typography color="text.secondary">
-              Drop o lote: es la bolsa operativa de stock que tu abres para vender en una etapa, canal o taquilla.
-            </Typography>
-            <Typography color="text.secondary">
-              Stock: es la cantidad disponible solo dentro de ese drop.
-            </Typography>
-            <Typography color="text.secondary">
-              Cortesias: aparta boletos sin costo dentro del mismo drop.
-            </Typography>
-            <Typography color="text.secondary">
-              Prefijo: define la base visible del codigo unico del ticket que se emitira.
-            </Typography>
-          </Stack>
-        </Box>
+      </Stack>
+
+      <Stack spacing={1.5}>
+        <Typography variant="h2">Validar y quemar ticket</Typography>
+        <form action={validateIssuedTicketAction} autoComplete="off" method="post">
+          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) 220px" } }}>
+            <TextField
+              helperText="Escanea el QR completo o pega el codigo visible del ticket."
+              label="QR o codigo del ticket"
+              name="scanValue"
+              required
+            />
+            <Button sx={{ minHeight: 56 }} type="submit" variant="contained">
+              Validar acceso
+            </Button>
+          </Box>
+        </form>
       </Stack>
 
       <Stack spacing={1.5}>
@@ -127,7 +146,7 @@ export default async function AdminTicketsPage({ searchParams }: AdminTicketsPag
               <TextField defaultValue="MXN" label="Moneda" name="currency" />
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 2" } }}>
-              <TextField helperText="Limite maximo global entre todos los drops." inputProps={{ min: 1, step: 1 }} label="Capacidad total" name="quantityTotal" type="number" />
+              <TextField helperText="Limite global entre todos los drops del tipo." inputProps={{ min: 1, step: 1 }} label="Capacidad total" name="quantityTotal" type="number" />
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
               <TextField InputLabelProps={{ shrink: true }} label="Venta desde" name="saleStartsAt" type="datetime-local" />
@@ -179,10 +198,10 @@ export default async function AdminTicketsPage({ searchParams }: AdminTicketsPag
               </TextField>
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
-              <TextField fullWidth helperText="Referencia interna para taquilla, preventa, staff o convenio." label="Descripcion operativa" multiline minRows={2} name="description" />
+              <TextField fullWidth helperText="Referencia interna para taquilla, preventa o staff." label="Descripcion operativa" multiline minRows={2} name="description" />
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 2" } }}>
-              <TextField helperText="Base del codigo del ticket." label="Prefijo" name="sequencePrefix" placeholder="LLVIP" />
+              <TextField helperText="Base del codigo visible del ticket." label="Prefijo" name="sequencePrefix" placeholder="LLVIP" />
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
               <TextField InputLabelProps={{ shrink: true }} label="Disponible desde" name="saleStartsAt" type="datetime-local" />
@@ -200,10 +219,9 @@ export default async function AdminTicketsPage({ searchParams }: AdminTicketsPag
       </Stack>
 
       <Stack spacing={1.5}>
-        <Typography variant="h2">Venta manual de tickets</Typography>
+        <Typography variant="h2">Autorizar venta manual</Typography>
         <Typography color="text.secondary">
-          Aqui registras una venta aprobada por ti. El sistema crea la orden pagada, emite tickets unicos y deja listo el
-          QR con su hash interno para la siguiente fase de validacion.
+          Este flujo crea la orden pagada y emite de inmediato los tickets con su codigo unico y QR.
         </Typography>
         <form action={sellTicketsAsAdminAction} autoComplete="off" method="post">
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
@@ -248,7 +266,7 @@ export default async function AdminTicketsPage({ searchParams }: AdminTicketsPag
             </Box>
             <Box sx={{ gridColumn: "1 / -1", display: "flex", justifyContent: "flex-end" }}>
               <Button type="submit" variant="contained">
-                Autorizar venta de tickets
+                Autorizar y emitir tickets
               </Button>
             </Box>
           </Box>
@@ -258,7 +276,7 @@ export default async function AdminTicketsPage({ searchParams }: AdminTicketsPag
       <Stack spacing={1.5}>
         <Typography variant="h2">Mercado Pago developer</Typography>
         <Typography color="text.secondary">
-          Aqui queda guardada toda la configuracion para conectar el cobro automatico en la siguiente fase.
+          Aqui queda toda la configuracion lista para conectar cobro automatico en la siguiente fase.
         </Typography>
         <form action={saveMercadoPagoSettingsAction} autoComplete="off" method="post">
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
@@ -373,47 +391,136 @@ export default async function AdminTicketsPage({ searchParams }: AdminTicketsPag
       </Stack>
 
       <Stack spacing={1.5}>
-        <Typography variant="h2">Tickets emitidos recientemente</Typography>
+        <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} justifyContent="space-between" alignItems={{ xs: "stretch", md: "center" }}>
+          <Typography variant="h2">Tickets emitidos</Typography>
+          <form action="/admin/tickets" method="get">
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
+              <TextField defaultValue={searchTerm} label="Buscar ticket" name="q" placeholder="Codigo, comprador o correo" />
+              <Button type="submit" variant="outlined">
+                Buscar
+              </Button>
+            </Stack>
+          </form>
+        </Stack>
         {issuedTickets.length ? (
-          <Box sx={{ display: "grid", gap: 2 }}>
-            {issuedTickets.map((ticket) => (
-              <Box key={ticket.id} sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5 }}>
-                <Stack spacing={1}>
-                  <Typography variant="h3">{ticket.ticketCode}</Typography>
-                  <Typography color="text.secondary">
-                    {ticket.eventTitle} - {ticket.ticketTypeName}
-                    {ticket.ticketLotLabel ? ` - ${ticket.ticketLotLabel}` : ""}
-                  </Typography>
-                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                    <Chip label={ticket.status} size="small" />
-                    <Chip label={formatDate(ticket.issuedAt)} size="small" />
-                    {ticket.ownerLabel ? <Chip label={ticket.ownerLabel} size="small" /> : null}
-                  </Stack>
-                  {ticket.purchaserName || ticket.purchaserEmail || ticket.purchaserPhone ? (
-                    <Typography color="text.secondary">
-                      {[ticket.purchaserName, ticket.purchaserEmail, ticket.purchaserPhone].filter(Boolean).join(" - ")}
-                    </Typography>
-                  ) : null}
-                </Stack>
-              </Box>
-            ))}
-          </Box>
+          <TableContainer sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper" }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Ticket</TableCell>
+                  <TableCell>Evento</TableCell>
+                  <TableCell>Cliente</TableCell>
+                  <TableCell>Estado</TableCell>
+                  <TableCell>Emitido</TableCell>
+                  <TableCell>Acciones</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {issuedTickets.map((ticket) => (
+                  <TableRow key={ticket.id} hover>
+                    <TableCell>
+                      <Stack spacing={0.5}>
+                        <Typography fontWeight={700}>{ticket.ticketCode}</Typography>
+                        <Typography color="text.secondary" variant="body2">
+                          {ticket.ticketTypeName}
+                          {ticket.ticketLotLabel ? ` - ${ticket.ticketLotLabel}` : ""}
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>{ticket.eventTitle}</TableCell>
+                    <TableCell>
+                      <Stack spacing={0.35}>
+                        <Typography variant="body2">{ticket.ownerLabel || "Cliente pendiente"}</Typography>
+                        {ticket.purchaserName || ticket.purchaserEmail ? (
+                          <Typography color="text.secondary" variant="body2">
+                            {[ticket.purchaserName, ticket.purchaserEmail].filter(Boolean).join(" - ")}
+                          </Typography>
+                        ) : null}
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        color={ticket.status === "checked_in" ? "success" : "default"}
+                        label={formatTicketStatus(ticket.status)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Stack spacing={0.35}>
+                        <Typography variant="body2">{formatDate(ticket.issuedAt)}</Typography>
+                        {ticket.checkedInAt ? (
+                          <Typography color="success.main" variant="body2">
+                            Usado: {formatDate(ticket.checkedInAt)}
+                          </Typography>
+                        ) : null}
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction={{ xs: "column", lg: "row" }} spacing={1}>
+                        <Button component={Link} href={`/admin/tickets/${ticket.id}`} size="small" variant="outlined">
+                          Ver ticket
+                        </Button>
+                        {ticket.status !== "checked_in" && ticket.status !== "cancelled" && ticket.status !== "refunded" ? (
+                          <form action={validateIssuedTicketAction} method="post">
+                            <input name="scanValue" type="hidden" value={ticket.ticketCode} />
+                            <Button size="small" type="submit" variant="contained">
+                              Quemar
+                            </Button>
+                          </form>
+                        ) : null}
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         ) : (
-          <Typography color="text.secondary">Todavia no hay tickets emitidos desde control.</Typography>
+          <Typography color="text.secondary">
+            {searchTerm ? "No encontramos tickets emitidos con ese criterio." : "Todavia no hay tickets emitidos desde control."}
+          </Typography>
         )}
       </Stack>
     </DashboardShell>
   );
 }
 
-function SummaryCard({ label, value }: { label: string; value: number }) {
+function SummaryCard({
+  label,
+  subtitle,
+  value,
+  accent
+}: {
+  label: string;
+  subtitle: string;
+  value: number;
+  accent: string;
+}) {
   return (
-    <Box sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5 }}>
-      <Stack spacing={0.5}>
-        <Typography color="text.secondary" variant="body2">
-          {label}
-        </Typography>
-        <Typography variant="h2">{value}</Typography>
+    <Box
+      sx={{
+        border: 1,
+        borderColor: "divider",
+        bgcolor: "background.paper",
+        p: 2.25
+      }}
+    >
+      <Stack direction="row" spacing={1.5} alignItems="center">
+        <Box
+          sx={{
+            width: 58,
+            height: 42,
+            background: `linear-gradient(135deg, ${accent} 0%, rgba(255,255,255,0.12) 100%)`,
+            border: "1px solid rgba(255,255,255,0.14)"
+          }}
+        />
+        <Stack spacing={0.4} flex={1}>
+          <Typography variant="h3">{label}</Typography>
+          <Typography color="text.secondary" variant="body2">
+            {subtitle}
+          </Typography>
+        </Stack>
+        <Typography sx={{ fontSize: 34, fontWeight: 800, lineHeight: 1 }}>{value}</Typography>
       </Stack>
     </Box>
   );

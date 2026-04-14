@@ -1,4 +1,5 @@
-import { Box, Chip, Stack, Typography } from "@mui/material";
+import { Box, Button, Chip, Stack, Typography } from "@mui/material";
+import Link from "next/link";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { requireUser } from "../../../lib/auth/session";
 import { getCustomerPools, getCustomerRaffles, getCustomerTickets } from "../../../lib/data/customer";
@@ -28,6 +29,7 @@ export default async function CustomerPurchasesPage() {
       <PurchaseSection
         emptyLabel="Todavia no hay tickets emitidos en tu cuenta."
         items={tickets.map((ticket) => ({
+          href: `/perfil/compras/tickets/${ticket.id}`,
           title: ticket.eventTitle,
           chips: [ticket.ticketTypeName, ticket.priceLabel, ticket.status],
           detailLines: [
@@ -81,6 +83,7 @@ function PurchaseSection({
     title: string;
     chips: string[];
     detailLines: string[];
+    href?: string;
   }>;
   emptyLabel: string;
 }) {
@@ -103,6 +106,13 @@ function PurchaseSection({
                     {line}
                   </Typography>
                 ))}
+                {item.href ? (
+                  <Box>
+                    <Button component={Link} href={item.href} variant="outlined">
+                      Ver ticket
+                    </Button>
+                  </Box>
+                ) : null}
               </Stack>
             </Box>
           ))}

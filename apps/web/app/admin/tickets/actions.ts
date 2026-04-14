@@ -40,6 +40,46 @@ function generateTicketIdentity(prefix: string, eventId: string, lotId: string, 
   };
 }
 
+function parseTicketScanValue(scanValue: string) {
+  const normalized = scanValue.trim();
+
+  if (!normalized) {
+    return {
+      ticketId: null,
+      ticketCode: null,
+      hash: null
+    };
+  }
+
+  if (normalized.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(normalized) as {
+        ticketId?: string;
+        ticketCode?: string;
+        hash?: string;
+      };
+
+      return {
+        ticketId: parsed.ticketId || null,
+        ticketCode: parsed.ticketCode || null,
+        hash: parsed.hash || null
+      };
+    } catch (_error) {
+      return {
+        ticketId: null,
+        ticketCode: normalized,
+        hash: null
+      };
+    }
+  }
+
+  return {
+    ticketId: null,
+    ticketCode: normalized,
+    hash: null
+  };
+}
+
 export async function createTicketTypeAction(formData: FormData) {
   const session = await requireAdmin();
   const supabase = createClient();
@@ -469,4 +509,82 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
   revalidatePath("/perfil/compras");
   revalidatePath("/eventos");
   redirect("/admin/tickets?success=Venta%20manual%20de%20tickets%20registrada%20correctamente.");
+}
+
+export async function validateIssuedTicketAction(formData: FormData) {
+  const session = await requireAdmin();
+  const supabase = createClient();
+  const scanValue = String(formData.get("scanValue") ?? "").trim();
+
+  if (!scanValue) {
+    redirect("/admin/tickets?error=Debes escanear o pegar el codigo del ticket.");
+  }
+
+  const parsed = parseTicketScanValue(scanValue);
+  let query = supabase
+    .from("issued_tickets")
+    .select("id, ticket_code, status, checked_in_at, metadata, owner_user_id")
+    .limit(1);
+
+  if (parsed.ticketId) {
+    query = query.eq("id", parsed.ticketId);
+  } else if (parsed.ticketCode) {
+    query = query.eq("ticket_code", parsed.ticketCode);
+  } else {
+    redirect("/admin/tickets?error=No pudimos interpretar el QR o codigo enviado.");
+  }
+
+  const { data: ticket, error } = await query.maybeSingle();
+
+  if (error || !ticket) {
+    redirect(`/admin/tickets?error=${encodeURIComponent(error?.message || "Ticket no encontrado.")}`);
+  }
+
+  const storedHash =
+    ticket.metadata && typeof ticket.metadata === "object" && "hash" in ticket.metadata
+      ? String(ticket.metadata.hash || "")
+      : "";
+
+  if (parsed.hash && storedHash && parsed.hash !== storedHash) {
+    redirect("/admin/tickets?error=El hash del ticket no coincide. Verifica el QR.");
+  }
+
+  if (ticket.status === "checked_in") {
+    redirect("/admin/tickets?error=Este ticket ya fue usado y no puede volver a entrar.");
+  }
+
+  if (ticket.status === "cancelled" || ticket.status === "refunded") {
+    redirect("/admin/tickets?error=Este ticket no es valido para acceso.");
+  }
+
+  const checkedInAt = new Date().toISOString();
+  const { error: updateError } = await supabase
+    .from("issued_tickets")
+    .update({
+      status: "checked_in",
+      checked_in_at: checkedInAt
+    })
+    .eq("id", ticket.id);
+
+  if (updateError) {
+    redirect(`/admin/tickets?error=${encodeURIComponent(updateError.message)}`);
+  }
+
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "issued_ticket",
+    entityId: ticket.id,
+    action: "check_in",
+    summary: "Validacion y quema de ticket en acceso",
+    payload: {
+      ticketCode: ticket.ticket_code,
+      checkedInAt
+    }
+  });
+
+  revalidatePath("/admin/tickets");
+  revalidatePath(`/admin/tickets/${ticket.id}`);
+  revalidatePath("/perfil/compras");
+  redirect(`/admin/tickets?success=${encodeURIComponent(`Ticket ${ticket.ticket_code} validado correctamente.`)}`);
 }
