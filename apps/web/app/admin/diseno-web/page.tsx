@@ -4,7 +4,7 @@ import { DashboardShell } from "../../../components/dashboard-shell";
 import { DesignWebEditorShell } from "../../../components/design-web-editor-shell";
 import { ManagedGroupEditor } from "../../../components/managed-group-editor";
 import { requireAdmin } from "../../../lib/auth/session";
-import { getCmsPageConfig, type CmsFieldValue, type CmsItem } from "../../../lib/data/cms";
+import { getCmsPageConfig, type CmsFieldValue } from "../../../lib/data/cms";
 import { getMediaAssets, getMediaAssetsByPrefix } from "../../../lib/data/portal";
 import { controlNavItems } from "../../../lib/navigation";
 import { createClient } from "../../../lib/supabase/server";
@@ -48,8 +48,8 @@ const sponsorFormSchema = [
   { key: "name", label: "Nombre", type: "text", required: true },
   { key: "target_url", label: "Link", type: "link" },
   { key: "logo_media", label: "Asset ID logo", type: "image", helperText: "Logo o imagen del patrocinador." },
-  { key: "background_color", label: "Color fondo", type: "text" },
-  { key: "accent_color", label: "Color acento", type: "text" }
+  { key: "background_color", label: "Color fondo", type: "color" },
+  { key: "accent_color", label: "Color acento", type: "color" }
 ] as const;
 
 const influencerFormSchema = [
@@ -91,44 +91,6 @@ function getVisibleGroupFields(groupKey: string, fields: Record<string, CmsField
   return Object.values(fields)
     .filter((field) => field.isVisible && (allowed.size === 0 || allowed.has(field.fieldKey)))
     .sort((a, b) => a.sortOrder - b.sortOrder);
-}
-
-function mapSponsorCmsItems(items: CmsItem[]) {
-  return items.map((item) => ({
-    id: item.id,
-    label: item.fields.name?.textValue || item.label,
-    assetId: item.fields.logo_media?.mediaAssetId || null,
-    primaryDetail: item.fields.target_url?.linkUrl || "Sin link",
-    values: {
-      name: item.fields.name?.textValue || item.label || "",
-      target_url: item.fields.target_url?.linkUrl || "",
-      logo_media: item.fields.logo_media?.mediaAssetId || "",
-      background_color: item.fields.background_color?.textValue || "",
-      accent_color: item.fields.accent_color?.textValue || ""
-    }
-  }));
-}
-
-function mapInfluencerCmsItems(items: CmsItem[]) {
-  return items.map((item) => ({
-    id: item.id,
-    label: item.fields.name?.textValue || item.label,
-    assetId: item.fields.cover_media?.mediaAssetId || null,
-    primaryDetail: item.fields.role?.textValue || "Sin rol",
-    badges: ["instagram_url", "facebook_url", "youtube_url", "tiktok_url"]
-      .filter((key) => Boolean(item.fields[key]?.linkUrl))
-      .map((key) => key.replace("_url", "")),
-    values: {
-      name: item.fields.name?.textValue || item.label || "",
-      role: item.fields.role?.textValue || "",
-      description: item.fields.description?.textValue || "",
-      cover_media: item.fields.cover_media?.mediaAssetId || "",
-      instagram_url: item.fields.instagram_url?.linkUrl || "",
-      facebook_url: item.fields.facebook_url?.linkUrl || "",
-      youtube_url: item.fields.youtube_url?.linkUrl || "",
-      tiktok_url: item.fields.tiktok_url?.linkUrl || ""
-    }
-  }));
 }
 
 export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWebPageProps) {
@@ -174,28 +136,19 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
     if (sponsorSectionId) {
       const { data } = await supabase
         .from("home_sponsors")
-        .select("id, name, website_url, logo_asset_id, accent_color, sort_order")
+        .select("id, name, website_url, logo_asset_id, background_color, accent_color, sort_order")
         .eq("section_id", sponsorSectionId)
         .order("sort_order", { ascending: true });
-      sponsorRows = (data || []).map((item) => ({
-        ...item,
-        background_color: null
-      }));
+      sponsorRows = data || [];
     }
 
     if (influencerSectionId) {
       const { data } = await supabase
         .from("home_influencers")
-        .select("id, display_name, headline, bio, cover_asset_id, profile_url, sort_order")
+        .select("id, display_name, headline, bio, cover_asset_id, instagram_url, facebook_url, youtube_url, tiktok_url, sort_order")
         .eq("section_id", influencerSectionId)
         .order("sort_order", { ascending: true });
-      influencerRows = (data || []).map((item) => ({
-        ...item,
-        instagram_url: item.profile_url || null,
-        facebook_url: null,
-        youtube_url: null,
-        tiktok_url: null
-      }));
+      influencerRows = data || [];
     }
   } catch (error) {
     console.error("[admin/diseno-web] load error", error);
@@ -381,23 +334,19 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                   <ManagedGroupEditor
                     formAnchor="sponsors-manager-form"
                     entityKind="sponsor"
-                    items={
-                      section.groups.sponsor_tiles?.items.length
-                        ? mapSponsorCmsItems(section.groups.sponsor_tiles.items)
-                        : sponsorRows.map((item) => ({
-                            id: item.id,
-                            label: item.name,
-                            assetId: item.logo_asset_id || null,
-                            primaryDetail: item.website_url || "Sin link",
-                            values: {
-                              name: item.name || "",
-                              target_url: item.website_url || "",
-                              logo_media: item.logo_asset_id || "",
-                              background_color: item.background_color || "",
-                              accent_color: item.accent_color || ""
-                            }
-                          }))
-                    }
+                    items={sponsorRows.map((item) => ({
+                      id: item.id,
+                      label: item.name,
+                      assetId: item.logo_asset_id || null,
+                      primaryDetail: item.website_url || "Sin link",
+                      values: {
+                        name: item.name || "",
+                        target_url: item.website_url || "",
+                        logo_media: item.logo_asset_id || "",
+                        background_color: item.background_color || "#111827",
+                        accent_color: item.accent_color || "#22c55e"
+                      }
+                    }))}
                     sectionKey="patrocinadores"
                     singularTitle="Patrocinador"
                     schema={[...sponsorFormSchema]}
@@ -416,29 +365,25 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                     <ManagedGroupEditor
                       formAnchor="influencers-manager-form"
                       entityKind="influencer"
-                      items={
-                        section.groups.influencer_profiles?.items.length
-                          ? mapInfluencerCmsItems(section.groups.influencer_profiles.items)
-                          : influencerRows.map((item) => ({
-                              id: item.id,
-                              label: item.display_name,
-                              assetId: item.cover_asset_id || null,
-                              primaryDetail: item.headline || "Sin rol",
-                              badges: ["instagram_url", "facebook_url", "youtube_url", "tiktok_url"]
-                                .filter((key) => Boolean(item[key as keyof typeof item]))
-                                .map((key) => key.replace("_url", "")),
-                              values: {
-                                name: item.display_name || "",
-                                role: item.headline || "",
-                                description: item.bio || "",
-                                cover_media: item.cover_asset_id || "",
-                                instagram_url: item.instagram_url || "",
-                                facebook_url: item.facebook_url || "",
-                                youtube_url: item.youtube_url || "",
-                                tiktok_url: item.tiktok_url || ""
-                              }
-                            }))
-                      }
+                      items={influencerRows.map((item) => ({
+                        id: item.id,
+                        label: item.display_name,
+                        assetId: item.cover_asset_id || null,
+                        primaryDetail: item.headline || "Sin rol",
+                        badges: ["instagram_url", "facebook_url", "youtube_url", "tiktok_url"]
+                          .filter((key) => Boolean(item[key as keyof typeof item]))
+                          .map((key) => key.replace("_url", "")),
+                        values: {
+                          name: item.display_name || "",
+                          role: item.headline || "",
+                          description: item.bio || "",
+                          cover_media: item.cover_asset_id || "",
+                          instagram_url: item.instagram_url || "",
+                          facebook_url: item.facebook_url || "",
+                          youtube_url: item.youtube_url || "",
+                          tiktok_url: item.tiktok_url || ""
+                        }
+                      }))}
                       sectionKey="influencers"
                       singularTitle="Influencer"
                       schema={[...influencerFormSchema]}

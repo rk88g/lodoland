@@ -7,7 +7,7 @@ import { upsertHomeEntityAction } from "../app/admin/diseno-web/actions";
 type ManagedFieldSchema = {
   key: string;
   label: string;
-  type: "text" | "textarea" | "link" | "image";
+  type: "text" | "textarea" | "link" | "image" | "color";
   helperText?: string;
   required?: boolean;
 };
@@ -190,7 +190,7 @@ export function ManagedGroupEditor({
                     }))
                   }
                   required={field.required}
-                  type={field.type === "link" ? "url" : "text"}
+                  type={field.type === "link" ? "url" : field.type === "color" ? "color" : "text"}
                   value={formValues[field.key] || ""}
                 />
               </Box>

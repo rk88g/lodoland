@@ -207,10 +207,6 @@ function linkFromItem(item: CmsItem, fieldKey: string, fallback = "#") {
   return item.fields[fieldKey]?.linkUrl || fallback;
 }
 
-function labelFromPlatform(platform: string) {
-  return platform || "Link";
-}
-
 function normalizeIntentLink(intent: "tickets" | "merch") {
   return `/login?intent=${intent}`;
 }
@@ -301,10 +297,8 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
     href: linkFromItem(item, "url", "#")
   })) || [];
 
-  const sponsorSourceItems = sponsorSection?.groups.sponsor_tiles?.items || [];
   const socialItems = socialSection?.groups.social_profiles?.items || [];
   const collageItems = influencerSection?.groups.influencer_collage?.items || [];
-  const influencerItems = influencerSection?.groups.influencer_profiles?.items || [];
   const salesItems = salesSection?.groups.sales_panels?.items || [];
   const merchItems = merchSection?.groups.merch_gallery?.items || [];
   const footerItems = footerSection?.groups.footer_marquee?.items || [];
@@ -390,16 +384,7 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
   ]);
 
   const sponsorItems =
-    sponsorSourceItems.length
-      ? sponsorSourceItems.map((item) => ({
-          id: item.id,
-          name: textFromItem(item, "name", item.label),
-          href: linkFromItem(item, "target_url", "https://example.com"),
-          image: optimizeMedia(item.fields.logo_media?.media || null, { width: 640, height: 400, quality: 78, resize: "contain" }),
-          backgroundColor: textFromItem(item, "background_color", "") || null,
-          accentColor: textFromItem(item, "accent_color", "") || null
-        }))
-      : sponsorRows.map((item) => ({
+    sponsorRows.map((item) => ({
           id: item.id,
           name: item.name,
           href: item.website_url || "https://example.com",
@@ -414,36 +399,22 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
         }));
 
   const menuSponsorPanels =
-    sponsorSourceItems.length
-      ? sponsorSourceItems.slice(0, 3).map((item) => ({
-          id: item.id,
-          name: textFromItem(item, "name", item.label),
-          href: linkFromItem(item, "target_url", "https://example.com"),
-          image: optimizeMedia(item.fields.logo_media?.media || null, {
-            width: 420,
-            height: 320,
-            quality: 66,
-            resize: "contain"
-          }),
-          backgroundColor: textFromItem(item, "background_color", "") || null,
-          accentColor: textFromItem(item, "accent_color", "") || null
-        }))
-      : sponsorRows
-          .filter((item) => item.is_menu_featured)
-          .slice(0, 3)
-          .map((item) => ({
-            id: item.id,
-            name: item.menu_label || item.name,
-            href: item.website_url || "https://example.com",
-            image: optimizeMedia(item.logo_asset_id ? mediaMap.get(item.logo_asset_id) || null : null, {
-              width: 420,
-              height: 320,
-              quality: 66,
-              resize: "contain"
-            }),
-            backgroundColor: item.background_color || null,
-            accentColor: item.accent_color || null
-          }));
+    sponsorRows
+      .filter((item) => item.is_menu_featured)
+      .slice(0, 3)
+      .map((item) => ({
+        id: item.id,
+        name: item.menu_label || item.name,
+        href: item.website_url || "https://example.com",
+        image: optimizeMedia(item.logo_asset_id ? mediaMap.get(item.logo_asset_id) || null : null, {
+          width: 420,
+          height: 320,
+          quality: 66,
+          resize: "contain"
+        }),
+        backgroundColor: item.background_color || null,
+        accentColor: item.accent_color || null
+      }));
 
   const eventHeroImage = optimizeMedia(featuredEventRow?.hero_media_asset_id ? mediaMap.get(featuredEventRow.hero_media_asset_id) || null : eventSection?.fields.hero_media?.media || null, {
     width: 1920,
@@ -556,30 +527,7 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
         .map((item) => optimizeMedia(item.fields.media?.media || null, { width: 960, height: 960, quality: 72, resize: "cover" }))
         .filter(Boolean) as CmsMediaAsset[],
       profiles:
-        influencerItems.length
-          ? influencerItems.map((item) => {
-              const links = Object.entries(item.fields)
-                .filter(([fieldKey, field]) => field.kind === "link" && field.linkUrl && fieldKey !== "cover_media")
-                .map(([fieldKey, field]) => ({
-                  label: labelFromPlatform(fieldKey.replace(/_url$/, "").replace(/_/g, " ")),
-                  href: field.linkUrl || "#"
-                }));
-
-              return {
-                id: item.id,
-                name: textFromItem(item, "name", item.label),
-                role: textFromItem(item, "role", ""),
-                description: textFromItem(item, "description", ""),
-                image: optimizeMedia(item.fields.cover_media?.media || null, {
-                  width: 720,
-                  height: 720,
-                  quality: 74,
-                  resize: "cover"
-                }),
-                links
-              };
-            })
-          : influencerRows.map((item) => ({
+        influencerRows.map((item) => ({
               id: item.id,
               name: item.display_name,
               role: item.headline || "",

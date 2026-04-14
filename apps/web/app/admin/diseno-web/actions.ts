@@ -80,152 +80,6 @@ const homeEntityDefinitions = {
   }
 } as const;
 
-function getManagedGroupKeyForEntity(entityKind: keyof typeof homeEntityDefinitions) {
-  if (entityKind === "sponsor") {
-    return "sponsor_tiles" as const;
-  }
-
-  return "influencer_profiles" as const;
-}
-
-async function persistManagedGroupItem({
-  supabase,
-  actorUserId,
-  groupKey,
-  itemId,
-  labelSource,
-  values
-}: {
-  supabase: ReturnType<typeof createClient>;
-  actorUserId: string | null | undefined;
-  groupKey: keyof typeof managedGroupDefinitions;
-  itemId: string;
-  labelSource: string;
-  values: Record<string, string>;
-}) {
-  const definition = managedGroupDefinitions[groupKey];
-
-  const { data: groupRow } = await supabase
-    .from("cms_item_groups")
-    .select("id")
-    .eq("group_key", groupKey)
-    .maybeSingle();
-
-  if (!groupRow) {
-    return {
-      itemId,
-      error: "No se encontro el grupo CMS relacionado para sincronizar el registro."
-    };
-  }
-
-  let resolvedItemId = itemId;
-
-  if (!resolvedItemId) {
-    const { data: lastItem } = await supabase
-      .from("cms_group_items")
-      .select("sort_order")
-      .eq("group_id", groupRow.id)
-      .order("sort_order", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const { data: insertedItem, error: insertItemError } = await supabase
-      .from("cms_group_items")
-      .insert({
-        group_id: groupRow.id,
-        item_key: `${toSlug(labelSource)}-${crypto.randomUUID().slice(0, 8)}`,
-        label: labelSource,
-        slug: toSlug(labelSource) || null,
-        sort_order: (lastItem?.sort_order || 0) + 1,
-        is_visible: true
-      })
-      .select("id")
-      .single();
-
-    if (insertItemError || !insertedItem) {
-      return {
-        itemId,
-        error: insertItemError?.message || "No se pudo crear el elemento CMS relacionado."
-      };
-    }
-
-    resolvedItemId = insertedItem.id;
-  } else {
-    const { error: updateItemError } = await supabase
-      .from("cms_group_items")
-      .update({
-        label: labelSource,
-        slug: toSlug(labelSource) || null
-      })
-      .eq("id", resolvedItemId);
-
-    if (updateItemError) {
-      return {
-        itemId: resolvedItemId,
-        error: updateItemError.message
-      };
-    }
-  }
-
-  const rows = definition.fields.map((field) => {
-    const value = values[field.key] || "";
-    const baseRow = {
-      item_id: resolvedItemId,
-      field_key: field.key,
-      label: field.label,
-      kind: field.kind,
-      locale: "es-MX",
-      sort_order: field.sortOrder,
-      is_visible: true,
-      updated_by: actorUserId || null
-    } as Record<string, unknown>;
-
-    if (field.kind === "link") {
-      baseRow.link_url = value || null;
-    } else if (field.kind === "image") {
-      baseRow.media_asset_id = value || null;
-    } else {
-      baseRow.text_value = value || null;
-    }
-
-    return baseRow;
-  });
-
-  const { error: upsertFieldsError } = await supabase
-    .from("cms_group_item_fields")
-    .upsert(rows, { onConflict: "item_id,field_key,locale" });
-
-  if (upsertFieldsError) {
-    return {
-      itemId: resolvedItemId,
-      error: upsertFieldsError.message
-    };
-  }
-
-  const referencedMediaIds = rows
-    .map((row) => row.media_asset_id)
-    .filter((value): value is string => typeof value === "string" && value.length > 0);
-
-  if (referencedMediaIds.length) {
-    const { error: mediaError } = await supabase
-      .from("media_assets")
-      .update({ is_public: true })
-      .in("id", referencedMediaIds);
-
-    if (mediaError) {
-      return {
-        itemId: resolvedItemId,
-        error: mediaError.message
-      };
-    }
-  }
-
-  return {
-    itemId: resolvedItemId,
-    error: null
-  };
-}
-
 export async function registerMediaAssetAction(formData: FormData) {
   const session = await requireAdmin();
   const supabase = createClient();
@@ -748,26 +602,6 @@ export async function upsertHomeEntityAction(formData: FormData) {
       redirect(`/admin/diseno-web?error=${encodeURIComponent("Debes indicar el nombre del patrocinador.")}#${returnAnchor}`);
     }
 
-    const cmsSync = await persistManagedGroupItem({
-      supabase,
-      actorUserId: session.profile?.id,
-      groupKey: getManagedGroupKeyForEntity(entityKind),
-      itemId,
-      labelSource: name,
-      values: {
-        name,
-        target_url: targetUrl,
-        logo_media: logoMedia,
-        background_color: backgroundColor,
-        accent_color: accentColor
-      }
-    });
-
-    if (cmsSync.error) {
-      redirect(`/admin/diseno-web?error=${encodeURIComponent(cmsSync.error)}#${returnAnchor}`);
-    }
-
-    const resolvedEntityId = itemId || cmsSync.itemId;
     const payload = {
       section_id: sectionRow.id,
       name,
@@ -775,14 +609,19 @@ export async function upsertHomeEntityAction(formData: FormData) {
       website_url: targetUrl || null,
       logo_asset_id: logoMedia || null,
       description: null,
-      accent_color: accentColor || null
+      accent_color: accentColor || null,
+      background_color: backgroundColor || null,
+      menu_label: name,
+      is_menu_featured: true
     };
+
+    let resolvedEntityId = itemId;
 
     if (resolvedEntityId) {
       const { error } = await supabase.from(definition.table).update(payload).eq("id", resolvedEntityId);
 
       if (error) {
-        console.error("[admin/diseno-web] sponsor home sync error", error);
+        redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}#${returnAnchor}`);
       }
     }
 
@@ -795,15 +634,17 @@ export async function upsertHomeEntityAction(formData: FormData) {
         .limit(1)
         .maybeSingle();
 
-      const { error } = await supabase.from(definition.table).insert({
+      const { data: insertedRow, error } = await supabase.from(definition.table).insert({
         ...payload,
         sort_order: (lastRow?.sort_order || 0) + 1,
         is_active: true
-      });
+      }).select("id").single();
 
       if (error) {
-        console.error("[admin/diseno-web] sponsor home insert sync error", error);
+        redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}#${returnAnchor}`);
       }
+
+      resolvedEntityId = insertedRow?.id || "";
     }
 
     if (logoMedia) {
@@ -818,7 +659,7 @@ export async function upsertHomeEntityAction(formData: FormData) {
       supabase,
       actorUserId: session.profile?.id,
       entityType: definition.entityType,
-      entityId: cmsSync.itemId || null,
+      entityId: resolvedEntityId || null,
       action: isUpdate ? "update" : "create",
       summary: `${isUpdate ? "Actualizacion" : "Alta"} de ${definition.summaryLabel}`,
       payload: {
@@ -843,29 +684,6 @@ export async function upsertHomeEntityAction(formData: FormData) {
       redirect(`/admin/diseno-web?error=${encodeURIComponent("Debes indicar el nombre del influencer.")}#${returnAnchor}`);
     }
 
-    const cmsSync = await persistManagedGroupItem({
-      supabase,
-      actorUserId: session.profile?.id,
-      groupKey: getManagedGroupKeyForEntity(entityKind),
-      itemId,
-      labelSource: name,
-      values: {
-        name,
-        role,
-        description,
-        cover_media: coverMedia,
-        instagram_url: instagramUrl,
-        facebook_url: facebookUrl,
-        youtube_url: youtubeUrl,
-        tiktok_url: tiktokUrl
-      }
-    });
-
-    if (cmsSync.error) {
-      redirect(`/admin/diseno-web?error=${encodeURIComponent(cmsSync.error)}#${returnAnchor}`);
-    }
-
-    const resolvedEntityId = itemId || cmsSync.itemId;
     const payload = {
       section_id: sectionRow.id,
       display_name: name,
@@ -883,14 +701,20 @@ export async function upsertHomeEntityAction(formData: FormData) {
       avatar_asset_id: null,
       cover_asset_id: coverMedia || null,
       headline: role || null,
-      bio: description || null
+      bio: description || null,
+      instagram_url: instagramUrl || null,
+      facebook_url: facebookUrl || null,
+      youtube_url: youtubeUrl || null,
+      tiktok_url: tiktokUrl || null
     };
+
+    let resolvedEntityId = itemId;
 
     if (resolvedEntityId) {
       const { error } = await supabase.from(definition.table).update(payload).eq("id", resolvedEntityId);
 
       if (error) {
-        console.error("[admin/diseno-web] influencer home sync error", error);
+        redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}#${returnAnchor}`);
       }
     }
 
@@ -903,15 +727,17 @@ export async function upsertHomeEntityAction(formData: FormData) {
         .limit(1)
         .maybeSingle();
 
-      const { error } = await supabase.from(definition.table).insert({
+      const { data: insertedRow, error } = await supabase.from(definition.table).insert({
         ...payload,
         sort_order: (lastRow?.sort_order || 0) + 1,
         is_active: true
-      });
+      }).select("id").single();
 
       if (error) {
-        console.error("[admin/diseno-web] influencer home insert sync error", error);
+        redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}#${returnAnchor}`);
       }
+
+      resolvedEntityId = insertedRow?.id || "";
     }
 
     if (coverMedia) {
@@ -926,7 +752,7 @@ export async function upsertHomeEntityAction(formData: FormData) {
       supabase,
       actorUserId: session.profile?.id,
       entityType: definition.entityType,
-      entityId: cmsSync.itemId || null,
+      entityId: resolvedEntityId || null,
       action: isUpdate ? "update" : "create",
       summary: `${isUpdate ? "Actualizacion" : "Alta"} de ${definition.summaryLabel}`,
       payload: {
