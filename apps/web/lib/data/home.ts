@@ -390,8 +390,16 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
   ]);
 
   const sponsorItems =
-    sponsorRows.length
-      ? sponsorRows.map((item) => ({
+    sponsorSourceItems.length
+      ? sponsorSourceItems.map((item) => ({
+          id: item.id,
+          name: textFromItem(item, "name", item.label),
+          href: linkFromItem(item, "target_url", "https://example.com"),
+          image: optimizeMedia(item.fields.logo_media?.media || null, { width: 640, height: 400, quality: 78, resize: "contain" }),
+          backgroundColor: textFromItem(item, "background_color", "") || null,
+          accentColor: textFromItem(item, "accent_color", "") || null
+        }))
+      : sponsorRows.map((item) => ({
           id: item.id,
           name: item.name,
           href: item.website_url || "https://example.com",
@@ -403,19 +411,24 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
           }),
           backgroundColor: item.background_color || null,
           accentColor: item.accent_color || null
-        }))
-      : sponsorSourceItems.map((item) => ({
-          id: item.id,
-          name: textFromItem(item, "name", item.label),
-          href: linkFromItem(item, "target_url", "https://example.com"),
-          image: optimizeMedia(item.fields.logo_media?.media || null, { width: 640, height: 400, quality: 78, resize: "contain" }),
-          backgroundColor: textFromItem(item, "background_color", "") || null,
-          accentColor: textFromItem(item, "accent_color", "") || null
         }));
 
   const menuSponsorPanels =
-    sponsorRows.length
-      ? sponsorRows
+    sponsorSourceItems.length
+      ? sponsorSourceItems.slice(0, 3).map((item) => ({
+          id: item.id,
+          name: textFromItem(item, "name", item.label),
+          href: linkFromItem(item, "target_url", "https://example.com"),
+          image: optimizeMedia(item.fields.logo_media?.media || null, {
+            width: 420,
+            height: 320,
+            quality: 66,
+            resize: "contain"
+          }),
+          backgroundColor: textFromItem(item, "background_color", "") || null,
+          accentColor: textFromItem(item, "accent_color", "") || null
+        }))
+      : sponsorRows
           .filter((item) => item.is_menu_featured)
           .slice(0, 3)
           .map((item) => ({
@@ -430,20 +443,7 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
             }),
             backgroundColor: item.background_color || null,
             accentColor: item.accent_color || null
-          }))
-      : sponsorSourceItems.slice(0, 3).map((item) => ({
-          id: item.id,
-          name: textFromItem(item, "name", item.label),
-          href: linkFromItem(item, "target_url", "https://example.com"),
-          image: optimizeMedia(item.fields.logo_media?.media || null, {
-            width: 420,
-            height: 320,
-            quality: 66,
-            resize: "contain"
-          }),
-          backgroundColor: textFromItem(item, "background_color", "") || null,
-          accentColor: textFromItem(item, "accent_color", "") || null
-        }));
+          }));
 
   const eventHeroImage = optimizeMedia(featuredEventRow?.hero_media_asset_id ? mediaMap.get(featuredEventRow.hero_media_asset_id) || null : eventSection?.fields.hero_media?.media || null, {
     width: 1920,
@@ -556,26 +556,8 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
         .map((item) => optimizeMedia(item.fields.media?.media || null, { width: 960, height: 960, quality: 72, resize: "cover" }))
         .filter(Boolean) as CmsMediaAsset[],
       profiles:
-        influencerRows.length
-          ? influencerRows.map((item) => ({
-              id: item.id,
-              name: item.display_name,
-              role: item.headline || "",
-              description: item.bio || "",
-              image: optimizeMedia(item.cover_asset_id ? mediaMap.get(item.cover_asset_id) || null : null, {
-                width: 720,
-                height: 720,
-                quality: 74,
-                resize: "cover"
-              }),
-              links: [
-                item.instagram_url ? { label: "instagram", href: item.instagram_url } : null,
-                item.facebook_url ? { label: "facebook", href: item.facebook_url } : null,
-                item.youtube_url ? { label: "youtube", href: item.youtube_url } : null,
-                item.tiktok_url ? { label: "tiktok", href: item.tiktok_url } : null
-              ].filter(Boolean) as SocialLink[]
-            }))
-          : influencerItems.map((item) => {
+        influencerItems.length
+          ? influencerItems.map((item) => {
               const links = Object.entries(item.fields)
                 .filter(([fieldKey, field]) => field.kind === "link" && field.linkUrl && fieldKey !== "cover_media")
                 .map(([fieldKey, field]) => ({
@@ -597,6 +579,24 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
                 links
               };
             })
+          : influencerRows.map((item) => ({
+              id: item.id,
+              name: item.display_name,
+              role: item.headline || "",
+              description: item.bio || "",
+              image: optimizeMedia(item.cover_asset_id ? mediaMap.get(item.cover_asset_id) || null : null, {
+                width: 720,
+                height: 720,
+                quality: 74,
+                resize: "cover"
+              }),
+              links: [
+                item.instagram_url ? { label: "instagram", href: item.instagram_url } : null,
+                item.facebook_url ? { label: "facebook", href: item.facebook_url } : null,
+                item.youtube_url ? { label: "youtube", href: item.youtube_url } : null,
+                item.tiktok_url ? { label: "tiktok", href: item.tiktok_url } : null
+              ].filter(Boolean) as SocialLink[]
+            }))
     },
     salesPanels:
       salesRows.length
