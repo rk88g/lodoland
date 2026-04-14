@@ -137,7 +137,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                 <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
                   <Typography variant="h3">{section.label}</Typography>
                   <Button form={`section-form-${section.id}`} type="submit" variant="contained">
-                    Guardar seccion
+                    Guardar {section.label}
                   </Button>
                 </Stack>
               </Box>
@@ -251,11 +251,6 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                       </Box>
                     </Box>
                   ))}
-                  <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                    <Button type="submit" variant="contained">
-                      Guardar seccion
-                    </Button>
-                  </Box>
                 </Stack>
               </Box>
             </Box>

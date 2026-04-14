@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Alert,
@@ -78,20 +77,118 @@ export function DesignWebEditorShell({
             p: 1,
             display: "grid",
             gap: 1,
-            width: { xs: "100%", lg: 220 },
-            mb: { xs: 2, lg: 0 }
+            width: { xs: "100%", lg: 58 },
+            mb: { xs: 2, lg: 0 },
+            overflow: "hidden",
+            transition: "width 180ms ease, box-shadow 180ms ease",
+            "&:hover, &:focus-within": {
+              width: { lg: 232 },
+              boxShadow: 8
+            },
+            "&:hover .floating-nav-title, &:focus-within .floating-nav-title, &:hover .floating-nav-label, &:focus-within .floating-nav-label": {
+              opacity: { lg: 1 },
+              maxWidth: { lg: 220 }
+            }
           }}
         >
-          <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>Navegacion</Typography>
+          <Typography
+            className="floating-nav-title"
+            sx={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textTransform: "uppercase",
+              opacity: { xs: 1, lg: 0 },
+              maxWidth: { xs: "100%", lg: 0 },
+              transition: "opacity 180ms ease, max-width 180ms ease"
+            }}
+          >
+            Navegacion
+          </Typography>
           <Stack spacing={0.75}>
             {sectionLinks.map((section) => (
-              <Button component={Link} href={`#${section.id}`} key={section.id} variant="outlined">
-                {section.label}
-              </Button>
+              <Box
+                component="a"
+                href={`#${section.id}`}
+                key={section.id}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.25,
+                  minHeight: 40,
+                  px: 1.1,
+                  border: 1,
+                  borderColor: "divider",
+                  color: "text.primary",
+                  textDecoration: "none",
+                  bgcolor: "background.paper",
+                  transition: "border-color 180ms ease, background-color 180ms ease",
+                  "&:hover": {
+                    borderColor: "primary.main",
+                    bgcolor: "action.hover"
+                  }
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 10,
+                    height: 10,
+                    flex: "0 0 auto",
+                    bgcolor: "primary.main"
+                  }}
+                />
+                <Typography
+                  className="floating-nav-label"
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    opacity: { xs: 1, lg: 0 },
+                    maxWidth: { xs: "100%", lg: 0 },
+                    transition: "opacity 180ms ease, max-width 180ms ease"
+                  }}
+                >
+                  {section.label}
+                </Typography>
+              </Box>
             ))}
           </Stack>
-          <Button onClick={() => setAssetModalOpen(true)} variant="contained">
-            Ver Asset ID
+          <Button
+            onClick={() => setAssetModalOpen(true)}
+            sx={{
+              justifyContent: { xs: "center", lg: "flex-start" },
+              minWidth: 0,
+              px: { xs: 1.25, lg: 1.1 }
+            }}
+            variant="contained"
+          >
+            <Box
+              sx={{
+                width: 10,
+                height: 10,
+                flex: "0 0 auto",
+                bgcolor: "rgba(255,255,255,0.88)"
+              }}
+            />
+            <Typography
+              className="floating-nav-label"
+              sx={{
+                ml: 1.25,
+                fontSize: 13,
+                fontWeight: 700,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                opacity: { xs: 1, lg: 0 },
+                maxWidth: { xs: "100%", lg: 0 },
+                transition: "opacity 180ms ease, max-width 180ms ease"
+              }}
+            >
+              Ver Asset ID
+            </Typography>
           </Button>
         </Paper>
 
