@@ -11,6 +11,11 @@ type HomeExperienceProps = {
 
 const saleToneClasses = ["sale-mud", "sale-gold", "sale-blue", "sale-pink"] as const;
 const menuSponsorToneClasses = ["menu-sponsor-tone-1", "menu-sponsor-tone-2", "menu-sponsor-tone-3"] as const;
+const mexicoEventDateTime = new Intl.DateTimeFormat("es-MX", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "America/Mexico_City"
+});
 
 function getStaticIntentHref(intent: "tickets" | "merch") {
   return `/login?intent=${intent}`;
@@ -321,7 +326,6 @@ export function HomeExperience({ data }: HomeExperienceProps) {
 
             <div className="overlay-header">
               <h2>{data.event.title}</h2>
-              <p>{data.event.description}</p>
             </div>
 
             {data.event.latest ? (
@@ -339,15 +343,12 @@ export function HomeExperience({ data }: HomeExperienceProps) {
                   }
                 />
                 <div className="event-modal-copy">
-                  <span className="event-modal-chip">Evento mas reciente</span>
+                  <span className="event-modal-chip">Proximo evento</span>
                   <strong>{data.event.latest.title}</strong>
-                  <p>{data.event.latest.shortDescription || "Evento principal listo para promocion y venta de accesos."}</p>
                   <div className="meta-row">
                     {[
                       data.event.latest.startsAt
-                        ? new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" }).format(
-                            new Date(data.event.latest.startsAt)
-                          )
+                        ? mexicoEventDateTime.format(new Date(data.event.latest.startsAt))
                         : null,
                       data.event.latest.city,
                       data.event.latest.venueName
@@ -382,9 +383,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
                     <div className="meta-row">
                       {[
                         eventItem.startsAt
-                          ? new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" }).format(
-                              new Date(eventItem.startsAt)
-                            )
+                          ? mexicoEventDateTime.format(new Date(eventItem.startsAt))
                           : null,
                         eventItem.city,
                         eventItem.venueName
@@ -569,7 +568,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
           <div className="event-gradient" />
 
           <div className="scene-copy left-copy">
-            <h1 id="INICIOWEB" className="scene-wordmark"> </h1>
+            <h1 id="INICIOWEB" className="scene-wordmark" />
             <h2 className="scene-title">{data.event.title}</h2>
             <p>{data.event.description}</p>
             <div className="meta-row">
@@ -814,7 +813,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
         <div className="footer-track">
           <div className="footer-track-row">
             {[...data.footer.marquee, ...data.footer.marquee].map((item, index) => (
-              <a className="footer-track-chip" href={item.href} key={`${item.id}-${index}`} rel="noreferrer" target="_blank">
+              <div className="footer-track-chip" key={`${item.id}-${index}`}>
                 {item.image ? (
                   <span
                     className="footer-chip-logo"
@@ -827,7 +826,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
                   />
                 ) : null}
                 {item.label}
-              </a>
+              </div>
             ))}
           </div>
         </div>

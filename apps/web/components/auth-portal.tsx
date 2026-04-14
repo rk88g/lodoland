@@ -12,6 +12,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Alert,
+  Backdrop,
   Box,
   Button,
   Divider,
@@ -31,6 +32,7 @@ type AuthPortalProps = {
 export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
   const { mode: paletteMode, toggleMode } = useMaterialMode();
   const [expanded, setExpanded] = useState(mode === "customer" ? "signin" : "staff");
+  const [blocking, setBlocking] = useState(false);
   const isCustomer = mode === "customer";
 
   return (
@@ -48,6 +50,7 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
       }}
     >
       <Paper
+        onSubmitCapture={() => setBlocking(true)}
         sx={{
           width: "100%",
           maxWidth: 560,
@@ -92,15 +95,16 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
                   <Stack spacing={0.25}>
                     <Typography variant="h2">Iniciar sesión</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Google, Facebook o correo electrónico
+                      
                     </Typography>
                   </Stack>
                 </AccordionSummary>
                 <AccordionDetails>
                   <Stack spacing={2}>
                     <Stack spacing={1.25}>
-                      <form action="/auth/login/google" autoComplete="off" method="post">
+                    <form action="/auth/login/google" autoComplete="off" method="post">
                           <Button
+                            data-loading-label="Abriendo Google..."
                             fullWidth
                             startIcon={<GoogleIcon />}
                             sx={{
@@ -119,6 +123,7 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
 
                       <form action="/auth/login/facebook" autoComplete="off" method="post">
                           <Button
+                            data-loading-label="Abriendo Facebook..."
                             fullWidth
                             startIcon={<FacebookRoundedIcon />}
                             sx={{
@@ -155,14 +160,14 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
                   <Stack spacing={0.25}>
                     <Typography variant="h2">Crear cuenta</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Registro con verificación obligatoria
+                      Registrar con tu correo electrónico
                     </Typography>
                   </Stack>
                 </AccordionSummary>
                 <AccordionDetails>
                   <Stack spacing={2}>
                     <Typography color="text.secondary" variant="body2">
-                      Antes de cualquier compra, pedido, acceso o movimiento, deberás verificar tu correo.
+                      Verifica tu correo para poder hacer uso de nuestra plataforma.
                     </Typography>
 
                     <form action="/auth/signup/email" autoComplete="off" method="post">
@@ -197,28 +202,28 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
                 <Stack spacing={0.25}>
                   <Typography variant="h2">Iniciar sesión</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Solo correo organizacional
+                    
                   </Typography>
                 </Stack>
               </AccordionSummary>
               <AccordionDetails>
                 <Stack spacing={2}>
                   <Typography color="text.secondary" variant="body2">
-                    Acceso exclusivo para administración, ventas, supervisión y gerencia.
+                    Acceso no autorizado para clientes.
                   </Typography>
 
                   <form action="/auth/login/staff" autoComplete="off" method="post">
                     <Stack spacing={2}>
                       <TextField
-                        label="Correo organizacional"
+                        label="Correo de la organización"
                         name="email"
-                        placeholder="ventas2@lodoland.mx"
+                        placeholder="contacto@dominio.mx"
                         required
                         type="email"
                       />
                       <TextField label="Contraseña" name="password" required type="password" />
                       <Button fullWidth type="submit" variant="contained">
-                        Entrar al control
+                        Entrar
                       </Button>
                     </Stack>
                   </form>
@@ -235,14 +240,31 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
           sx={{ pt: 0.5 }}
         >
           <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
-            {isCustomer ? <Link href="/admin/login">Acceso de control</Link> : <Link href="/login">Acceso de clientes</Link>}
-            <Link href="/">Volver al inicio</Link>
+            {isCustomer ? <Link href="/admin/login">Admin</Link> : <Link href="/login">Soy cliente</Link>}
+            <Link href="/">Ir a la web</Link>
           </Stack>
           <Typography color="text.secondary" variant="body2">
-            LODO LAND
+            Bienvenido
           </Typography>
         </Stack>
       </Paper>
+
+      <Backdrop
+        open={blocking}
+        sx={{
+          zIndex: (theme) => theme.zIndex.modal + 10,
+          color: "#fff",
+          backdropFilter: "blur(8px)",
+          bgcolor: "rgba(3, 7, 18, 0.78)"
+        }}
+      >
+        <Stack alignItems="center" spacing={1.25}>
+          <Typography sx={{ fontSize: 18, fontWeight: 700 }}>Loading...</Typography>
+          <Typography color="rgba(255,255,255,0.72)" variant="body2">
+            Estamos procesando tu acceso.
+          </Typography>
+        </Stack>
+      </Backdrop>
     </Box>
   );
 }

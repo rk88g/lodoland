@@ -35,6 +35,8 @@ const managedGroupDefinitions = {
   }
 } as const;
 
+const INFLUENCER_COLLAGE_FOLDER = "home/influencers/collage";
+
 function toSlug(value: string) {
   return value
     .trim()
@@ -548,4 +550,195 @@ export async function upsertManagedGroupItemAction(formData: FormData) {
   revalidatePath("/admin/diseno-web");
   revalidatePath("/");
   redirect(`/admin/diseno-web?success=${encodeURIComponent(`Se guardo correctamente el ${definition.summaryLabel}.`)}#${returnAnchor}`);
+}
+
+export async function uploadInfluencerCollageAssetAction(formData: FormData) {
+  const session = await requireAdmin();
+  const supabase = createClient();
+  const file = formData.get("file");
+  const title = String(formData.get("title") ?? "").trim();
+  const altText = String(formData.get("altText") ?? "").trim();
+
+  if (!(file instanceof File) || file.size <= 0) {
+    redirect("/admin/diseno-web?error=Debes%20seleccionar%20una%20imagen%20para%20el%20collage.#section-influencers");
+  }
+
+  const path = buildAssetPath(INFLUENCER_COLLAGE_FOLDER, file.name || title || "collage", "");
+  const arrayBuffer = await file.arrayBuffer();
+  const { error: uploadError } = await supabase.storage
+    .from(MEDIA_BUCKET)
+    .upload(path, Buffer.from(arrayBuffer), {
+      cacheControl: "3600",
+      contentType: file.type || "application/octet-stream",
+      upsert: false
+    });
+
+  if (uploadError) {
+    redirect(`/admin/diseno-web?error=${encodeURIComponent(uploadError.message)}#section-influencers`);
+  }
+
+  const { data: insertedAsset, error: assetError } = await supabase
+    .from("media_assets")
+    .insert({
+      bucket: MEDIA_BUCKET,
+      path,
+      title: title || file.name || null,
+      alt_text: altText || null,
+      is_public: true,
+      created_by: session.profile?.id || null
+    })
+    .select("id, title")
+    .single();
+
+  if (assetError || !insertedAsset) {
+    redirect(`/admin/diseno-web?error=${encodeURIComponent(assetError?.message || "No se pudo registrar el asset del collage.")}#section-influencers`);
+  }
+
+  const { data: groupRow } = await supabase
+    .from("cms_item_groups")
+    .select("id")
+    .eq("group_key", "influencer_collage")
+    .maybeSingle();
+
+  if (!groupRow) {
+    redirect("/admin/diseno-web?error=No%20se%20encontro%20el%20grupo%20del%20collage%20de%20influencers.#section-influencers");
+  }
+
+  const { data: lastItem } = await supabase
+    .from("cms_group_items")
+    .select("sort_order")
+    .eq("group_id", groupRow.id)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const label = title || file.name.replace(/\.[^.]+$/, "") || "Imagen collage";
+  const { data: insertedItem, error: itemError } = await supabase
+    .from("cms_group_items")
+    .insert({
+      group_id: groupRow.id,
+      item_key: `${toSlug(label)}-${crypto.randomUUID().slice(0, 8)}`,
+      label,
+      slug: toSlug(label) || null,
+      sort_order: (lastItem?.sort_order || 0) + 1,
+      is_visible: true
+    })
+    .select("id")
+    .single();
+
+  if (itemError || !insertedItem) {
+    redirect(`/admin/diseno-web?error=${encodeURIComponent(itemError?.message || "No se pudo vincular la imagen al collage.")}#section-influencers`);
+  }
+
+  const { error: fieldError } = await supabase.from("cms_group_item_fields").insert({
+    item_id: insertedItem.id,
+    field_key: "media",
+    label: "Imagen collage",
+    kind: "image",
+    media_asset_id: insertedAsset.id,
+    locale: "es-MX",
+    sort_order: 1,
+    is_visible: true,
+    updated_by: session.profile?.id || null
+  });
+
+  if (fieldError) {
+    redirect(`/admin/diseno-web?error=${encodeURIComponent(fieldError.message)}#section-influencers`);
+  }
+
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "influencer_collage",
+    entityId: insertedItem.id,
+    action: "create",
+    summary: "Alta de imagen para collage de influencers",
+    payload: {
+      mediaAssetId: insertedAsset.id,
+      path
+    }
+  });
+
+  revalidatePath("/admin/diseno-web");
+  revalidatePath("/");
+  redirect("/admin/diseno-web?success=Se%20subio%20correctamente%20la%20imagen%20del%20collage.#section-influencers");
+}
+
+export async function toggleInfluencerCollageAssetAction(formData: FormData) {
+  const session = await requireAdmin();
+  const supabase = createClient();
+  const itemId = String(formData.get("itemId") ?? "").trim();
+  const nextVisible = String(formData.get("nextVisible") ?? "").trim() === "true";
+
+  if (!itemId) {
+    redirect("/admin/diseno-web?error=No%20se%20encontro%20la%20imagen%20del%20collage.#section-influencers");
+  }
+
+  const { error } = await supabase.from("cms_group_items").update({ is_visible: nextVisible }).eq("id", itemId);
+
+  if (error) {
+    redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}#section-influencers`);
+  }
+
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "influencer_collage",
+    entityId: itemId,
+    action: nextVisible ? "activate" : "deactivate",
+    summary: nextVisible ? "Activacion de imagen de collage" : "Desactivacion de imagen de collage"
+  });
+
+  revalidatePath("/admin/diseno-web");
+  revalidatePath("/");
+  redirect(`/admin/diseno-web?success=${encodeURIComponent(`Se ${nextVisible ? "activo" : "desactivo"} la imagen del collage.`)}#section-influencers`);
+}
+
+export async function deleteInfluencerCollageAssetAction(formData: FormData) {
+  const session = await requireAdmin();
+  const supabase = createClient();
+  const itemId = String(formData.get("itemId") ?? "").trim();
+  const mediaAssetId = String(formData.get("mediaAssetId") ?? "").trim();
+  const path = String(formData.get("path") ?? "").trim();
+
+  if (path) {
+    const { error: storageError } = await supabase.storage.from(MEDIA_BUCKET).remove([path]);
+
+    if (storageError) {
+      redirect(`/admin/diseno-web?error=${encodeURIComponent(storageError.message)}#section-influencers`);
+    }
+  }
+
+  if (itemId) {
+    const { error: itemError } = await supabase.from("cms_group_items").delete().eq("id", itemId);
+
+    if (itemError) {
+      redirect(`/admin/diseno-web?error=${encodeURIComponent(itemError.message)}#section-influencers`);
+    }
+  }
+
+  if (mediaAssetId) {
+    const { error: assetError } = await supabase.from("media_assets").delete().eq("id", mediaAssetId);
+
+    if (assetError) {
+      redirect(`/admin/diseno-web?error=${encodeURIComponent(assetError.message)}#section-influencers`);
+    }
+  }
+
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "influencer_collage",
+    entityId: itemId || mediaAssetId || null,
+    action: "delete",
+    summary: "Eliminacion de imagen del collage",
+    payload: {
+      mediaAssetId: mediaAssetId || null,
+      path: path || null
+    }
+  });
+
+  revalidatePath("/admin/diseno-web");
+  revalidatePath("/");
+  redirect("/admin/diseno-web?success=Se%20elimino%20correctamente%20la%20imagen%20del%20collage.#section-influencers");
 }

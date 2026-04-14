@@ -135,7 +135,7 @@ export async function signUpWithEmailAction(formData: FormData) {
 
   redirect(
     `/login?message=${sanitizeMessage(
-      "Te enviamos un correo de verificacion. Antes de cualquier compra o movimiento debes confirmarlo."
+      "Te enviamos un correo de verificacion. Para hacer uso de nuestra plataforma debes confirmar tu correo."
     )}`
   );
 }
@@ -145,7 +145,7 @@ export async function signInWithEmailAction(formData: FormData) {
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    redirect(`/login?error=${sanitizeMessage("Ingresa tu correo y contrasena.")}`);
+    redirect(`/login?error=${sanitizeMessage("Ingresa tu correo y contraseña.")}`);
   }
 
   if (email.toLowerCase().endsWith("@lodoland.mx")) {

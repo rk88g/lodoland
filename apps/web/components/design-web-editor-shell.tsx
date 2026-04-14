@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Alert,
+  Backdrop,
   Box,
   Button,
   Dialog,
@@ -45,11 +46,42 @@ export function DesignWebEditorShell({
   successMessage
 }: DesignWebEditorShellProps) {
   const [assetModalOpen, setAssetModalOpen] = useState(false);
+  const [blockingMessage, setBlockingMessage] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(Boolean(successMessage || errorMessage));
 
   useEffect(() => {
     setSnackbarOpen(Boolean(successMessage || errorMessage));
   }, [successMessage, errorMessage]);
+
+  useEffect(() => {
+    const handleSubmit = (event: Event) => {
+      const form = event.target instanceof HTMLFormElement ? event.target : null;
+
+      if (!form) {
+        return;
+      }
+
+      const submitter = event instanceof SubmitEvent && event.submitter instanceof HTMLElement ? event.submitter : null;
+      const message =
+        submitter?.getAttribute("data-loading-label") ||
+        form.getAttribute("data-loading-label") ||
+        "Loading...";
+
+      setBlockingMessage(message);
+    };
+
+    const clearBlocking = () => {
+      setBlockingMessage(null);
+    };
+
+    window.addEventListener("submit", handleSubmit, true);
+    window.addEventListener("pageshow", clearBlocking);
+
+    return () => {
+      window.removeEventListener("submit", handleSubmit, true);
+      window.removeEventListener("pageshow", clearBlocking);
+    };
+  }, []);
 
   const snackbarSeverity = useMemo(() => {
     if (errorMessage) {
@@ -230,6 +262,23 @@ export function DesignWebEditorShell({
           )}
         </DialogContent>
       </Dialog>
+
+      <Backdrop
+        open={Boolean(blockingMessage)}
+        sx={{
+          zIndex: (theme) => theme.zIndex.modal + 10,
+          color: "#fff",
+          backdropFilter: "blur(8px)",
+          bgcolor: "rgba(3, 7, 18, 0.78)"
+        }}
+      >
+        <Stack alignItems="center" spacing={1.25}>
+          <Typography sx={{ fontSize: 18, fontWeight: 700 }}>{blockingMessage || "Loading..."}</Typography>
+          <Typography color="rgba(255,255,255,0.72)" variant="body2">
+            Espera un momento, estamos procesando los cambios.
+          </Typography>
+        </Stack>
+      </Backdrop>
 
       <Snackbar
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}

@@ -1,20 +1,25 @@
-import { Alert, Box, Button, Chip, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { DesignWebEditorShell } from "../../../components/design-web-editor-shell";
+import { ManagedGroupEditor } from "../../../components/managed-group-editor";
 import { requireAdmin } from "../../../lib/auth/session";
-import { getCmsPageConfig, type CmsFieldValue, type CmsGroup } from "../../../lib/data/cms";
-import { getMediaAssets } from "../../../lib/data/portal";
+import { getCmsPageConfig, type CmsFieldValue } from "../../../lib/data/cms";
+import { getMediaAssets, getMediaAssetsByPrefix } from "../../../lib/data/portal";
 import { controlNavItems } from "../../../lib/navigation";
-import { registerMediaAssetAction, saveHomeSectionAction, upsertManagedGroupItemAction } from "./actions";
+import {
+  deleteInfluencerCollageAssetAction,
+  registerMediaAssetAction,
+  saveHomeSectionAction,
+  toggleInfluencerCollageAssetAction,
+  uploadInfluencerCollageAssetAction
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
 type AdminDisenoWebPageProps = {
   searchParams?: {
     error?: string;
-    editInfluencer?: string;
-    editSponsor?: string;
     success?: string;
   };
 };
@@ -31,12 +36,31 @@ const editorSectionOrder = [
 ] as const;
 
 const sectionFieldKeys: Record<string, string[]> = {
-  evento_reciente: ["title", "description", "primary_cta_label", "secondary_cta_label", "hero_media", "hero_image_alt", "side_banner_alt"],
+  evento_reciente: ["title", "description", "primary_cta_label", "secondary_cta_label", "hero_media"],
   patrocinadores: ["title", "description", "banner_alt"],
   influencers: ["modal_button_label", "modal_title"],
   merch_destacado: ["title", "catalog_button_label"],
   footer: ["title", "description", "privacy_label", "contact_label", "terms_label"]
 };
+
+const sponsorFormSchema = [
+  { key: "name", label: "Nombre", type: "text", required: true },
+  { key: "target_url", label: "Link", type: "link" },
+  { key: "logo_media", label: "Asset ID logo", type: "image", helperText: "Logo o imagen del patrocinador." },
+  { key: "background_color", label: "Color fondo", type: "text" },
+  { key: "accent_color", label: "Color acento", type: "text" }
+] as const;
+
+const influencerFormSchema = [
+  { key: "name", label: "Nombre", type: "text", required: true },
+  { key: "role", label: "Rol", type: "text" },
+  { key: "cover_media", label: "Asset ID foto", type: "image", helperText: "Imagen individual del influencer." },
+  { key: "instagram_url", label: "Instagram", type: "link" },
+  { key: "facebook_url", label: "Facebook", type: "link" },
+  { key: "youtube_url", label: "YouTube", type: "link" },
+  { key: "tiktok_url", label: "TikTok", type: "link" },
+  { key: "description", label: "Descripcion", type: "textarea" }
+] as const;
 
 const groupFieldKeys: Record<string, string[]> = {
   menu_links: ["label", "url"],
@@ -77,10 +101,15 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
 
   let homeConfig: Awaited<ReturnType<typeof getCmsPageConfig>> = null;
   let mediaAssets = [] as Awaited<ReturnType<typeof getMediaAssets>>;
+  let influencerFolderAssets = [] as Awaited<ReturnType<typeof getMediaAssetsByPrefix>>;
   let loadError: string | null = null;
 
   try {
-    [homeConfig, mediaAssets] = await Promise.all([getCmsPageConfig("home", { includeMedia: false }), getMediaAssets(40)]);
+    [homeConfig, mediaAssets, influencerFolderAssets] = await Promise.all([
+      getCmsPageConfig("home", { includeMedia: false }),
+      getMediaAssets(120),
+      getMediaAssetsByPrefix("home/influencers/collage/", 240)
+    ]);
   } catch (error) {
     console.error("[admin/diseno-web] load error", error);
     loadError = error instanceof Error ? error.message : "No se pudo cargar la configuracion del editor.";
@@ -112,8 +141,6 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
       homeConfig?.sections[sectionKey]?.label ||
       sectionKey
   }));
-  const sponsorEditId = searchParams?.editSponsor || "";
-  const influencerEditId = searchParams?.editInfluencer || "";
 
   try {
     homeEditorContent = homeConfig ? (
@@ -144,7 +171,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
               >
                 <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
                   <Typography variant="h3">{section.label}</Typography>
-                  <Button form={`section-form-${section.id}`} type="submit" variant="contained">
+                  <Button data-loading-label={`Guardando ${section.label}...`} form={`section-form-${section.id}`} type="submit" variant="contained">
                     Guardar {section.label}
                   </Button>
                 </Stack>
@@ -154,6 +181,8 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                 component="form"
                 action={saveHomeSectionAction}
                 autoComplete="off"
+                data-blocking-form="true"
+                data-loading-label={`Guardando ${section.label}...`}
                 id={`section-form-${section.id}`}
                 sx={{ display: "grid" }}
               >
@@ -263,22 +292,174 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
 
                 {section.sectionKey === "patrocinadores" ? (
                   <ManagedGroupEditor
-                    editItemId={sponsorEditId}
-                    group={getManagedGroup(section, "sponsor_tiles")}
+                    formAnchor="sponsors-manager-form"
                     groupKey="sponsor_tiles"
+                    items={(getManagedGroup(section, "sponsor_tiles")?.items || []).map((item) => ({
+                      id: item.id,
+                      label: item.label,
+                      assetId: item.fields.logo_media?.mediaAssetId || null,
+                      primaryDetail: item.fields.target_url?.linkUrl || "Sin link",
+                      values: {
+                        name: item.fields.name?.textValue || item.label,
+                        target_url: item.fields.target_url?.linkUrl || "",
+                        logo_media: item.fields.logo_media?.mediaAssetId || "",
+                        background_color: item.fields.background_color?.textValue || "",
+                        accent_color: item.fields.accent_color?.textValue || ""
+                      }
+                    }))}
                     singularTitle="Patrocinador"
+                    schema={[...sponsorFormSchema]}
                     title="Patrocinadores"
                   />
                 ) : null}
 
                 {section.sectionKey === "influencers" ? (
-                  <ManagedGroupEditor
-                    editItemId={influencerEditId}
-                    group={getManagedGroup(section, "influencer_profiles")}
-                    groupKey="influencer_profiles"
-                    singularTitle="Influencer"
-                    title="Influencers"
-                  />
+                  <Stack spacing={2.5}>
+                    <ManagedGroupEditor
+                      formAnchor="influencers-manager-form"
+                      groupKey="influencer_profiles"
+                      items={(getManagedGroup(section, "influencer_profiles")?.items || []).map((item) => ({
+                        id: item.id,
+                        label: item.label,
+                        assetId: item.fields.cover_media?.mediaAssetId || null,
+                        primaryDetail: item.fields.role?.textValue || "Sin rol",
+                        badges: ["instagram_url", "facebook_url", "youtube_url", "tiktok_url"]
+                          .filter((key) => item.fields[key]?.linkUrl)
+                          .map((key) => key.replace("_url", "")),
+                        values: {
+                          name: item.fields.name?.textValue || item.label,
+                          role: item.fields.role?.textValue || "",
+                          description: item.fields.description?.textValue || "",
+                          cover_media: item.fields.cover_media?.mediaAssetId || "",
+                          instagram_url: item.fields.instagram_url?.linkUrl || "",
+                          facebook_url: item.fields.facebook_url?.linkUrl || "",
+                          youtube_url: item.fields.youtube_url?.linkUrl || "",
+                          tiktok_url: item.fields.tiktok_url?.linkUrl || ""
+                        }
+                      }))}
+                      singularTitle="Influencer"
+                      schema={[...influencerFormSchema]}
+                      title="Influencers"
+                    />
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.25,
+                        py: 1,
+                        borderTop: 1,
+                        borderBottom: 1,
+                        borderColor: "divider",
+                        background:
+                          "linear-gradient(90deg, rgba(255,255,255,0), rgba(124,77,255,0.08), rgba(0,188,212,0.08), rgba(255,255,255,0))"
+                      }}
+                    >
+                      <Box sx={{ width: 42, height: 4, bgcolor: "primary.main" }} />
+                      <Typography variant="h3">Collage de influencers</Typography>
+                    </Box>
+
+                    <Box sx={{ overflowX: "auto", border: 1, borderColor: "divider", bgcolor: "background.paper" }}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Estado</TableCell>
+                            <TableCell>Titulo</TableCell>
+                            <TableCell>Asset ID</TableCell>
+                            <TableCell>Ruta</TableCell>
+                            <TableCell align="right">Acciones</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {influencerFolderAssets.length ? (
+                            influencerFolderAssets.map((asset) => {
+                              const groupItem =
+                                getManagedGroup(section, "influencer_collage")?.items.find(
+                                  (item) => item.fields.media?.mediaAssetId === asset.id
+                                ) || null;
+
+                              return (
+                                <TableRow key={asset.id}>
+                                  <TableCell>{groupItem?.isVisible === false ? "Inactiva" : "Activa"}</TableCell>
+                                  <TableCell>{asset.title || "Sin titulo"}</TableCell>
+                                  <TableCell>{asset.id}</TableCell>
+                                  <TableCell sx={{ maxWidth: 300, wordBreak: "break-all" }}>{asset.path}</TableCell>
+                                  <TableCell align="right">
+                                    <Stack direction={{ xs: "column", sm: "row" }} justifyContent="flex-end" spacing={1}>
+                                      {groupItem ? (
+                                        <form action={toggleInfluencerCollageAssetAction} data-blocking-form="true" data-loading-label="Actualizando collage...">
+                                          <input name="itemId" type="hidden" value={groupItem.id} />
+                                          <input name="nextVisible" type="hidden" value={groupItem.isVisible ? "false" : "true"} />
+                                          <Button size="small" type="submit" variant="outlined">
+                                            {groupItem.isVisible ? "Desactivar" : "Activar"}
+                                          </Button>
+                                        </form>
+                                      ) : null}
+                                      <form action={deleteInfluencerCollageAssetAction} data-blocking-form="true" data-loading-label="Eliminando imagen...">
+                                        <input name="itemId" type="hidden" value={groupItem?.id || ""} />
+                                        <input name="mediaAssetId" type="hidden" value={asset.id} />
+                                        <input name="path" type="hidden" value={asset.path} />
+                                        <Button color="error" size="small" type="submit" variant="outlined">
+                                          Eliminar
+                                        </Button>
+                                      </form>
+                                    </Stack>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={5}>
+                                <Typography color="text.secondary">Todavia no hay imagenes en la carpeta del collage.</Typography>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </Box>
+
+                    <Box
+                      component="form"
+                      action={uploadInfluencerCollageAssetAction}
+                      autoComplete="off"
+                      data-blocking-form="true"
+                      data-loading-label="Subiendo imagen del collage..."
+                      sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5, display: "grid", gap: 2 }}
+                    >
+                      <Typography variant="h3">Agregar imagen al collage</Typography>
+                      <Typography color="text.secondary">
+                        La imagen se guarda en la carpeta `home/influencers/collage` y queda activa para la rotacion aleatoria.
+                      </Typography>
+                      <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
+                        <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 1" } }}>
+                          <Stack spacing={0.75}>
+                            <Typography sx={{ fontSize: 13, fontWeight: 700 }}>Archivo</Typography>
+                            <Box
+                              sx={{
+                                border: 1,
+                                borderColor: "divider",
+                                bgcolor: "background.default",
+                                px: 1.5,
+                                py: 1.25
+                              }}
+                            >
+                              <input accept="image/png,image/jpeg,image/webp,image/gif" name="file" required style={{ width: "100%" }} type="file" />
+                            </Box>
+                          </Stack>
+                        </Box>
+                        <TextField autoComplete="off" label="Titulo" name="title" />
+                        <Box sx={{ gridColumn: "1 / -1" }}>
+                          <TextField autoComplete="off" label="Alt" name="altText" />
+                        </Box>
+                      </Box>
+                      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                        <Button type="submit" variant="contained">
+                          Subir imagen al collage
+                        </Button>
+                      </Box>
+                    </Box>
+                  </Stack>
                 ) : null}
                 </Stack>
               </Box>
@@ -316,7 +497,13 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
             para usarlo despues en la web.
           </Typography>
 
-          <form action={registerMediaAssetAction} autoComplete="off" encType="multipart/form-data">
+          <form
+            action={registerMediaAssetAction}
+            autoComplete="off"
+            data-blocking-form="true"
+            data-loading-label="Subiendo asset..."
+            encType="multipart/form-data"
+          >
             <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
               <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
                 <Stack spacing={0.75}>
@@ -357,7 +544,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
               </Box>
               <Box sx={{ gridColumn: "1 / -1" }}>
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-                  <Button type="submit" variant="contained">
+                  <Button data-loading-label="Subiendo asset..." type="submit" variant="contained">
                     Subir y registrar asset
                   </Button>
                 </Stack>
@@ -423,7 +610,6 @@ function getFieldHint(sectionKey: string, fieldKey: string) {
       "menu_overlay.menu_links.label": "Texto que se vera en el menu principal.",
       "menu_overlay.menu_links.url": "Ancla o ruta. Ejemplo: #ventas o /login.",
       "evento_reciente.hero_media": "Asset ID de la imagen gigante principal del evento.",
-      "evento_reciente.hero_image_alt": "Texto alternativo del flyer del proximo evento.",
       "evento_reciente.official_sponsor_modal.media": "Asset ID de la imagen grande del patrocinador oficial.",
     "evento_reciente.event_side_banner.media": "Asset ID del banner vertical del evento.",
     "redes_sociales.social_profiles.embed_url": "Usa una URL publica de embed. Si no existe, deja solo la preview.",
@@ -451,157 +637,4 @@ function getFieldHint(sectionKey: string, fieldKey: string) {
     .replace(/^footer_marquee\./, "footer.footer_marquee.");
 
   return hints[`${sectionKey}.${fieldKey}`] || hints[normalized];
-}
-
-type ManagedGroupEditorProps = {
-  editItemId?: string;
-  group: CmsGroup | null;
-  groupKey: "sponsor_tiles" | "influencer_profiles";
-  singularTitle: string;
-  title: string;
-};
-
-function ManagedGroupEditor({ editItemId, group, groupKey, singularTitle, title }: ManagedGroupEditorProps) {
-  if (!group) {
-    return null;
-  }
-
-  const selectedItem = group.items.find((item) => item.id === editItemId) || null;
-  const formAnchor = groupKey === "sponsor_tiles" ? "sponsors-manager-form" : "influencers-manager-form";
-  const isSponsor = groupKey === "sponsor_tiles";
-
-  return (
-    <Stack spacing={2.5}>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1.25,
-          py: 1,
-          borderTop: 1,
-          borderBottom: 1,
-          borderColor: "divider",
-          background:
-            "linear-gradient(90deg, rgba(255,255,255,0), rgba(255,193,7,0.08), rgba(0,188,212,0.08), rgba(255,255,255,0))"
-        }}
-      >
-        <Box sx={{ width: 42, height: 4, bgcolor: "primary.main" }} />
-        <Typography variant="h3">{title}</Typography>
-      </Box>
-
-      <Box sx={{ overflowX: "auto", border: 1, borderColor: "divider", bgcolor: "background.paper" }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Nombre</TableCell>
-              <TableCell>{isSponsor ? "Logo / Foto" : "Rol"}</TableCell>
-              <TableCell>{isSponsor ? "Link" : "Redes"}</TableCell>
-              <TableCell>Asset ID</TableCell>
-              <TableCell align="right">Editar</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {group.items.length ? (
-              group.items.map((item) => (
-                <TableRow key={item.id} selected={item.id === selectedItem?.id}>
-                  <TableCell>{item.fields.name?.textValue || item.label}</TableCell>
-                  <TableCell>
-                    {isSponsor ? item.fields.logo_media?.mediaAssetId || "Sin asset" : item.fields.role?.textValue || "Sin rol"}
-                  </TableCell>
-                  <TableCell sx={{ maxWidth: 260 }}>
-                    {isSponsor ? (
-                      item.fields.target_url?.linkUrl || "Sin link"
-                    ) : (
-                      <Stack direction="row" flexWrap="wrap" gap={0.75}>
-                        {["instagram_url", "facebook_url", "youtube_url", "tiktok_url"]
-                          .filter((key) => item.fields[key]?.linkUrl)
-                          .map((key) => (
-                            <Chip key={key} label={key.replace("_url", "")} size="small" variant="outlined" />
-                          ))}
-                      </Stack>
-                    )}
-                  </TableCell>
-                  <TableCell>{isSponsor ? item.fields.logo_media?.mediaAssetId || "-" : item.fields.cover_media?.mediaAssetId || "-"}</TableCell>
-                  <TableCell align="right">
-                    <Button
-                      component="a"
-                      href={`/admin/diseno-web?${isSponsor ? "editSponsor" : "editInfluencer"}=${item.id}#${formAnchor}`}
-                      size="small"
-                      variant="outlined"
-                    >
-                      Editar
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5}>
-                  <Typography color="text.secondary">No hay registros todavia.</Typography>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </Box>
-
-      <Box
-        component="form"
-        action={upsertManagedGroupItemAction}
-        autoComplete="off"
-        id={formAnchor}
-        sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5, display: "grid", gap: 2 }}
-      >
-        <input name="groupKey" type="hidden" value={groupKey} />
-        <input name="itemId" type="hidden" value={selectedItem?.id || ""} />
-        <input name="returnAnchor" type="hidden" value={formAnchor} />
-
-        <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
-          <Typography variant="h3">{selectedItem ? `Editar ${singularTitle}` : `Nuevo ${singularTitle}`}</Typography>
-          {selectedItem ? (
-            <Button component="a" href={`/admin/diseno-web#${formAnchor}`} size="small" variant="text">
-              Limpiar formulario
-            </Button>
-          ) : null}
-        </Stack>
-
-        {isSponsor ? (
-          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
-            <TextField autoComplete="off" defaultValue={selectedItem?.fields.name?.textValue || ""} label="Nombre" name="name" required />
-            <TextField autoComplete="off" defaultValue={selectedItem?.fields.target_url?.linkUrl || ""} label="Link" name="target_url" />
-            <TextField autoComplete="off" defaultValue={selectedItem?.fields.logo_media?.mediaAssetId || ""} helperText="Asset ID del logo o imagen." label="Asset ID logo" name="logo_media" />
-            <TextField autoComplete="off" defaultValue={selectedItem?.fields.background_color?.textValue || ""} label="Color fondo" name="background_color" />
-            <TextField autoComplete="off" defaultValue={selectedItem?.fields.accent_color?.textValue || ""} label="Color acento" name="accent_color" />
-          </Box>
-        ) : (
-          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
-            <TextField autoComplete="off" defaultValue={selectedItem?.fields.name?.textValue || ""} label="Nombre" name="name" required />
-            <TextField autoComplete="off" defaultValue={selectedItem?.fields.role?.textValue || ""} label="Rol" name="role" />
-            <TextField autoComplete="off" defaultValue={selectedItem?.fields.cover_media?.mediaAssetId || ""} helperText="Asset ID de la foto." label="Asset ID foto" name="cover_media" />
-            <TextField autoComplete="off" defaultValue={selectedItem?.fields.instagram_url?.linkUrl || ""} label="Instagram" name="instagram_url" />
-            <TextField autoComplete="off" defaultValue={selectedItem?.fields.facebook_url?.linkUrl || ""} label="Facebook" name="facebook_url" />
-            <TextField autoComplete="off" defaultValue={selectedItem?.fields.youtube_url?.linkUrl || ""} label="YouTube" name="youtube_url" />
-            <TextField autoComplete="off" defaultValue={selectedItem?.fields.tiktok_url?.linkUrl || ""} label="TikTok" name="tiktok_url" />
-            <Box sx={{ gridColumn: "1 / -1" }}>
-              <TextField
-                autoComplete="off"
-                defaultValue={selectedItem?.fields.description?.textValue || ""}
-                label="Descripcion"
-                multiline
-                minRows={3}
-                name="description"
-                fullWidth
-              />
-            </Box>
-          </Box>
-        )}
-
-        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-          <Button type="submit" variant="contained">
-            {selectedItem ? `Guardar ${singularTitle}` : `Agregar ${singularTitle}`}
-          </Button>
-        </Box>
-      </Box>
-    </Stack>
-  );
 }

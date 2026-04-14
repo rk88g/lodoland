@@ -243,6 +243,33 @@ export async function getMediaAssets(limit = 18) {
   );
 }
 
+export async function getMediaAssetsByPrefix(prefix: string, limit = 200) {
+  if (isBuildPhase()) {
+    return [];
+  }
+
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("media_assets")
+    .select("id, title, path, alt_text, bucket, is_public")
+    .like("path", `${prefix}%`)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  return (data || []).map(
+    (asset) =>
+      ({
+        id: asset.id,
+        title: asset.title,
+        path: asset.path,
+        altText: asset.alt_text,
+        bucket: asset.bucket,
+        isPublic: asset.is_public ?? false,
+        publicUrl: buildStoragePublicUrl(asset.path, asset.bucket)
+      }) satisfies MediaAssetSummary
+  );
+}
+
 export async function getMediaCollections(limit = 12) {
   if (isBuildPhase()) {
     return [];

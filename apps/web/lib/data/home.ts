@@ -168,7 +168,7 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
   const [config, nextEvent, upcomingEvents] = await Promise.all([
     getCmsPageConfig("home"),
     getNextEvent(),
-    getUpcomingEvents(5)
+    getUpcomingEvents(6)
   ]);
 
   const sections = config?.sections || {};
@@ -187,15 +187,30 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
     href: linkFromItem(item, "url", "#")
   })) || [];
 
+  const sponsorSourceItems = sponsorSection?.groups.sponsor_tiles?.items || [];
   const sponsorItems =
-    sponsorSection?.groups.sponsor_tiles?.items.map((item) => ({
+    sponsorSourceItems.map((item) => ({
       id: item.id,
       name: textFromItem(item, "name", item.label),
       href: linkFromItem(item, "target_url", "https://example.com"),
       image: optimizeMedia(item.fields.logo_media?.media || null, { width: 640, height: 400, quality: 78, resize: "contain" }),
       backgroundColor: textFromItem(item, "background_color", "") || null,
       accentColor: textFromItem(item, "accent_color", "") || null
-    })) || [];
+    }));
+
+  const menuSponsorPanels = sponsorSourceItems.slice(0, 3).map((item) => ({
+    id: item.id,
+    name: textFromItem(item, "name", item.label),
+    href: linkFromItem(item, "target_url", "https://example.com"),
+    image: optimizeMedia(item.fields.logo_media?.media || null, {
+      width: 420,
+      height: 320,
+      quality: 66,
+      resize: "contain"
+    }),
+    backgroundColor: textFromItem(item, "background_color", "") || null,
+    accentColor: textFromItem(item, "accent_color", "") || null
+  }));
 
   const sponsorModalItem = eventSection?.groups.official_sponsor_modal?.items[0];
   const eventBannerItem = eventSection?.groups.event_side_banner?.items[0];
@@ -239,7 +254,7 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
       })
     },
     menuLinks,
-    menuSponsorPanels: sponsorItems.slice(0, 3),
+    menuSponsorPanels,
     event: {
       title: eventSection?.fields.title?.textValue || nextEvent?.title || "Proximo evento",
       description:
@@ -263,7 +278,7 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
       sideBannerAlt: eventSection?.fields.side_banner_alt?.textValue || "Banner vertical del evento",
       sideBannerUrl: eventBannerItem ? linkFromItem(eventBannerItem, "target_url", "https://example.com") : "https://example.com",
       latest: nextEvent,
-      upcoming: upcomingEvents
+      upcoming: upcomingEvents.filter((eventItem) => eventItem.id !== nextEvent?.id).slice(0, 5)
     },
     socialProfiles: socialItems.map((item) => ({
       id: item.id,
