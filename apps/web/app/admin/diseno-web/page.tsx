@@ -38,7 +38,7 @@ const editorSectionOrder = [
 
 const sectionFieldKeys: Record<string, string[]> = {
   evento_reciente: ["title", "description", "primary_cta_label", "secondary_cta_label", "hero_media"],
-  patrocinadores: ["title", "description"],
+  patrocinadores: ["title", "description", "banner_alt"],
   influencers: ["modal_button_label", "modal_title"],
   merch_destacado: ["title", "catalog_button_label"],
   menu_overlay: [],
@@ -69,6 +69,7 @@ const groupFieldKeys: Record<string, string[]> = {
   official_sponsor_modal: ["title", "description", "website_label", "website_url", "social_label", "social_url", "media"],
   event_side_banner: ["media", "target_url"],
   social_profiles: ["platform", "target_url", "embed_url", "preview_media"],
+  sponsor_main_banner: ["media", "target_url"],
   sales_panels: ["title", "subtitle", "price", "cover_media"],
   merch_gallery: ["title", "media"]
 };
@@ -676,10 +677,11 @@ function getFieldHint(sectionKey: string, fieldKey: string) {
       "menu_overlay.menu_links.label": "Texto que se vera en el menu principal.",
       "menu_overlay.menu_links.url": "Ancla o ruta. Ejemplo: #ventas o /login.",
       "evento_reciente.hero_media": "Asset ID de la imagen gigante principal del evento.",
-      "evento_reciente.official_sponsor_modal.media": "Asset ID de la imagen grande del patrocinador oficial.",
+    "evento_reciente.official_sponsor_modal.media": "Asset ID de la imagen grande del patrocinador oficial.",
     "evento_reciente.event_side_banner.media": "Asset ID del banner vertical del evento.",
     "redes_sociales.social_profiles.embed_url": "Usa una URL publica de embed. Si no existe, deja solo la preview.",
     "redes_sociales.social_profiles.preview_media": "Asset ID de la preview vertical de la red social.",
+    "patrocinadores.sponsor_main_banner.media": "Asset ID del banner horizontal principal.",
     "ventas_destacadas.sales_panels.cover_media": "Asset ID del panel de venta.",
     "merch_destacado.merch_gallery.media": "Asset ID de la imagen del producto."
   };
@@ -687,6 +689,7 @@ function getFieldHint(sectionKey: string, fieldKey: string) {
   const normalized = fieldKey
     .replace(/^event_side_banner\./, "evento_reciente.event_side_banner.")
     .replace(/^social_profiles\./, "redes_sociales.social_profiles.")
+    .replace(/^sponsor_main_banner\./, "patrocinadores.sponsor_main_banner.")
     .replace(/^sales_panels\./, "ventas_destacadas.sales_panels.")
     .replace(/^merch_gallery\./, "merch_destacado.merch_gallery.");
 

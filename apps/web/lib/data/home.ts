@@ -81,6 +81,9 @@ export type HomePageViewModel = {
     showcaseTitle: string;
     showcaseSubtitle: string;
     items: HomeSponsorItem[];
+    bannerImage: CmsMediaAsset | null;
+    bannerUrl: string;
+    bannerAlt: string;
   };
   influencers: {
     modalButtonLabel: string;
@@ -503,7 +506,17 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
     sponsors: {
       showcaseTitle: sponsorSection?.fields.title?.textValue || "Marcas aliadas",
       showcaseSubtitle: sponsorSection?.fields.description?.textValue || "Zona de exhibicion principal",
-      items: sponsorItems
+      items: sponsorItems,
+      bannerImage: optimizeMedia(sponsorSection?.groups.sponsor_main_banner?.items[0]?.fields.media?.media || null, {
+        width: 1680,
+        height: 360,
+        quality: 78,
+        resize: "cover"
+      }),
+      bannerUrl: sponsorSection?.groups.sponsor_main_banner?.items[0]
+        ? linkFromItem(sponsorSection.groups.sponsor_main_banner.items[0], "target_url", "https://example.com")
+        : "https://example.com",
+      bannerAlt: sponsorSection?.fields.banner_alt?.textValue || "Banner patrocinadores"
     },
     influencers: {
       modalButtonLabel: influencerSection?.fields.modal_button_label?.textValue || "Ver colaboradores",

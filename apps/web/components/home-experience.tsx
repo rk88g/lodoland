@@ -727,6 +727,27 @@ export function HomeExperience({ data }: HomeExperienceProps) {
             ))}
           </div>
 
+          <a
+            aria-label={data.sponsors.bannerAlt}
+            className="sponsor-banner"
+            href={data.sponsors.bannerUrl}
+            rel="noreferrer"
+            target="_blank"
+            style={
+              data.sponsors.bannerImage
+                ? {
+                    backgroundImage: `url(${data.sponsors.bannerImage.url})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                    color: "transparent"
+                  }
+                : undefined
+            }
+          >
+            Banner principal horizontal
+          </a>
+
         </div>
       </section>
 

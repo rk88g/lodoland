@@ -1376,6 +1376,27 @@ main {
   overflow: hidden;
 }
 
+.sponsor-banner {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  min-height: 96px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, rgba(255, 186, 87, 0.12), rgba(65, 211, 194, 0.08));
+  box-shadow: var(--shadow);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  overflow: hidden;
+  text-indent: -9999px;
+  white-space: nowrap;
+}
+
 .sponsor-tile::before {
   content: "";
   position: absolute;
