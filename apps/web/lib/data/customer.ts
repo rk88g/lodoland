@@ -128,18 +128,25 @@ function normalizePickValues(picks: unknown) {
   return Object.entries(picks as Record<string, unknown>).map(([key, value]) => `${key}: ${String(value)}`);
 }
 
-export async function getCustomerTickets(userId: string) {
+export async function getCustomerTickets(userId: string, userEmail?: string | null) {
   if (isBuildPhase()) {
     return [];
   }
 
   const supabase = createClient();
-  const { data: issuedTickets } = await supabase
+  let query = supabase
     .from("issued_tickets")
     .select("id, ticket_code, status, issued_at, ticket_type_id")
-    .eq("owner_user_id", userId)
     .order("created_at", { ascending: false })
     .limit(24);
+
+  if (userEmail) {
+    query = query.or(`owner_user_id.eq.${userId},purchaser_email.eq.${userEmail}`);
+  } else {
+    query = query.eq("owner_user_id", userId);
+  }
+
+  const { data: issuedTickets } = await query;
 
   if (!issuedTickets?.length) {
     return [] as CustomerTicketSummary[];

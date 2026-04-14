@@ -15,7 +15,7 @@ function formatDate(dateValue: string | null) {
 export default async function CustomerPurchasesPage() {
   const { user } = await requireUser();
   const [tickets, raffles, pools] = await Promise.all([
-    getCustomerTickets(user.id),
+    getCustomerTickets(user.id, user.email),
     getCustomerRaffles(user.id),
     getCustomerPools(user.id)
   ]);

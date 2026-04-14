@@ -68,7 +68,10 @@ function formatMoney(value: number | null | undefined, currency = "MXN") {
   }).format(value);
 }
 
-export async function getTicketPassDetail(ticketId: string, options?: { ownerUserId?: string | null }) {
+export async function getTicketPassDetail(
+  ticketId: string,
+  options?: { ownerUserId?: string | null; userEmail?: string | null }
+) {
   if (isBuildPhase()) {
     return null;
   }
@@ -81,7 +84,9 @@ export async function getTicketPassDetail(ticketId: string, options?: { ownerUse
     )
     .eq("id", ticketId);
 
-  if (options?.ownerUserId) {
+  if (options?.ownerUserId && options?.userEmail) {
+    query = query.or(`owner_user_id.eq.${options.ownerUserId},purchaser_email.eq.${options.userEmail}`);
+  } else if (options?.ownerUserId) {
     query = query.eq("owner_user_id", options.ownerUserId);
   }
 

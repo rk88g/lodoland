@@ -16,7 +16,7 @@ type CustomerTicketPassPageProps = {
 
 export default async function CustomerTicketPassPage({ params }: CustomerTicketPassPageProps) {
   const { user } = await requireUser();
-  const ticket = await getTicketPassDetail(params.ticketId, { ownerUserId: user.id });
+  const ticket = await getTicketPassDetail(params.ticketId, { ownerUserId: user.id, userEmail: user.email });
 
   return (
     <DashboardShell navItems={customerNavItems} subtitle="Codigo QR y acceso" title="Mi ticket">

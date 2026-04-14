@@ -61,7 +61,7 @@ export default async function AdminTicketsPage() {
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Operacion general</Typography>
-        <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: { xs: "1fr", xl: "repeat(4, minmax(0, 1fr))" } }}>
+        <Box sx={{ display: "grid", gap: 1.25, gridTemplateColumns: "repeat(4, minmax(160px, 1fr))", overflowX: "auto" }}>
           <SummaryCard label="Tipos activos" value={summary.ticketTypes} />
           <SummaryCard label="Drops activos" value={summary.ticketLots} />
           <SummaryCard label="Tickets emitidos" value={summary.issuedTickets} />
@@ -359,7 +359,7 @@ function SummaryCard({ label, value }: { label: string; value: number }) {
         <Typography color="text.secondary" variant="body2">
           {label}
         </Typography>
-        <Typography sx={{ fontSize: 28, fontWeight: 800, lineHeight: 1 }}>{value}</Typography>
+        <Typography sx={{ fontSize: 24, fontWeight: 800, lineHeight: 1 }}>{value}</Typography>
       </Stack>
     </Box>
   );

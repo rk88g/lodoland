@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  MenuItem,
   Stack,
   Table,
   TableBody,
@@ -25,6 +26,7 @@ import type { AdminIssuedTicketSummary } from "../lib/data/tickets";
 import { formatEventDateTimeWallClock } from "../lib/date-format";
 import { buildQrCodeUrl } from "../lib/qr";
 import { validateIssuedTicketAction } from "../app/admin/tickets/actions";
+import { updateIssuedTicketStatusAction } from "../app/admin/tickets/actions";
 
 function formatDate(dateValue: string | null) {
   return formatEventDateTimeWallClock(dateValue) || "Sin fecha";
@@ -45,7 +47,22 @@ function formatTicketStatus(status: string) {
   }
 }
 
-export function AdminIssuedTicketsPanel({ items }: { items: AdminIssuedTicketSummary[] }) {
+const ticketStatuses = [
+  "available",
+  "reserved",
+  "sold",
+  "issued",
+  "courtesy",
+  "checked_in",
+  "cancelled",
+  "refunded"
+];
+
+export function AdminIssuedTicketsPanel({
+  items
+}: {
+  items: AdminIssuedTicketSummary[];
+}) {
   const [query, setQuery] = useState("");
   const [selectedTicket, setSelectedTicket] = useState<AdminIssuedTicketSummary | null>(null);
 
@@ -207,6 +224,21 @@ export function AdminIssuedTicketsPanel({ items }: { items: AdminIssuedTicketSum
                       {[selectedTicket.purchaserName, selectedTicket.purchaserEmail, selectedTicket.purchaserPhone].filter(Boolean).join(" - ")}
                     </Typography>
                   ) : null}
+                  <form action={updateIssuedTicketStatusAction} method="post">
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                      <input name="ticketId" type="hidden" value={selectedTicket.id} />
+                      <TextField defaultValue={selectedTicket.status} label="Estatus" name="status" select sx={{ minWidth: 220 }}>
+                        {ticketStatuses.map((status) => (
+                          <MenuItem key={status} value={status}>
+                            {formatTicketStatus(status)}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                      <Button type="submit" variant="outlined">
+                        Guardar estatus
+                      </Button>
+                    </Stack>
+                  </form>
                   <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
                     <Button component={Link} href={`/admin/tickets/${selectedTicket.id}`} variant="outlined">
                       Abrir detalle

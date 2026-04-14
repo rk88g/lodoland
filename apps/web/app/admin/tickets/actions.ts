@@ -30,16 +30,14 @@ function generateTicketIdentity(prefix: string, eventId: string, lotId: string, 
   const stamp = Date.now().toString().slice(-8);
   const code = `${prefix || "LL"}-${stamp}-${(index + 1).toString().padStart(2, "0")}-${id.slice(0, 8).toUpperCase()}`;
   const hash = createHash("sha256").update(`${id}:${code}:${eventId}:${lotId}`).digest("hex");
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
+  const qrUrl = `${siteUrl}/admin/tickets/${id}?token=${hash}`;
 
   return {
     id,
     code,
     hash,
-    qrPayload: JSON.stringify({
-      ticketId: id,
-      ticketCode: code,
-      hash
-    })
+    qrPayload: qrUrl
   };
 }
 
@@ -66,6 +64,27 @@ function parseTicketScanValue(scanValue: string) {
         ticketId: parsed.ticketId || null,
         ticketCode: parsed.ticketCode || null,
         hash: parsed.hash || null
+      };
+    } catch (_error) {
+      return {
+        ticketId: null,
+        ticketCode: normalized,
+        hash: null
+      };
+    }
+  }
+
+  if (/^https?:\/\//i.test(normalized)) {
+    try {
+      const parsedUrl = new URL(normalized);
+      const pathnameParts = parsedUrl.pathname.split("/").filter(Boolean);
+      const ticketId = pathnameParts[pathnameParts.length - 1] || null;
+      const hash = parsedUrl.searchParams.get("token");
+
+      return {
+        ticketId,
+        ticketCode: null,
+        hash: hash || null
       };
     } catch (_error) {
       return {
@@ -352,6 +371,12 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
     redirectWithError("Debes indicar cliente, tipo, drop y cantidad para vender.");
   }
 
+  const { data: ownerProfile } = await supabase
+    .from("profiles")
+    .select("id, email, first_name, last_name")
+    .eq("id", ownerUserId)
+    .maybeSingle();
+
   const { data: ticketType, error: ticketTypeError } = await supabase
     .from("ticket_types")
     .select("id, event_id, name, price, currency, quantity_total, quantity_sold")
@@ -398,7 +423,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
     subtotal,
     total: subtotal,
     customer_name: purchaserName || null,
-    customer_email: purchaserEmail || null,
+    customer_email: purchaserEmail || ownerProfile?.email || null,
     customer_phone: purchaserPhone || null,
     notes: "Venta manual autorizada desde CONTROL",
     metadata: {
@@ -460,8 +485,11 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
       order_id: orderId,
       order_item_id: orderItemId,
       owner_user_id: ownerUserId,
-      purchaser_name: purchaserName || null,
-      purchaser_email: purchaserEmail || null,
+      purchaser_name:
+        purchaserName ||
+        [ownerProfile?.first_name, ownerProfile?.last_name].filter(Boolean).join(" ").trim() ||
+        null,
+      purchaser_email: purchaserEmail || ownerProfile?.email || null,
       purchaser_phone: purchaserPhone || null,
       ticket_code: identity.code,
       qr_payload: identity.qrPayload,
@@ -528,6 +556,69 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
   revalidatePath("/perfil/compras");
   revalidatePath("/eventos");
   redirectWithSuccess("Venta manual de tickets registrada correctamente.");
+}
+
+export async function updateIssuedTicketStatusAction(formData: FormData) {
+  const session = await requireAdmin();
+  const supabase = createClient();
+  const ticketId = String(formData.get("ticketId") ?? "").trim();
+  const nextStatus = String(formData.get("status") ?? "").trim();
+  const allowedStatuses = new Set([
+    "available",
+    "reserved",
+    "sold",
+    "issued",
+    "courtesy",
+    "checked_in",
+    "cancelled",
+    "refunded"
+  ]);
+
+  if (!ticketId || !allowedStatuses.has(nextStatus)) {
+    redirectWithError("Debes indicar un ticket y un estatus valido.");
+  }
+
+  const { data: ticket, error } = await supabase
+    .from("issued_tickets")
+    .select("id, ticket_code, status")
+    .eq("id", ticketId)
+    .maybeSingle();
+
+  if (error || !ticket) {
+    redirectWithError(error?.message || "No encontramos ese ticket.");
+  }
+
+  const checkedInAt = nextStatus === "checked_in" ? new Date().toISOString() : null;
+  const { error: updateError } = await supabase
+    .from("issued_tickets")
+    .update({
+      status: nextStatus,
+      checked_in_at: checkedInAt
+    })
+    .eq("id", ticketId);
+
+  if (updateError) {
+    redirectWithError(updateError.message);
+  }
+
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "issued_ticket",
+    entityId: ticketId,
+    action: "update_status",
+    summary: "Cambio manual de estatus de ticket desde control",
+    payload: {
+      ticketCode: ticket.ticket_code,
+      previousStatus: ticket.status,
+      nextStatus
+    }
+  });
+
+  revalidatePath("/admin/tickets");
+  revalidatePath(`/admin/tickets/${ticketId}`);
+  revalidatePath("/perfil/compras");
+  redirectWithSuccess(`Estatus del ticket ${ticket.ticket_code} actualizado correctamente.`);
 }
 
 export async function validateIssuedTicketAction(formData: FormData) {
