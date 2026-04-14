@@ -642,6 +642,22 @@ main {
   background: linear-gradient(90deg, rgba(160, 74, 33, 0.22), rgba(255, 255, 255, 0.04));
 }
 
+@media (min-width: 781px) {
+  .menu-collapse,
+  .menu-collapse.is-open {
+    flex: 1 1 0;
+  }
+
+  .menu-collapses:hover .menu-collapse {
+    flex: 0.95 1 0;
+  }
+
+  .menu-collapses:hover .sponsor-collapse:hover,
+  .menu-collapses:hover .menu-links-collapse:hover {
+    flex: 1.25 1 0;
+  }
+}
+
 .overlay-actions,
 .social-icon-row,
 .scene-actions,

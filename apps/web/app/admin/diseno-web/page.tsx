@@ -68,10 +68,7 @@ const groupFieldKeys: Record<string, string[]> = {
   official_sponsor_modal: ["title", "description", "website_label", "website_url", "social_label", "social_url", "media"],
   event_side_banner: ["media", "target_url"],
   social_profiles: ["platform", "target_url", "embed_url", "preview_media"],
-  sponsor_tiles: ["name", "target_url", "logo_media", "background_color", "accent_color"],
   sponsor_main_banner: ["media", "target_url"],
-  influencer_collage: ["media"],
-  influencer_profiles: ["name", "role", "description", "cover_media", "instagram_url", "facebook_url", "youtube_url", "tiktok_url"],
   sales_panels: ["title", "subtitle", "price", "cover_media"],
   merch_gallery: ["title", "media"],
   footer_marquee: ["label", "logo_media", "target_url"]
@@ -548,11 +545,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
         successMessage={successMessage}
       >
         <Stack spacing={1.5}>
-          <Typography variant="h2">Subir asset a Supabase</Typography>
-          <Typography color="text.secondary">
-            Sube una imagen por vez al bucket `lodoland-media`. Aqui no se muestran previews; solo se registra el asset
-            para usarlo despues en la web.
-          </Typography>
+          <Typography variant="h2">Assets</Typography>
 
           <form
             action={registerMediaAssetAction}
@@ -611,10 +604,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
         </Stack>
 
         <Stack spacing={1.5}>
-          <Typography variant="h2">Configuracion de portada</Typography>
-          <Typography color="text.secondary">
-            Guarda una sola vez por seccion. Para imagenes, pega el `Asset ID` del archivo que ya subiste.
-          </Typography>
+          <Typography variant="h2">Portada</Typography>
           {homeEditorContent}
         </Stack>
       </DesignWebEditorShell>
@@ -671,12 +661,7 @@ function getFieldHint(sectionKey: string, fieldKey: string) {
     "evento_reciente.event_side_banner.media": "Asset ID del banner vertical del evento.",
     "redes_sociales.social_profiles.embed_url": "Usa una URL publica de embed. Si no existe, deja solo la preview.",
     "redes_sociales.social_profiles.preview_media": "Asset ID de la preview vertical de la red social.",
-    "patrocinadores.sponsor_tiles.logo_media": "Asset ID del logo del patrocinador.",
-    "patrocinadores.sponsor_tiles.background_color": "Color base opcional del patrocinador. Ejemplo: #111827.",
-    "patrocinadores.sponsor_tiles.accent_color": "Color de acento opcional. Ejemplo: #22c55e.",
     "patrocinadores.sponsor_main_banner.media": "Asset ID del banner horizontal principal.",
-    "influencers.influencer_collage.media": "Asset ID para el collage de influencers.",
-    "influencers.influencer_profiles.cover_media": "Asset ID de la foto del influencer.",
     "ventas_destacadas.sales_panels.cover_media": "Asset ID del panel de venta.",
     "merch_destacado.merch_gallery.media": "Asset ID de la imagen del producto.",
     "footer.footer_marquee.logo_media": "Asset ID del logo del footer."
@@ -685,10 +670,7 @@ function getFieldHint(sectionKey: string, fieldKey: string) {
   const normalized = fieldKey
     .replace(/^event_side_banner\./, "evento_reciente.event_side_banner.")
     .replace(/^social_profiles\./, "redes_sociales.social_profiles.")
-    .replace(/^sponsor_tiles\./, "patrocinadores.sponsor_tiles.")
     .replace(/^sponsor_main_banner\./, "patrocinadores.sponsor_main_banner.")
-    .replace(/^influencer_collage\./, "influencers.influencer_collage.")
-    .replace(/^influencer_profiles\./, "influencers.influencer_profiles.")
     .replace(/^sales_panels\./, "ventas_destacadas.sales_panels.")
     .replace(/^merch_gallery\./, "merch_destacado.merch_gallery.")
     .replace(/^footer_marquee\./, "footer.footer_marquee.");

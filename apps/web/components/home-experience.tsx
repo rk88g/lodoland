@@ -44,6 +44,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
   const [activeSale, setActiveSale] = useState(0);
   const [saleModalIndex, setSaleModalIndex] = useState<number | null>(null);
   const [activeMenuPanel, setActiveMenuPanel] = useState(0);
+  const [isMobileMenuViewport, setIsMobileMenuViewport] = useState(false);
   const isOverlayOpen =
     sponsorModalOpen || eventModalOpen || menuOpen || influencerModalOpen || merchModalOpen || saleModalIndex !== null;
   const currentYear = new Date().getFullYear();
@@ -111,13 +112,31 @@ export function HomeExperience({ data }: HomeExperienceProps) {
   }, [isOverlayOpen, saleModalIndex, merchModalOpen, eventModalOpen, influencerModalOpen, menuOpen, sponsorModalOpen]);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia("(max-width: 780px)");
+    const updateViewport = () => {
+      setIsMobileMenuViewport(mediaQuery.matches);
+    };
+
+    updateViewport();
+    mediaQuery.addEventListener("change", updateViewport);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateViewport);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!menuOpen) {
       return;
     }
 
     const menuPages = menuCollapsesRef.current;
 
-    if (!menuPages || typeof window === "undefined" || !window.matchMedia("(max-width: 780px)").matches) {
+    if (!menuPages || !isMobileMenuViewport) {
       return;
     }
 
@@ -127,14 +146,14 @@ export function HomeExperience({ data }: HomeExperienceProps) {
         behavior: "auto"
       });
     });
-  }, [menuOpen, activeMenuPanel]);
+  }, [menuOpen, activeMenuPanel, isMobileMenuViewport]);
 
   const goToMenuPanel = (index: number) => {
     setActiveMenuPanel(index);
 
     const menuPages = menuCollapsesRef.current;
 
-    if (!menuPages || typeof window === "undefined" || !window.matchMedia("(max-width: 780px)").matches) {
+    if (!menuPages || !isMobileMenuViewport) {
       return;
     }
 
@@ -147,7 +166,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
   const handleMenuScroll = () => {
     const menuPages = menuCollapsesRef.current;
 
-    if (!menuPages || typeof window === "undefined" || !window.matchMedia("(max-width: 780px)").matches) {
+    if (!menuPages || !isMobileMenuViewport) {
       return;
     }
 
@@ -248,16 +267,19 @@ export function HomeExperience({ data }: HomeExperienceProps) {
             >
               {data.menuSponsorPanels.map((panel, index) => (
                 <article
-                  className={`menu-collapse sponsor-collapse ${activeMenuPanel === index ? "is-open" : ""}`}
+                  className={`menu-collapse sponsor-collapse ${isMobileMenuViewport && activeMenuPanel === index ? "is-open" : ""}`}
                   key={panel.id}
-                  onClick={() => goToMenuPanel(index)}
+                  onClick={() => {
+                    if (isMobileMenuViewport) {
+                      goToMenuPanel(index);
+                    }
+                  }}
                   onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
+                    if ((event.key === "Enter" || event.key === " ") && isMobileMenuViewport) {
                       event.preventDefault();
                       goToMenuPanel(index);
                     }
                   }}
-                  onMouseEnter={() => setActiveMenuPanel(index)}
                   role="button"
                   tabIndex={0}
                 >
@@ -289,12 +311,11 @@ export function HomeExperience({ data }: HomeExperienceProps) {
               ))}
 
               <div
-                className={`menu-collapse menu-links-collapse ${activeMenuPanel === data.menuSponsorPanels.length ? "is-open" : ""}`}
+                className={`menu-collapse menu-links-collapse ${isMobileMenuViewport && activeMenuPanel === data.menuSponsorPanels.length ? "is-open" : ""}`}
               >
                 <button
                   className="menu-collapse-trigger"
                   onClick={() => goToMenuPanel(data.menuSponsorPanels.length)}
-                  onMouseEnter={() => setActiveMenuPanel(data.menuSponsorPanels.length)}
                   type="button"
                 >
                   Secciones
