@@ -7,17 +7,20 @@ import { usePathname } from "next/navigation";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import CampaignOutlinedIcon from "@mui/icons-material/CampaignOutlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
+import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
+import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
+import EmojiEventsOutlinedIcon from "@mui/icons-material/EmojiEventsOutlined";
+import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
+import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import PaletteOutlinedIcon from "@mui/icons-material/PaletteOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
-import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
+import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
+import SportsScoreOutlinedIcon from "@mui/icons-material/SportsScoreOutlined";
 import WbSunnyOutlinedIcon from "@mui/icons-material/WbSunnyOutlined";
-import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
-import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
-import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
 import {
   AppBar,
   Box,
@@ -42,9 +45,12 @@ type NavIcon =
   | "events"
   | "catalog"
   | "promotions"
+  | "raffles"
+  | "pools"
   | "tickets"
   | "finance"
   | "profile"
+  | "purchases"
   | "audit"
   | "access";
 
@@ -73,12 +79,18 @@ function resolveIcon(icon: NavIcon) {
       return <CategoryOutlinedIcon fontSize="small" />;
     case "promotions":
       return <CampaignOutlinedIcon fontSize="small" />;
+    case "raffles":
+      return <EmojiEventsOutlinedIcon fontSize="small" />;
+    case "pools":
+      return <SportsScoreOutlinedIcon fontSize="small" />;
     case "tickets":
       return <ConfirmationNumberOutlinedIcon fontSize="small" />;
     case "finance":
       return <PaymentsOutlinedIcon fontSize="small" />;
     case "profile":
       return <PersonOutlineOutlinedIcon fontSize="small" />;
+    case "purchases":
+      return <ShoppingBagOutlinedIcon fontSize="small" />;
     case "audit":
       return <HistoryOutlinedIcon fontSize="small" />;
     case "access":
@@ -142,7 +154,7 @@ export function DashboardShell({
         <Box sx={{ p: 2 }}>
           <form action="/auth/signout" method="post">
             <Button fullWidth startIcon={<LogoutOutlinedIcon />} type="submit" variant="outlined">
-              Cerrar sesión
+              Cerrar sesion
             </Button>
           </form>
         </Box>
