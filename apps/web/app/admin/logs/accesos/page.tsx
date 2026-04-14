@@ -6,6 +6,8 @@ import { controlNavItems } from "../../../../lib/navigation";
 
 export const dynamic = "force-dynamic";
 
+const LAST_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
 function formatDate(dateValue: string) {
   return new Intl.DateTimeFormat("es-MX", {
     dateStyle: "medium",
@@ -20,7 +22,9 @@ function buildLocation(log: Awaited<ReturnType<typeof getCollaboratorLoginLogs>>
 
 export default async function AdminAccessLogsPage() {
   await requireAdmin();
-  const logs = await getCollaboratorLoginLogs(80);
+  const rawLogs = await getCollaboratorLoginLogs(120);
+  const cutoff = Date.now() - LAST_WEEK_MS;
+  const logs = rawLogs.filter((log) => new Date(log.createdAt).getTime() >= cutoff);
 
   return (
     <DashboardShell navItems={controlNavItems} subtitle="Accesos de colaboradores" title="Log accesos">
@@ -28,7 +32,7 @@ export default async function AdminAccessLogsPage() {
         <Typography variant="h2">Inicios de sesion del equipo</Typography>
         <Typography color="text.secondary">
           Aqui se guarda cuando entraron, desde donde y con que dispositivo los colaboradores con correo
-          organizacional.
+          organizacional durante la ultima semana.
         </Typography>
       </Stack>
 
@@ -83,7 +87,7 @@ export default async function AdminAccessLogsPage() {
           ))}
         </Stack>
       ) : (
-        <Typography color="text.secondary">Todavia no hay accesos registrados del equipo interno.</Typography>
+        <Typography color="text.secondary">No hay inicios de sesion del equipo interno en los ultimos 7 dias.</Typography>
       )}
     </DashboardShell>
   );

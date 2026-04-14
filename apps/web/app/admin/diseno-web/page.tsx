@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { requireAdmin } from "../../../lib/auth/session";
 import { getCmsPageConfig, type CmsFieldValue } from "../../../lib/data/cms";
+import { getMediaAssets } from "../../../lib/data/portal";
 import { controlNavItems } from "../../../lib/navigation";
 import { registerMediaAssetAction, updateGroupItemFieldAction, updateSectionFieldAction } from "./actions";
 
@@ -68,10 +69,11 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
   await requireAdmin();
 
   let homeConfig: Awaited<ReturnType<typeof getCmsPageConfig>> = null;
+  let mediaAssets = [] as Awaited<ReturnType<typeof getMediaAssets>>;
   let loadError: string | null = null;
 
   try {
-    homeConfig = await getCmsPageConfig("home", { includeMedia: false });
+    [homeConfig, mediaAssets] = await Promise.all([getCmsPageConfig("home", { includeMedia: false }), getMediaAssets(40)]);
   } catch (error) {
     console.error("[admin/diseno-web] load error", error);
     loadError = error instanceof Error ? error.message : "No se pudo cargar la configuracion del editor.";
@@ -325,6 +327,38 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
           ya subiste.
         </Typography>
         {homeEditorContent}
+      </Stack>
+
+      <Stack spacing={1.5}>
+        <Typography variant="h2">Assets recientes</Typography>
+        <Typography color="text.secondary">
+          Copia el `Asset ID` y pegalo en cualquier campo de imagen. Aqui no se muestran previews.
+        </Typography>
+        {mediaAssets.length ? (
+          <Box sx={{ display: "grid", gap: 1.5 }}>
+            {mediaAssets.map((asset) => (
+              <Box
+                key={asset.id}
+                sx={{
+                  border: 1,
+                  borderColor: "divider",
+                  bgcolor: "background.paper",
+                  p: 1.5,
+                  display: "grid",
+                  gap: 0.5
+                }}
+              >
+                <Typography sx={{ fontWeight: 700, wordBreak: "break-all" }}>Asset ID: {asset.id}</Typography>
+                <Typography color="text.secondary">{asset.title || "Sin titulo"}</Typography>
+                <Typography color="text.secondary" sx={{ wordBreak: "break-all" }}>
+                  {asset.path}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        ) : (
+          <Typography color="text.secondary">Todavia no hay assets registrados para usar en la web.</Typography>
+        )}
       </Stack>
     </DashboardShell>
   );
