@@ -5,7 +5,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAdminAction } from "../../../lib/audit";
 import { requireAdmin } from "../../../lib/auth/session";
+import { setFlashMessage } from "../../../lib/flash";
 import { createClient } from "../../../lib/supabase/server";
+
+const FLASH_COOKIE = "admin-raffles-flash";
 
 function toSlug(value: string) {
   return value
@@ -15,6 +18,22 @@ function toSlug(value: string) {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function redirectWithError(message: string): never {
+  setFlashMessage(FLASH_COOKIE, {
+    type: "error",
+    message
+  });
+  redirect("/admin/rifas");
+}
+
+function redirectWithSuccess(message: string): never {
+  setFlashMessage(FLASH_COOKIE, {
+    type: "success",
+    message
+  });
+  redirect("/admin/rifas");
 }
 
 export async function createRaffleAction(formData: FormData) {
@@ -41,7 +60,7 @@ export async function createRaffleAction(formData: FormData) {
   const numbersEnd = totalNumbers > 0 ? numbersStart + totalNumbers - 1 : null;
 
   if (!title || !slug || !entryPrice || !totalNumbers) {
-    redirect("/admin/rifas?error=Debes indicar titulo, slug, precio y cantidad total de numeros.");
+    redirectWithError("Debes indicar titulo, slug, precio y cantidad total de numeros.");
   }
 
   const { data, error } = await supabase
@@ -69,7 +88,7 @@ export async function createRaffleAction(formData: FormData) {
     .maybeSingle();
 
   if (error) {
-    redirect(`/admin/rifas?error=${encodeURIComponent(error.message)}`);
+    redirectWithError(error.message);
   }
 
   if (data?.id && prizeLines.length) {
@@ -82,7 +101,7 @@ export async function createRaffleAction(formData: FormData) {
     const { error: prizeError } = await supabase.from("raffle_prizes").insert(prizeRows);
 
     if (prizeError) {
-      redirect(`/admin/rifas?error=${encodeURIComponent(prizeError.message)}`);
+      redirectWithError(prizeError.message);
     }
   }
 
@@ -113,7 +132,7 @@ export async function createRaffleAction(formData: FormData) {
 
   revalidatePath("/admin/rifas");
   revalidatePath("/rifas");
-  redirect("/admin/rifas?success=Rifa%20creada%20correctamente.");
+  redirectWithSuccess("Rifa creada correctamente.");
 }
 
 function parseManualNumbers(rawValue: string) {
@@ -158,7 +177,7 @@ export async function sellRaffleNumbersAsAdminAction(formData: FormData) {
   const manualNumbers = parseManualNumbers(String(formData.get("manualNumbers") ?? "").trim());
 
   if (!ownerUserId || !raffleId || quantity < 1) {
-    redirect("/admin/rifas?error=Debes indicar cliente, rifa y cantidad de numeros.");
+    redirectWithError("Debes indicar cliente, rifa y cantidad de numeros.");
   }
 
   const { data: raffle, error: raffleError } = await supabase
@@ -168,15 +187,15 @@ export async function sellRaffleNumbersAsAdminAction(formData: FormData) {
     .maybeSingle();
 
   if (raffleError || !raffle) {
-    redirect(`/admin/rifas?error=${encodeURIComponent(raffleError?.message || "Rifa invalida.")}`);
+    redirectWithError(raffleError?.message || "Rifa invalida.");
   }
 
   if (!raffle.total_numbers || !raffle.numbers_end) {
-    redirect("/admin/rifas?error=La rifa no tiene configurada la cantidad total de numeros.");
+    redirectWithError("La rifa no tiene configurada la cantidad total de numeros.");
   }
 
   if (selectionMode === "manual" && (!raffle.allow_manual_pick || raffle.price_mode === "random_number")) {
-    redirect("/admin/rifas?error=Esta rifa solo permite asignacion aleatoria de numeros.");
+    redirectWithError("Esta rifa solo permite asignacion aleatoria de numeros.");
   }
 
   const { data: soldRows } = await supabase
@@ -190,19 +209,19 @@ export async function sellRaffleNumbersAsAdminAction(formData: FormData) {
   );
 
   if (availableNumbers.length < quantity) {
-    redirect("/admin/rifas?error=No hay suficientes numeros disponibles para completar la venta.");
+    redirectWithError("No hay suficientes numeros disponibles para completar la venta.");
   }
 
   let selectedNumbers: number[] = [];
 
   if (selectionMode === "manual") {
     if (manualNumbers.length !== quantity) {
-      redirect("/admin/rifas?error=La cantidad de numeros capturados no coincide con la cantidad solicitada.");
+      redirectWithError("La cantidad de numeros capturados no coincide con la cantidad solicitada.");
     }
 
     const uniqueNumbers = new Set(manualNumbers);
     if (uniqueNumbers.size !== manualNumbers.length) {
-      redirect("/admin/rifas?error=No puedes repetir numeros en la misma venta.");
+      redirectWithError("No puedes repetir numeros en la misma venta.");
     }
 
     const invalidNumber = manualNumbers.find(
@@ -213,7 +232,7 @@ export async function sellRaffleNumbersAsAdminAction(formData: FormData) {
     );
 
     if (invalidNumber) {
-      redirect(`/admin/rifas?error=${encodeURIComponent(`El numero ${invalidNumber} no esta disponible.`)}`);
+      redirectWithError(`El numero ${invalidNumber} no esta disponible.`);
     }
 
     selectedNumbers = [...manualNumbers].sort((left, right) => left - right);
@@ -249,7 +268,7 @@ export async function sellRaffleNumbersAsAdminAction(formData: FormData) {
   });
 
   if (orderError) {
-    redirect(`/admin/rifas?error=${encodeURIComponent(orderError.message)}`);
+    redirectWithError(orderError.message);
   }
 
   const { error: orderItemError } = await supabase.from("order_items").insert({
@@ -268,7 +287,7 @@ export async function sellRaffleNumbersAsAdminAction(formData: FormData) {
   });
 
   if (orderItemError) {
-    redirect(`/admin/rifas?error=${encodeURIComponent(orderItemError.message)}`);
+    redirectWithError(orderItemError.message);
   }
 
   const { error: transactionError } = await supabase.from("payment_transactions").insert({
@@ -287,7 +306,7 @@ export async function sellRaffleNumbersAsAdminAction(formData: FormData) {
   });
 
   if (transactionError) {
-    redirect(`/admin/rifas?error=${encodeURIComponent(transactionError.message)}`);
+    redirectWithError(transactionError.message);
   }
 
   const { error: raffleEntryError } = await supabase.from("raffle_entries").insert({
@@ -301,7 +320,7 @@ export async function sellRaffleNumbersAsAdminAction(formData: FormData) {
   });
 
   if (raffleEntryError) {
-    redirect(`/admin/rifas?error=${encodeURIComponent(raffleEntryError.message)}`);
+    redirectWithError(raffleEntryError.message);
   }
 
   const { error: numbersError } = await supabase.from("raffle_entry_numbers").insert(
@@ -314,7 +333,7 @@ export async function sellRaffleNumbersAsAdminAction(formData: FormData) {
   );
 
   if (numbersError) {
-    redirect(`/admin/rifas?error=${encodeURIComponent(numbersError.message)}`);
+    redirectWithError(numbersError.message);
   }
 
   await supabase
@@ -345,5 +364,5 @@ export async function sellRaffleNumbersAsAdminAction(formData: FormData) {
   revalidatePath("/rifas");
   revalidatePath("/perfil");
   revalidatePath("/perfil/compras");
-  redirect("/admin/rifas?success=Venta%20manual%20de%20numeros%20registrada%20correctamente.");
+  redirectWithSuccess("Venta manual de numeros registrada correctamente.");
 }

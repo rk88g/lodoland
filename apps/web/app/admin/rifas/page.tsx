@@ -1,6 +1,9 @@
-import { Alert, Box, Button, Chip, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Chip, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { AdminSectionCard } from "../../../components/admin-section-card";
 import { DashboardShell } from "../../../components/dashboard-shell";
+import { FlashAlert } from "../../../components/flash-alert";
 import { requireAdmin } from "../../../lib/auth/session";
+import { readFlashMessage } from "../../../lib/flash";
 import { getCustomerAccountOptions } from "../../../lib/data/admin-sales";
 import { getAvailableRaffles } from "../../../lib/data/customer";
 import { formatEventDateTimeWallClock } from "../../../lib/date-format";
@@ -8,13 +11,6 @@ import { controlNavItems } from "../../../lib/navigation";
 import { createRaffleAction, sellRaffleNumbersAsAdminAction } from "./actions";
 
 export const dynamic = "force-dynamic";
-
-type AdminRafflesPageProps = {
-  searchParams?: {
-    error?: string;
-    success?: string;
-  };
-};
 
 function formatDate(dateValue: string | null) {
   return formatEventDateTimeWallClock(dateValue) || "Sin fecha";
@@ -24,23 +20,19 @@ function formatNumberLabel(numberValue: number, digits: number) {
   return numberValue.toString().padStart(digits, "0");
 }
 
-export default async function AdminRafflesPage({ searchParams }: AdminRafflesPageProps) {
+export default async function AdminRafflesPage() {
   await requireAdmin();
+  const flash = readFlashMessage("admin-raffles-flash");
   const [raffles, customers] = await Promise.all([getAvailableRaffles(24), getCustomerAccountOptions(120)]);
-  const errorMessage = searchParams?.error ? decodeURIComponent(searchParams.error) : null;
-  const successMessage = searchParams?.success ? decodeURIComponent(searchParams.success) : null;
 
   return (
     <DashboardShell navItems={controlNavItems} subtitle="Configuracion y operacion" title="Rifas">
-      {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
-      {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
+      <FlashAlert cookieName="admin-raffles-flash" payload={flash} />
 
-      <Stack spacing={1.5}>
-        <Typography variant="h2">Nueva rifa</Typography>
-        <Typography color="text.secondary">
-          Aqui defines el total de numeros, si el cliente puede escogerlos manualmente o si solo se asignan al azar,
-          y todos los premios de la rifa.
-        </Typography>
+      <AdminSectionCard
+        description="Define total de numeros, premios, forma de cobro y si el cliente podra escoger o solo recibir numero al azar."
+        title="Nueva rifa"
+      >
         <form action={createRaffleAction} autoComplete="off" method="post">
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
@@ -108,14 +100,12 @@ export default async function AdminRafflesPage({ searchParams }: AdminRafflesPag
             </Box>
           </Box>
         </form>
-      </Stack>
+      </AdminSectionCard>
 
-      <Stack spacing={1.5}>
-        <Typography variant="h2">Venta manual de numeros</Typography>
-        <Typography color="text.secondary">
-          Aqui puedes vender numeros como administrador. Si la rifa esta en modo aleatorio, el sistema asigna los
-          numeros automaticamente. Si permite seleccion manual, puedes capturarlos.
-        </Typography>
+      <AdminSectionCard
+        description="Vende numeros desde control. Si la rifa esta en modo aleatorio, el sistema los asigna solo."
+        title="Venta manual de numeros"
+      >
         <form action={sellRaffleNumbersAsAdminAction} autoComplete="off" method="post">
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
@@ -167,14 +157,13 @@ export default async function AdminRafflesPage({ searchParams }: AdminRafflesPag
             </Box>
           </Box>
         </form>
-      </Stack>
+      </AdminSectionCard>
 
-      <Stack spacing={1.5}>
-        <Typography variant="h2">Rifas configuradas</Typography>
+      <AdminSectionCard description="Consulta premios, configuracion y numeros ya vendidos." title="Rifas configuradas">
         {raffles.length ? (
           <Box sx={{ display: "grid", gap: 2 }}>
             {raffles.map((raffle) => (
-              <Box key={raffle.id} sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5 }}>
+              <Box key={raffle.id} sx={{ border: 1, borderColor: "divider", bgcolor: "background.default", p: 2.5 }}>
                 <Stack spacing={1.25}>
                   <Typography variant="h3">{raffle.title}</Typography>
                   <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -183,9 +172,7 @@ export default async function AdminRafflesPage({ searchParams }: AdminRafflesPag
                     {raffle.totalNumbers ? <Chip label={`${raffle.totalNumbers} numeros`} size="small" /> : null}
                     <Chip label={raffle.priceMode === "random_number" ? "Aleatoria" : "Manual o aleatoria"} size="small" />
                   </Stack>
-                  {raffle.description ? (
-                    <Typography color="text.secondary">{raffle.description}</Typography>
-                  ) : null}
+                  {raffle.description ? <Typography color="text.secondary">{raffle.description}</Typography> : null}
                   <Typography color="text.secondary">Cierre: {formatDate(raffle.endsAt)}</Typography>
                   <Typography color="text.secondary">Sorteo: {formatDate(raffle.drawAt)}</Typography>
                   {raffle.prizes.length ? (
@@ -199,9 +186,7 @@ export default async function AdminRafflesPage({ searchParams }: AdminRafflesPag
                     </Box>
                   ) : null}
                   <Box sx={{ display: "grid", gap: 1 }}>
-                    <Typography variant="body2">
-                      Numeros vendidos: {raffle.soldNumbers.length}
-                    </Typography>
+                    <Typography variant="body2">Numeros vendidos: {raffle.soldNumbers.length}</Typography>
                     {raffle.soldNumbers.length ? (
                       <Box sx={{ display: "grid", gap: 0.75, gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))" }}>
                         {raffle.soldNumbers.map((numberValue) => (
@@ -210,7 +195,7 @@ export default async function AdminRafflesPage({ searchParams }: AdminRafflesPag
                             sx={{
                               border: 1,
                               borderColor: "divider",
-                              bgcolor: "background.default",
+                              bgcolor: "background.paper",
                               py: 1,
                               px: 1.25,
                               textAlign: "center"
@@ -233,7 +218,7 @@ export default async function AdminRafflesPage({ searchParams }: AdminRafflesPag
         ) : (
           <Typography color="text.secondary">Todavia no hay rifas registradas.</Typography>
         )}
-      </Stack>
+      </AdminSectionCard>
     </DashboardShell>
   );
 }

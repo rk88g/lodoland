@@ -5,7 +5,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAdminAction } from "../../../lib/audit";
 import { requireAdmin } from "../../../lib/auth/session";
+import { setFlashMessage } from "../../../lib/flash";
 import { createClient } from "../../../lib/supabase/server";
+
+const FLASH_COOKIE = "admin-tickets-flash";
 
 function toSlugFragment(value: string) {
   return value
@@ -80,6 +83,22 @@ function parseTicketScanValue(scanValue: string) {
   };
 }
 
+function redirectWithError(message: string): never {
+  setFlashMessage(FLASH_COOKIE, {
+    type: "error",
+    message
+  });
+  redirect("/admin/tickets");
+}
+
+function redirectWithSuccess(message: string): never {
+  setFlashMessage(FLASH_COOKIE, {
+    type: "success",
+    message
+  });
+  redirect("/admin/tickets");
+}
+
 export async function createTicketTypeAction(formData: FormData) {
   const session = await requireAdmin();
   const supabase = createClient();
@@ -96,7 +115,7 @@ export async function createTicketTypeAction(formData: FormData) {
   const isActive = String(formData.get("isActive") ?? "true") === "true";
 
   if (!eventId || !name || !price) {
-    redirect("/admin/tickets?error=Debes indicar evento, nombre y precio del tipo de ticket.");
+    redirectWithError("Debes indicar evento, nombre y precio del tipo de ticket.");
   }
 
   const sku = skuInput || `${toSlugFragment(name)}-${Date.now().toString().slice(-6)}`;
@@ -119,7 +138,7 @@ export async function createTicketTypeAction(formData: FormData) {
     .maybeSingle();
 
   if (error) {
-    redirect(`/admin/tickets?error=${encodeURIComponent(error.message)}`);
+    redirectWithError(error.message);
   }
 
   await logAdminAction({
@@ -144,7 +163,7 @@ export async function createTicketTypeAction(formData: FormData) {
 
   revalidatePath("/admin/tickets");
   revalidatePath("/eventos");
-  redirect("/admin/tickets?success=Tipo%20de%20ticket%20creado%20correctamente.");
+  redirectWithSuccess("Tipo de ticket creado correctamente.");
 }
 
 export async function createTicketLotAction(formData: FormData) {
@@ -162,7 +181,7 @@ export async function createTicketLotAction(formData: FormData) {
   const isActive = String(formData.get("isActive") ?? "true") === "true";
 
   if (!ticketTypeId || !label || !inventoryTotal) {
-    redirect("/admin/tickets?error=Debes indicar tipo de ticket, nombre del lote y stock.");
+    redirectWithError("Debes indicar tipo de ticket, nombre del lote y stock.");
   }
 
   const { data, error } = await supabase
@@ -182,7 +201,7 @@ export async function createTicketLotAction(formData: FormData) {
     .maybeSingle();
 
   if (error) {
-    redirect(`/admin/tickets?error=${encodeURIComponent(error.message)}`);
+    redirectWithError(error.message);
   }
 
   await logAdminAction({
@@ -206,7 +225,7 @@ export async function createTicketLotAction(formData: FormData) {
 
   revalidatePath("/admin/tickets");
   revalidatePath("/eventos");
-  redirect("/admin/tickets?success=Lote%20de%20tickets%20creado%20correctamente.");
+  redirectWithSuccess("Lote de tickets creado correctamente.");
 }
 
 export async function saveMercadoPagoSettingsAction(formData: FormData) {
@@ -294,7 +313,7 @@ export async function saveMercadoPagoSettingsAction(formData: FormData) {
     .upsert(settingsPayload, { onConflict: "setting_key" });
 
   if (error) {
-    redirect(`/admin/tickets?error=${encodeURIComponent(error.message)}`);
+    redirectWithError(error.message);
   }
 
   await logAdminAction({
@@ -314,7 +333,7 @@ export async function saveMercadoPagoSettingsAction(formData: FormData) {
   });
 
   revalidatePath("/admin/tickets");
-  redirect("/admin/tickets?success=Configuracion%20de%20Mercado%20Pago%20guardada%20correctamente.");
+  redirectWithSuccess("Configuracion de Mercado Pago guardada correctamente.");
 }
 
 export async function sellTicketsAsAdminAction(formData: FormData) {
@@ -330,7 +349,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
   const quantity = Number(String(formData.get("quantity") ?? "0").trim() || 0);
 
   if (!ownerUserId || !ticketTypeId || !ticketLotId || quantity < 1) {
-    redirect("/admin/tickets?error=Debes indicar cliente, tipo, drop y cantidad para vender.");
+    redirectWithError("Debes indicar cliente, tipo, drop y cantidad para vender.");
   }
 
   const { data: ticketType, error: ticketTypeError } = await supabase
@@ -340,7 +359,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
     .maybeSingle();
 
   if (ticketTypeError || !ticketType) {
-    redirect(`/admin/tickets?error=${encodeURIComponent(ticketTypeError?.message || "Tipo de ticket invalido.")}`);
+    redirectWithError(ticketTypeError?.message || "Tipo de ticket invalido.");
   }
 
   const { data: lot, error: lotError } = await supabase
@@ -350,12 +369,12 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
     .maybeSingle();
 
   if (lotError || !lot) {
-    redirect(`/admin/tickets?error=${encodeURIComponent(lotError?.message || "Drop invalido.")}`);
+    redirectWithError(lotError?.message || "Drop invalido.");
   }
 
   const lotAvailable = Math.max((lot.inventory_total || 0) - (lot.sold_count || 0) - (lot.reserved_count || 0), 0);
   if (lotAvailable < quantity) {
-    redirect("/admin/tickets?error=El drop no tiene suficiente stock para completar la venta.");
+    redirectWithError("El drop no tiene suficiente stock para completar la venta.");
   }
 
   const typeAvailable =
@@ -364,7 +383,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
       : Math.max((ticketType.quantity_total || 0) - (ticketType.quantity_sold || 0), 0);
 
   if (typeAvailable !== null && typeAvailable < quantity) {
-    redirect("/admin/tickets?error=El tipo de ticket ya no tiene capacidad suficiente.");
+    redirectWithError("El tipo de ticket ya no tiene capacidad suficiente.");
   }
 
   const subtotal = Number(ticketType.price) * quantity;
@@ -391,7 +410,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
   });
 
   if (orderError) {
-    redirect(`/admin/tickets?error=${encodeURIComponent(orderError.message)}`);
+    redirectWithError(orderError.message);
   }
 
   const { error: orderItemError } = await supabase.from("order_items").insert({
@@ -409,7 +428,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
   });
 
   if (orderItemError) {
-    redirect(`/admin/tickets?error=${encodeURIComponent(orderItemError.message)}`);
+    redirectWithError(orderItemError.message);
   }
 
   const { error: transactionError } = await supabase.from("payment_transactions").insert({
@@ -428,7 +447,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
   });
 
   if (transactionError) {
-    redirect(`/admin/tickets?error=${encodeURIComponent(transactionError.message)}`);
+    redirectWithError(transactionError.message);
   }
 
   const ticketsToInsert = Array.from({ length: quantity }, (_, index) => {
@@ -461,7 +480,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
     .select("id, ticket_code");
 
   if (issuedTicketsError) {
-    redirect(`/admin/tickets?error=${encodeURIComponent(issuedTicketsError.message)}`);
+    redirectWithError(issuedTicketsError.message);
   }
 
   await supabase
@@ -508,7 +527,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
   revalidatePath("/perfil");
   revalidatePath("/perfil/compras");
   revalidatePath("/eventos");
-  redirect("/admin/tickets?success=Venta%20manual%20de%20tickets%20registrada%20correctamente.");
+  redirectWithSuccess("Venta manual de tickets registrada correctamente.");
 }
 
 export async function validateIssuedTicketAction(formData: FormData) {
@@ -517,7 +536,7 @@ export async function validateIssuedTicketAction(formData: FormData) {
   const scanValue = String(formData.get("scanValue") ?? "").trim();
 
   if (!scanValue) {
-    redirect("/admin/tickets?error=Debes escanear o pegar el codigo del ticket.");
+    redirectWithError("Debes escanear o pegar el codigo del ticket.");
   }
 
   const parsed = parseTicketScanValue(scanValue);
@@ -531,13 +550,13 @@ export async function validateIssuedTicketAction(formData: FormData) {
   } else if (parsed.ticketCode) {
     query = query.eq("ticket_code", parsed.ticketCode);
   } else {
-    redirect("/admin/tickets?error=No pudimos interpretar el QR o codigo enviado.");
+    redirectWithError("No pudimos interpretar el QR o codigo enviado.");
   }
 
   const { data: ticket, error } = await query.maybeSingle();
 
   if (error || !ticket) {
-    redirect(`/admin/tickets?error=${encodeURIComponent(error?.message || "Ticket no encontrado.")}`);
+    redirectWithError(error?.message || "Ticket no encontrado.");
   }
 
   const storedHash =
@@ -546,15 +565,15 @@ export async function validateIssuedTicketAction(formData: FormData) {
       : "";
 
   if (parsed.hash && storedHash && parsed.hash !== storedHash) {
-    redirect("/admin/tickets?error=El hash del ticket no coincide. Verifica el QR.");
+    redirectWithError("El hash del ticket no coincide. Verifica el QR.");
   }
 
   if (ticket.status === "checked_in") {
-    redirect("/admin/tickets?error=Este ticket ya fue usado y no puede volver a entrar.");
+    redirectWithError("Este ticket ya fue usado y no puede volver a entrar.");
   }
 
   if (ticket.status === "cancelled" || ticket.status === "refunded") {
-    redirect("/admin/tickets?error=Este ticket no es valido para acceso.");
+    redirectWithError("Este ticket no es valido para acceso.");
   }
 
   const checkedInAt = new Date().toISOString();
@@ -567,7 +586,7 @@ export async function validateIssuedTicketAction(formData: FormData) {
     .eq("id", ticket.id);
 
   if (updateError) {
-    redirect(`/admin/tickets?error=${encodeURIComponent(updateError.message)}`);
+    redirectWithError(updateError.message);
   }
 
   await logAdminAction({
@@ -586,5 +605,5 @@ export async function validateIssuedTicketAction(formData: FormData) {
   revalidatePath("/admin/tickets");
   revalidatePath(`/admin/tickets/${ticket.id}`);
   revalidatePath("/perfil/compras");
-  redirect(`/admin/tickets?success=${encodeURIComponent(`Ticket ${ticket.ticket_code} validado correctamente.`)}`);
+  redirectWithSuccess(`Ticket ${ticket.ticket_code} validado correctamente.`);
 }

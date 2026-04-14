@@ -49,6 +49,7 @@ type IssuedTicketRow = {
   purchaser_email: string | null;
   purchaser_phone: string | null;
   ticket_code: string;
+  qr_payload: string | null;
   status: string;
   issued_at: string | null;
   checked_in_at: string | null;
@@ -157,6 +158,7 @@ export type AdminIssuedTicketSummary = {
   purchaserPhone: string | null;
   ownerLabel: string | null;
   ticketCode: string;
+  qrPayload: string | null;
   status: string;
   issuedAt: string | null;
   checkedInAt: string | null;
@@ -474,7 +476,7 @@ export async function getRecentIssuedTickets(limit = 40, searchTerm?: string | n
   let query = supabase
     .from("issued_tickets")
     .select(
-      "id, ticket_type_id, ticket_lot_id, owner_user_id, purchaser_name, purchaser_email, purchaser_phone, ticket_code, status, issued_at, checked_in_at, created_at"
+      "id, ticket_type_id, ticket_lot_id, owner_user_id, purchaser_name, purchaser_email, purchaser_phone, ticket_code, qr_payload, status, issued_at, checked_in_at, created_at"
     )
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -535,6 +537,7 @@ export async function getRecentIssuedTickets(limit = 40, searchTerm?: string | n
       purchaserPhone: ticket.purchaser_phone,
       ownerLabel: ticket.owner_user_id ? ownerMap.get(ticket.owner_user_id) || null : null,
       ticketCode: ticket.ticket_code,
+      qrPayload: ticket.qr_payload,
       status: ticket.status,
       issuedAt: ticket.issued_at,
       checkedInAt: ticket.checked_in_at
