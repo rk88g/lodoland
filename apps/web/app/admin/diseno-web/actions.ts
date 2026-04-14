@@ -286,3 +286,85 @@ export async function updateGroupItemFieldAction(formData: FormData) {
   revalidatePath("/");
   redirect("/admin/diseno-web?success=Campo%20actualizado%20correctamente.");
 }
+
+function buildCmsFieldPayload(kind: string, value: string) {
+  const payload: Record<string, unknown> = {};
+
+  if (kind === "link") {
+    payload.link_url = value || null;
+  } else if (kind === "image") {
+    payload.media_asset_id = value || null;
+  } else {
+    payload.text_value = value || null;
+  }
+
+  return payload;
+}
+
+export async function saveHomeSectionAction(formData: FormData) {
+  const session = await requireAdmin();
+  const supabase = createClient();
+
+  const sectionKey = String(formData.get("sectionKey") ?? "").trim();
+  const sectionLabel = String(formData.get("sectionLabel") ?? "").trim() || sectionKey;
+  const pendingUpdates: Array<{
+    scope: "section" | "group";
+    fieldId: string;
+    kind: string;
+    value: string;
+  }> = [];
+
+  for (const [key, rawValue] of formData.entries()) {
+    if (!key.startsWith("field::") || typeof rawValue !== "string") {
+      continue;
+    }
+
+    const [, scope, fieldId, kind] = key.split("::");
+
+    if (!fieldId || !kind || (scope !== "section" && scope !== "group")) {
+      continue;
+    }
+
+    pendingUpdates.push({
+      scope,
+      fieldId,
+      kind,
+      value: rawValue.trim()
+    });
+  }
+
+  if (!pendingUpdates.length) {
+    redirect("/admin/diseno-web?error=No%20hay%20campos%20para%20guardar%20en%20esta%20seccion.");
+  }
+
+  for (const update of pendingUpdates) {
+    const table = update.scope === "section" ? "cms_section_fields" : "cms_group_item_fields";
+    const payload = {
+      ...buildCmsFieldPayload(update.kind, update.value),
+      updated_by: session.profile?.id || null
+    };
+
+    const { error } = await supabase.from(table).update(payload).eq("id", update.fieldId);
+
+    if (error) {
+      redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}`);
+    }
+  }
+
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "cms_section",
+    action: "bulk_update",
+    summary: `Actualizacion de seccion ${sectionLabel}`,
+    payload: {
+      sectionKey,
+      totalFields: pendingUpdates.length,
+      fieldIds: pendingUpdates.map((item) => item.fieldId)
+    }
+  });
+
+  revalidatePath("/admin/diseno-web");
+  revalidatePath("/");
+  redirect(`/admin/diseno-web?success=${encodeURIComponent(`Se guardo correctamente la seccion ${sectionLabel}.`)}`);
+}

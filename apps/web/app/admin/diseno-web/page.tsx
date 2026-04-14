@@ -1,11 +1,12 @@
 import { Alert, Box, Button, Checkbox, FormControlLabel, Stack, TextField, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { DashboardShell } from "../../../components/dashboard-shell";
+import { DesignWebEditorShell } from "../../../components/design-web-editor-shell";
 import { requireAdmin } from "../../../lib/auth/session";
 import { getCmsPageConfig, type CmsFieldValue } from "../../../lib/data/cms";
 import { getMediaAssets } from "../../../lib/data/portal";
 import { controlNavItems } from "../../../lib/navigation";
-import { registerMediaAssetAction, updateGroupItemFieldAction, updateSectionFieldAction } from "./actions";
+import { registerMediaAssetAction, saveHomeSectionAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -99,6 +100,12 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
   }
 
   let homeEditorContent: ReactNode = null;
+  const sectionLinks = editorSectionOrder.map((sectionKey) => ({
+    id: `section-${sectionKey}`,
+    label:
+      homeConfig?.sections[sectionKey]?.label ||
+      sectionKey
+  }));
 
   try {
     homeEditorContent = homeConfig ? (
@@ -108,6 +115,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
           .filter((section): section is NonNullable<(typeof homeConfig.sections)[string]> => Boolean(section))
           .map((section) => (
             <Box
+              id={`section-${section.sectionKey}`}
               key={section.id}
               sx={{
                 border: 1,
@@ -126,10 +134,24 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                     "linear-gradient(90deg, rgba(124,77,255,0.18), rgba(0,188,212,0.14), rgba(255,193,7,0.18))"
                 }}
               >
-                <Typography variant="h3">{section.label}</Typography>
+                <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
+                  <Typography variant="h3">{section.label}</Typography>
+                  <Button form={`section-form-${section.id}`} type="submit" variant="contained">
+                    Guardar seccion
+                  </Button>
+                </Stack>
               </Box>
 
-              <Stack spacing={2} sx={{ p: { xs: 2, md: 2.5 } }}>
+              <Box
+                component="form"
+                action={saveHomeSectionAction}
+                autoComplete="off"
+                id={`section-form-${section.id}`}
+                sx={{ display: "grid" }}
+              >
+                <input name="sectionKey" type="hidden" value={section.sectionKey} />
+                <input name="sectionLabel" type="hidden" value={section.label} />
+                <Stack spacing={2} sx={{ p: { xs: 2, md: 2.5 } }}>
                 {getVisibleSectionFields(section.sectionKey, section.fields).length ? (
                   <Box
                     sx={{
@@ -148,11 +170,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                           p: 2
                         }}
                       >
-                        <CmsFieldEditor
-                          action={updateSectionFieldAction}
-                          field={field}
-                          helperText={getFieldHint(section.sectionKey, field.fieldKey)}
-                        />
+                        <CmsFieldEditor field={field} helperText={getFieldHint(section.sectionKey, field.fieldKey)} scope="section" />
                       </Box>
                     ))}
                   </Box>
@@ -223,11 +241,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                                       p: 1.5
                                     }}
                                   >
-                                    <CmsFieldEditor
-                                      action={updateGroupItemFieldAction}
-                                      field={field}
-                                      helperText={getFieldHint(section.sectionKey, `${group.groupKey}.${field.fieldKey}`)}
-                                    />
+                                    <CmsFieldEditor field={field} helperText={getFieldHint(section.sectionKey, `${group.groupKey}.${field.fieldKey}`)} scope="group" />
                                   </Box>
                                 ))}
                               </Box>
@@ -237,7 +251,13 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                       </Box>
                     </Box>
                   ))}
-              </Stack>
+                  <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                    <Button type="submit" variant="contained">
+                      Guardar seccion
+                    </Button>
+                  </Box>
+                </Stack>
+              </Box>
             </Box>
           ))}
       </Stack>
@@ -258,155 +278,120 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
 
   return (
     <DashboardShell navItems={controlNavItems} subtitle="Sitio, textos y assets" title="Diseno web">
-      {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
-      {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
-      {loadError ? <Alert severity="warning">{loadError}</Alert> : null}
+      <DesignWebEditorShell
+        assets={mediaAssets.map((asset) => ({ id: asset.id, title: asset.title, path: asset.path }))}
+        errorMessage={errorMessage}
+        loadError={loadError}
+        sectionLinks={sectionLinks}
+        successMessage={successMessage}
+      >
+        <Stack spacing={1.5}>
+          <Typography variant="h2">Subir asset a Supabase</Typography>
+          <Typography color="text.secondary">
+            Sube una imagen por vez al bucket `lodoland-media`. Aqui no se muestran previews; solo se registra el asset
+            para usarlo despues en la web.
+          </Typography>
 
-      <Stack spacing={1.5}>
-        <Typography variant="h2">Subir asset a Supabase</Typography>
-        <Typography color="text.secondary">
-          Sube una imagen por vez al bucket `lodoland-media`. Aqui no se muestran previews; solo se registra el asset
-          para usarlo despues en la web.
-        </Typography>
-
-        <form action={registerMediaAssetAction} autoComplete="off" encType="multipart/form-data">
-          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
-            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
-              <Stack spacing={0.75}>
-                <Typography sx={{ fontSize: 13, fontWeight: 700 }}>Archivo</Typography>
-                <Box
-                  sx={{
-                    border: 1,
-                    borderColor: "divider",
-                    bgcolor: "background.paper",
-                    px: 1.5,
-                    py: 1.25
-                  }}
-                >
-                  <input
-                    accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
-                    name="file"
-                    required
-                    style={{ width: "100%" }}
-                    type="file"
-                  />
-                </Box>
-                <Typography color="text.secondary" variant="caption">
-                  Formato recomendado: WebP, PNG o JPG. Maximo 10 MB.
-                </Typography>
-              </Stack>
-            </Box>
-            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
-              <TextField autoComplete="off" defaultValue="home/general" helperText="Carpeta dentro del bucket." label="Seccion / carpeta" name="folder" />
-            </Box>
-            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
-              <TextField autoComplete="off" disabled label="Bucket" value="lodoland-media" />
-            </Box>
-            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
-              <TextField autoComplete="off" label="Titulo" name="title" />
-            </Box>
-            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
-              <TextField autoComplete="off" label="Alt" name="altText" />
-            </Box>
-            <Box sx={{ gridColumn: "1 / -1" }}>
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-                <FormControlLabel control={<Checkbox name="isPublic" />} label="Visible publicamente" />
-                <Button type="submit" variant="contained">
-                  Subir y registrar asset
-                </Button>
-              </Stack>
-            </Box>
-          </Box>
-        </form>
-      </Stack>
-
-      <Stack spacing={1.5}>
-        <Typography variant="h2">Configuracion de portada</Typography>
-        <Typography color="text.secondary">
-          Aqui solo aparecen los campos que la home usa realmente. Para imagenes, pega el `Asset ID` del archivo que
-          ya subiste.
-        </Typography>
-        {homeEditorContent}
-      </Stack>
-
-      <Stack spacing={1.5}>
-        <Typography variant="h2">Assets recientes</Typography>
-        <Typography color="text.secondary">
-          Copia el `Asset ID` y pegalo en cualquier campo de imagen. Aqui no se muestran previews.
-        </Typography>
-        {mediaAssets.length ? (
-          <Box sx={{ display: "grid", gap: 1.5 }}>
-            {mediaAssets.map((asset) => (
-              <Box
-                key={asset.id}
-                sx={{
-                  border: 1,
-                  borderColor: "divider",
-                  bgcolor: "background.paper",
-                  p: 1.5,
-                  display: "grid",
-                  gap: 0.5
-                }}
-              >
-                <Typography sx={{ fontWeight: 700, wordBreak: "break-all" }}>Asset ID: {asset.id}</Typography>
-                <Typography color="text.secondary">{asset.title || "Sin titulo"}</Typography>
-                <Typography color="text.secondary" sx={{ wordBreak: "break-all" }}>
-                  {asset.path}
-                </Typography>
+          <form action={registerMediaAssetAction} autoComplete="off" encType="multipart/form-data">
+            <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
+              <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
+                <Stack spacing={0.75}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 700 }}>Archivo</Typography>
+                  <Box
+                    sx={{
+                      border: 1,
+                      borderColor: "divider",
+                      bgcolor: "background.paper",
+                      px: 1.5,
+                      py: 1.25
+                    }}
+                  >
+                    <input
+                      accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                      name="file"
+                      required
+                      style={{ width: "100%" }}
+                      type="file"
+                    />
+                  </Box>
+                  <Typography color="text.secondary" variant="caption">
+                    Formato recomendado: WebP, PNG o JPG. Maximo 10 MB.
+                  </Typography>
+                </Stack>
               </Box>
-            ))}
-          </Box>
-        ) : (
-          <Typography color="text.secondary">Todavia no hay assets registrados para usar en la web.</Typography>
-        )}
-      </Stack>
+              <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
+                <TextField autoComplete="off" defaultValue="home/general" helperText="Carpeta dentro del bucket." label="Seccion / carpeta" name="folder" />
+              </Box>
+              <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 3" } }}>
+                <TextField autoComplete="off" disabled label="Bucket" value="lodoland-media" />
+              </Box>
+              <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
+                <TextField autoComplete="off" label="Titulo" name="title" />
+              </Box>
+              <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
+                <TextField autoComplete="off" label="Alt" name="altText" />
+              </Box>
+              <Box sx={{ gridColumn: "1 / -1" }}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                  <FormControlLabel control={<Checkbox name="isPublic" />} label="Visible publicamente" />
+                  <Button type="submit" variant="contained">
+                    Subir y registrar asset
+                  </Button>
+                </Stack>
+              </Box>
+            </Box>
+          </form>
+        </Stack>
+
+        <Stack spacing={1.5}>
+          <Typography variant="h2">Configuracion de portada</Typography>
+          <Typography color="text.secondary">
+            Guarda una sola vez por seccion. Para imagenes, pega el `Asset ID` del archivo que ya subiste.
+          </Typography>
+          {homeEditorContent}
+        </Stack>
+      </DesignWebEditorShell>
     </DashboardShell>
   );
 }
 
 type CmsFieldEditorProps = {
-  action: (formData: FormData) => Promise<void>;
   field: CmsFieldValue;
   helperText?: string;
+  scope: "section" | "group";
 };
 
-function CmsFieldEditor({ action, field, helperText }: CmsFieldEditorProps) {
+function CmsFieldEditor({ field, helperText, scope }: CmsFieldEditorProps) {
+  const inputName = `field::${scope}::${field.id}::${field.kind}`;
+
   return (
-    <form action={action} autoComplete="off">
-      <Stack spacing={1.25}>
-        <input name="fieldId" type="hidden" value={field.id} />
-        <input name="kind" type="hidden" value={field.kind} />
-        <Typography variant="body2" sx={{ fontWeight: 700 }}>
-          {field.label}
-        </Typography>
+    <Stack spacing={1.25}>
+      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+        {field.label}
+      </Typography>
 
-        {field.kind === "link" ? (
-          <TextField autoComplete="off" defaultValue={field.linkUrl || ""} helperText={helperText} label="URL" name="linkUrl" />
-        ) : field.kind === "image" ? (
-          <TextField
-            autoComplete="off"
-            defaultValue={field.mediaAssetId || ""}
-            helperText={helperText || "Pega aqui el ID del asset ya cargado en Supabase Storage."}
-            label="Asset ID"
-            name="mediaAssetId"
-          />
-        ) : (
-          <TextField
-            autoComplete="off"
-            defaultValue={field.textValue || ""}
-            helperText={helperText}
-            label="Valor"
-            multiline={field.kind === "textarea" || field.kind === "richtext"}
-            minRows={field.kind === "textarea" || field.kind === "richtext" ? 3 : undefined}
-            name="textValue"
-          />
-        )}
-
-        <Button type="submit" variant="outlined">
-          Guardar campo
-        </Button>
-      </Stack>
-    </form>
+      {field.kind === "link" ? (
+        <TextField autoComplete="off" defaultValue={field.linkUrl || ""} helperText={helperText} label="URL" name={inputName} />
+      ) : field.kind === "image" ? (
+        <TextField
+          autoComplete="off"
+          defaultValue={field.mediaAssetId || ""}
+          helperText={helperText || "Pega aqui el ID del asset ya cargado en Supabase Storage."}
+          label="Asset ID"
+          name={inputName}
+        />
+      ) : (
+        <TextField
+          autoComplete="off"
+          defaultValue={field.textValue || ""}
+          helperText={helperText}
+          label="Valor"
+          multiline={field.kind === "textarea" || field.kind === "richtext"}
+          minRows={field.kind === "textarea" || field.kind === "richtext" ? 3 : undefined}
+          name={inputName}
+        />
+      )}
+    </Stack>
   );
 }
 
