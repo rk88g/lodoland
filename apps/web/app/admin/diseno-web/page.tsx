@@ -215,7 +215,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
 
                 {Object.values(section.groups)
                   .sort((a, b) => a.sortOrder - b.sortOrder)
-                  .filter((group) => !["sponsor_tiles", "influencer_profiles"].includes(group.groupKey))
+                  .filter((group) => !["sponsor_tiles", "influencer_profiles", "influencer_collage"].includes(group.groupKey))
                   .filter(
                     (group) =>
                       getVisibleGroupFields(group.groupKey, group.items[0]?.fields || {}).length ||
