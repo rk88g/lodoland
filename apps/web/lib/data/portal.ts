@@ -1,6 +1,5 @@
-import { MEDIA_BUCKET } from "../supabase/storage";
+import { buildStorageImageUrl, buildStoragePublicUrl } from "../media";
 import { isBuildPhase } from "../runtime";
-import { getSupabaseEnv } from "../supabase/env";
 import { createClient } from "../supabase/server";
 
 type MediaAssetRow = {
@@ -66,11 +65,6 @@ export type SectionBindingSummary = {
   collectionLabel: string;
 };
 
-function buildPublicUrl(path: string, bucket = MEDIA_BUCKET) {
-  const { url } = getSupabaseEnv();
-  return `${url}/storage/v1/object/public/${bucket}/${path}`;
-}
-
 async function resolveMediaAsset(
   mediaAssetId: string | null | undefined
 ): Promise<EventCard["cover"] | null> {
@@ -92,7 +86,11 @@ async function resolveMediaAsset(
   }
 
   return {
-    url: buildPublicUrl(asset.path, asset.bucket),
+    url: buildStorageImageUrl(asset.path, asset.bucket, {
+      width: 1680,
+      quality: 76,
+      resize: "cover"
+    }),
     title: asset.title,
     altText: asset.alt_text
   };
@@ -149,12 +147,26 @@ export async function getUpcomingEvents(limit = 5) {
     return [];
   }
 
+  const coverIds = Array.from(new Set(data.map((event) => event.cover_asset_id).filter(Boolean)));
   const coverMap = new Map<string, EventCard["cover"] | null>();
 
-  for (const event of data) {
-    if (event.cover_asset_id && !coverMap.has(event.cover_asset_id)) {
-      coverMap.set(event.cover_asset_id, await resolveMediaAsset(event.cover_asset_id));
-    }
+  if (coverIds.length) {
+    const { data: coverAssets } = await supabase
+      .from("media_assets")
+      .select("id, bucket, path, title, alt_text")
+      .in("id", coverIds);
+
+    ((coverAssets || []) as MediaAssetRow[]).forEach((asset) => {
+      coverMap.set(asset.id, {
+        url: buildStorageImageUrl(asset.path, asset.bucket, {
+          width: 1400,
+          quality: 74,
+          resize: "cover"
+        }),
+        title: asset.title,
+        altText: asset.alt_text
+      });
+    });
   }
 
   return data.map(
@@ -226,7 +238,7 @@ export async function getMediaAssets(limit = 18) {
         altText: asset.alt_text,
         bucket: asset.bucket,
         isPublic: asset.is_public ?? false,
-        publicUrl: buildPublicUrl(asset.path, asset.bucket)
+        publicUrl: buildStoragePublicUrl(asset.path, asset.bucket)
       }) satisfies MediaAssetSummary
   );
 }

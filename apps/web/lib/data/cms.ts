@@ -1,7 +1,6 @@
 import { isBuildPhase } from "../runtime";
+import { buildStoragePublicUrl } from "../media";
 import { createClient } from "../supabase/server";
-import { MEDIA_BUCKET } from "../supabase/storage";
-import { getSupabaseEnv } from "../supabase/env";
 
 type CmsPageRow = {
   id: string;
@@ -66,6 +65,8 @@ type MediaAssetRow = {
 
 export type CmsMediaAsset = {
   id?: string;
+  bucket?: string;
+  path?: string;
   url: string;
   title: string | null;
   altText: string | null;
@@ -124,11 +125,6 @@ export type CmsPageConfig = {
   title: string;
   sections: Record<string, CmsSection>;
 };
-
-function buildPublicUrl(path: string, bucket = MEDIA_BUCKET) {
-  const { url } = getSupabaseEnv();
-  return `${url}/storage/v1/object/public/${bucket}/${path}`;
-}
 
 function mapField(row: CmsFieldRow, mediaMap: Map<string, CmsMediaAsset>) {
   return {
@@ -249,13 +245,15 @@ export async function getCmsPageConfig(
 
   const mediaMap = new Map(
     ((mediaAssets || []) as MediaAssetRow[]).map((asset) => [
-      asset.id,
-      {
-        id: asset.id,
-        url: buildPublicUrl(asset.path, asset.bucket),
-        title: asset.title,
-        altText: asset.alt_text
-      } satisfies CmsMediaAsset
+        asset.id,
+        {
+          id: asset.id,
+          bucket: asset.bucket,
+          path: asset.path,
+          url: buildStoragePublicUrl(asset.path, asset.bucket),
+          title: asset.title,
+          altText: asset.alt_text
+        } satisfies CmsMediaAsset
     ])
   );
 

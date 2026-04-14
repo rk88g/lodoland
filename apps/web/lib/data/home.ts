@@ -130,6 +130,40 @@ function normalizeIntentLink(intent: "tickets" | "merch") {
   return `/login?intent=${intent}`;
 }
 
+function optimizeMedia(
+  asset: CmsMediaAsset | null,
+  options: {
+    width: number;
+    height?: number;
+    quality?: number;
+    resize?: "cover" | "contain" | "fill";
+  }
+) {
+  if (!asset) {
+    return null;
+  }
+
+  const params = new URLSearchParams();
+  params.set("width", String(options.width));
+
+  if (options.height) {
+    params.set("height", String(options.height));
+  }
+
+  if (options.quality) {
+    params.set("quality", String(options.quality));
+  }
+
+  if (options.resize) {
+    params.set("resize", options.resize);
+  }
+
+  return {
+    ...asset,
+    url: `${asset.url.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/")}?${params.toString()}`
+  } satisfies CmsMediaAsset;
+}
+
 export async function getHomePageViewModel(): Promise<HomePageViewModel> {
   const [config, nextEvent, upcomingEvents] = await Promise.all([
     getCmsPageConfig("home"),
@@ -158,7 +192,7 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
       id: item.id,
       name: textFromItem(item, "name", item.label),
       href: linkFromItem(item, "target_url", "https://example.com"),
-      image: item.fields.logo_media?.media || null,
+      image: optimizeMedia(item.fields.logo_media?.media || null, { width: 640, height: 400, quality: 78, resize: "contain" }),
       backgroundColor: textFromItem(item, "background_color", "") || null,
       accentColor: textFromItem(item, "accent_color", "") || null
     })) || [];
@@ -191,7 +225,12 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
       websiteUrl: sponsorModalItem ? linkFromItem(sponsorModalItem, "website_url", "https://example.com") : "https://example.com",
       socialLabel: sponsorModalItem ? textFromItem(sponsorModalItem, "social_label", "Ver red social") : "Ver red social",
       socialUrl: sponsorModalItem ? linkFromItem(sponsorModalItem, "social_url", "https://instagram.com") : "https://instagram.com",
-      image: sponsorModalItem?.fields.media?.media || nextEvent?.cover || null
+      image: optimizeMedia(sponsorModalItem?.fields.media?.media || null, {
+        width: 1280,
+        height: 1280,
+        quality: 80,
+        resize: "cover"
+      })
     },
     menuLinks,
     menuSponsorPanels: sponsorItems.slice(0, 3),
@@ -204,12 +243,22 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
       meta: meta.length ? meta : ["Fecha pendiente", "Ciudad pendiente"],
       primaryLabel: eventSection?.fields.primary_cta_label?.textValue || "Ver evento",
       secondaryLabel: eventSection?.fields.secondary_cta_label?.textValue || "Comprar boletos",
-      heroImage: nextEvent?.cover || sponsorModalItem?.fields.media?.media || null,
+      heroImage: nextEvent?.cover || optimizeMedia(sponsorModalItem?.fields.media?.media || null, {
+        width: 1920,
+        height: 1440,
+        quality: 78,
+        resize: "cover"
+      }),
       heroAlt:
         eventSection?.fields.hero_image_alt?.textValue ||
         nextEvent?.cover?.altText ||
         "Imagen principal del evento",
-      sideBannerImage: eventBannerItem?.fields.media?.media || null,
+      sideBannerImage: optimizeMedia(eventBannerItem?.fields.media?.media || null, {
+        width: 760,
+        height: 1600,
+        quality: 80,
+        resize: "cover"
+      }),
       sideBannerAlt: eventSection?.fields.side_banner_alt?.textValue || "Banner vertical del evento",
       sideBannerUrl: eventBannerItem ? linkFromItem(eventBannerItem, "target_url", "https://example.com") : "https://example.com",
       latest: nextEvent,
@@ -222,13 +271,23 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
       handle: textFromItem(item, "handle", ""),
       href: linkFromItem(item, "target_url", "#"),
       embedUrl: item.fields.embed_url?.linkUrl || null,
-      previewImage: item.fields.preview_media?.media || null
+      previewImage: optimizeMedia(item.fields.preview_media?.media || null, {
+        width: 720,
+        height: 1320,
+        quality: 74,
+        resize: "cover"
+      })
     })),
     sponsors: {
       showcaseTitle: sponsorSection?.fields.title?.textValue || "Marcas aliadas",
       showcaseSubtitle: sponsorSection?.fields.description?.textValue || "Zona de exhibicion principal",
       items: sponsorItems,
-      bannerImage: sponsorSection?.groups.sponsor_main_banner?.items[0]?.fields.media?.media || null,
+      bannerImage: optimizeMedia(sponsorSection?.groups.sponsor_main_banner?.items[0]?.fields.media?.media || null, {
+        width: 1680,
+        height: 360,
+        quality: 78,
+        resize: "cover"
+      }),
       bannerUrl: sponsorSection?.groups.sponsor_main_banner?.items[0]
         ? linkFromItem(sponsorSection.groups.sponsor_main_banner.items[0], "target_url", "https://example.com")
         : "https://example.com",
@@ -237,7 +296,9 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
     influencers: {
       modalButtonLabel: influencerSection?.fields.modal_button_label?.textValue || "Ver colaboradores",
       modalTitle: influencerSection?.fields.modal_title?.textValue || "Influencers de LODO LAND",
-      collageImages: collageItems.map((item) => item.fields.media?.media).filter(Boolean) as CmsMediaAsset[],
+      collageImages: collageItems
+        .map((item) => optimizeMedia(item.fields.media?.media || null, { width: 960, height: 960, quality: 72, resize: "cover" }))
+        .filter(Boolean) as CmsMediaAsset[],
       profiles: influencerItems.map((item) => {
         const links = Object.entries(item.fields)
           .filter(([fieldKey, field]) => field.kind === "link" && field.linkUrl && fieldKey !== "cover_media")
@@ -251,7 +312,12 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
           name: textFromItem(item, "name", item.label),
           role: textFromItem(item, "role", ""),
           description: textFromItem(item, "description", ""),
-          image: item.fields.cover_media?.media || null,
+          image: optimizeMedia(item.fields.cover_media?.media || null, {
+            width: 720,
+            height: 720,
+            quality: 74,
+            resize: "cover"
+          }),
           links
         };
       })
@@ -261,7 +327,12 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
       title: textFromItem(item, "title", item.label),
       subtitle: textFromItem(item, "subtitle", ""),
       price: textFromItem(item, "price", ""),
-      image: item.fields.cover_media?.media || null
+      image: optimizeMedia(item.fields.cover_media?.media || null, {
+        width: 920,
+        height: 1440,
+        quality: 76,
+        resize: "cover"
+      })
     })),
     merch: {
       title: merchSection?.fields.title?.textValue || "Productos destacados",
@@ -269,7 +340,12 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
       items: merchItems.map((item) => ({
         id: item.id,
         title: textFromItem(item, "title", item.label),
-        image: item.fields.media?.media || null
+        image: optimizeMedia(item.fields.media?.media || null, {
+          width: 880,
+          height: 1100,
+          quality: 76,
+          resize: "cover"
+        })
       }))
     },
     footer: {
@@ -281,7 +357,12 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
       marquee: footerItems.map((item) => ({
         id: item.id,
         label: textFromItem(item, "label", item.label),
-        image: item.fields.logo_media?.media || null,
+        image: optimizeMedia(item.fields.logo_media?.media || null, {
+          width: 480,
+          height: 240,
+          quality: 72,
+          resize: "contain"
+        }),
         href: linkFromItem(item, "target_url", "#")
       }))
     }

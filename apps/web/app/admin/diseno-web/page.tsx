@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Checkbox, FormControlLabel, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Stack, TextField, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { DesignWebEditorShell } from "../../../components/design-web-editor-shell";
@@ -310,7 +310,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                     />
                   </Box>
                   <Typography color="text.secondary" variant="caption">
-                    Formato recomendado: WebP, PNG o JPG. Maximo 10 MB.
+                    Formato recomendado: WebP, PNG o JPG. Maximo 10 MB. Se publica automaticamente para la web.
                   </Typography>
                 </Stack>
               </Box>
@@ -328,7 +328,6 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
               </Box>
               <Box sx={{ gridColumn: "1 / -1" }}>
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-                  <FormControlLabel control={<Checkbox name="isPublic" />} label="Visible publicamente" />
                   <Button type="submit" variant="contained">
                     Subir y registrar asset
                   </Button>

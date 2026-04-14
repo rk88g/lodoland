@@ -43,7 +43,6 @@ export async function registerMediaAssetAction(formData: FormData) {
   const folder = String(formData.get("folder") ?? "").trim() || "home/general";
   const title = String(formData.get("title") ?? "").trim();
   const altText = String(formData.get("altText") ?? "").trim();
-  const isPublic = String(formData.get("isPublic") ?? "") === "on";
   const file = formData.get("file");
 
   let path = customPath;
@@ -74,7 +73,7 @@ export async function registerMediaAssetAction(formData: FormData) {
     path,
     title: title || null,
     alt_text: altText || null,
-    is_public: isPublic,
+    is_public: true,
     created_by: session.profile?.id || null
   });
 
@@ -92,7 +91,7 @@ export async function registerMediaAssetAction(formData: FormData) {
       bucket: MEDIA_BUCKET,
       path,
       title: title || null,
-      isPublic
+      isPublic: true
     }
   });
 
@@ -348,6 +347,24 @@ export async function saveHomeSectionAction(formData: FormData) {
 
     if (error) {
       redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}`);
+    }
+  }
+
+  const referencedMediaIds = pendingUpdates
+    .filter((update) => update.kind === "image" && update.value)
+    .map((update) => update.value);
+
+  if (referencedMediaIds.length) {
+    const { error: mediaError } = await supabase
+      .from("media_assets")
+      .update({
+        is_public: true,
+        updated_by: session.profile?.id || null
+      })
+      .in("id", referencedMediaIds);
+
+    if (mediaError) {
+      redirect(`/admin/diseno-web?error=${encodeURIComponent(mediaError.message)}`);
     }
   }
 
