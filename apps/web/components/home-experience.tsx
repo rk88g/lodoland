@@ -569,7 +569,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
           <div className="event-gradient" />
 
           <div className="scene-copy left-copy">
-            <h1 id="INICIOWEB" className="scene-wordmark">&nbps;</h1>
+            <h1 id="INICIOWEB" className="scene-wordmark"> </h1>
             <h2 className="scene-title">{data.event.title}</h2>
             <p>{data.event.description}</p>
             <div className="meta-row">
