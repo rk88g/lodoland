@@ -763,7 +763,7 @@ main {
 
 .event-modal-copy,
 .event-modal-row {
-  padding: 16px 18px;
+  padding: 14px 16px;
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -772,8 +772,14 @@ main {
 .event-modal-copy strong,
 .event-modal-row strong {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   font-size: 1.28rem;
+}
+
+.event-modal-copy p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.65;
 }
 
 .event-modal-chip {
@@ -810,11 +816,22 @@ main {
 .merch-modal-item {
   display: grid;
   grid-template-columns: 96px minmax(0, 1fr);
-  gap: 18px;
-  padding: 20px;
+  gap: 14px;
+  padding: 16px;
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.merch-modal-grid {
+  gap: 8px;
+}
+
+.merch-modal-item {
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 20px;
 }
 
 .influencer-avatar,
@@ -824,6 +841,12 @@ main {
   border-radius: 24px;
   background:
     linear-gradient(145deg, rgba(255, 107, 159, 0.38), rgba(139, 185, 255, 0.42));
+}
+
+.merch-thumb {
+  width: 84px;
+  height: 84px;
+  border-radius: 20px;
 }
 
 .influencer-row strong,
@@ -841,7 +864,8 @@ main {
 .influencer-row p,
 .merch-modal-item p {
   color: var(--ink-soft);
-  line-height: 1.7;
+  line-height: 1.55;
+  margin: 6px 0 0;
 }
 
 .social-icon-row a {
@@ -2171,7 +2195,7 @@ main {
 .footer-track-row {
   display: flex;
   width: max-content;
-  gap: 14px;
+  gap: 8px;
   animation: track 22s linear infinite;
 }
 
@@ -2179,10 +2203,10 @@ main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  min-width: 96px;
-  max-width: 96px;
-  padding: 4px 8px;
+  min-height: 40px;
+  min-width: 78px;
+  max-width: 78px;
+  padding: 2px 5px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2192,7 +2216,7 @@ main {
 .footer-chip-logo {
   display: inline-block;
   width: 100%;
-  height: 40px;
+  height: 34px;
   flex: 0 0 auto;
 }
 

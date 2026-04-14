@@ -16,6 +16,7 @@ export type EventCard = {
   slug: string;
   title: string;
   shortDescription: string | null;
+  description: string | null;
   venueName: string | null;
   city: string | null;
   startsAt: string | null;
@@ -105,7 +106,7 @@ export async function getNextEvent() {
   const nowIso = new Date().toISOString();
   const { data } = await supabase
     .from("events")
-    .select("id, slug, title, short_description, venue_name, city, starts_at, cover_asset_id")
+    .select("id, slug, title, short_description, description, venue_name, city, starts_at, cover_asset_id")
     .eq("status", "published")
     .gte("starts_at", nowIso)
     .order("starts_at", { ascending: true })
@@ -121,6 +122,7 @@ export async function getNextEvent() {
     slug: data.slug,
     title: data.title,
     shortDescription: data.short_description,
+    description: data.description,
     venueName: data.venue_name,
     city: data.city,
     startsAt: data.starts_at,
@@ -137,7 +139,7 @@ export async function getUpcomingEvents(limit = 5) {
   const nowIso = new Date().toISOString();
   const { data } = await supabase
     .from("events")
-    .select("id, slug, title, short_description, venue_name, city, starts_at, cover_asset_id")
+    .select("id, slug, title, short_description, description, venue_name, city, starts_at, cover_asset_id")
     .eq("status", "published")
     .gte("starts_at", nowIso)
     .order("starts_at", { ascending: true })
@@ -176,6 +178,7 @@ export async function getUpcomingEvents(limit = 5) {
         slug: event.slug,
         title: event.title,
         shortDescription: event.short_description,
+        description: event.description,
         venueName: event.venue_name,
         city: event.city,
         startsAt: event.starts_at,

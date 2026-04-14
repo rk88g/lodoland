@@ -7,6 +7,8 @@ import FacebookRoundedIcon from "@mui/icons-material/FacebookRounded";
 import GoogleIcon from "@mui/icons-material/Google";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import NightlightRoundOutlinedIcon from "@mui/icons-material/NightlightRoundOutlined";
+import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import {
   Accordion,
   AccordionDetails,
@@ -16,6 +18,8 @@ import {
   Box,
   Button,
   Divider,
+  IconButton,
+  InputAdornment,
   Paper,
   Stack,
   TextField,
@@ -33,6 +37,12 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
   const { mode: paletteMode, toggleMode } = useMaterialMode();
   const [expanded, setExpanded] = useState(mode === "customer" ? "signin" : "staff");
   const [blocking, setBlocking] = useState(false);
+  const [passwordVisibility, setPasswordVisibility] = useState({
+    signin: false,
+    signup: false,
+    signupConfirm: false,
+    staff: false
+  });
   const isCustomer = mode === "customer";
 
   useEffect(() => {
@@ -40,6 +50,24 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
       setBlocking(false);
     }
   }, [errorMessage, message]);
+
+  const getPasswordAdornment = (key: keyof typeof passwordVisibility) => (
+    <InputAdornment position="end">
+      <IconButton
+        aria-label={passwordVisibility[key] ? "Ocultar contrasena" : "Mostrar contrasena"}
+        edge="end"
+        onClick={() =>
+          setPasswordVisibility((current) => ({
+            ...current,
+            [key]: !current[key]
+          }))
+        }
+        onMouseDown={(event) => event.preventDefault()}
+      >
+        {passwordVisibility[key] ? <VisibilityOffOutlinedIcon /> : <VisibilityOutlinedIcon />}
+      </IconButton>
+    </InputAdornment>
+  );
 
   return (
     <Box
@@ -68,14 +96,12 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
           gap: 2.5
         }}
       >
-        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+        <Stack alignItems="center" direction="row" justifyContent="space-between" spacing={2}>
           <Stack spacing={0.5}>
-            <Typography variant="overline" sx={{ letterSpacing: "0.12em", opacity: 0.72 }}>
+            <Typography sx={{ letterSpacing: "0.12em", opacity: 0.72 }} variant="overline">
               {isCustomer ? "Intranet" : "Control"}
             </Typography>
-            <Typography variant="h1">
-              {isCustomer ? "Acceso" : "Administración"}
-            </Typography>
+            <Typography variant="h1">{isCustomer ? "Acceso" : "Administracion"}</Typography>
           </Stack>
 
           <Button
@@ -99,50 +125,47 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
               <Accordion expanded={expanded === "signin"} onChange={() => setExpanded("signin")}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Stack spacing={0.25}>
-                    <Typography variant="h2">Iniciar sesión</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      
-                    </Typography>
+                    <Typography variant="h2">Iniciar sesion</Typography>
                   </Stack>
                 </AccordionSummary>
                 <AccordionDetails>
                   <Stack spacing={2}>
                     <Stack spacing={1.25}>
-                    <form action="/auth/login/google" autoComplete="off" method="post">
-                          <Button
-                            data-loading-label="Abriendo Google..."
-                            fullWidth
-                            startIcon={<GoogleIcon />}
-                            sx={{
-                              justifyContent: "flex-start",
-                              bgcolor: "#ffffff",
-                              color: "#111827",
-                              border: "1px solid rgba(17,24,39,0.08)",
-                              "&:hover": { bgcolor: "#f8fafc" }
-                            }}
-                            type="submit"
-                            variant="contained"
-                          >
-                            Continuar con Google
-                          </Button>
+                      <form action="/auth/login/google" autoComplete="off" method="post">
+                        <Button
+                          data-loading-label="Abriendo Google..."
+                          fullWidth
+                          startIcon={<GoogleIcon />}
+                          sx={{
+                            justifyContent: "flex-start",
+                            bgcolor: "#ffffff",
+                            color: "#111827",
+                            border: "1px solid rgba(17,24,39,0.08)",
+                            "&:hover": { bgcolor: "#f8fafc" }
+                          }}
+                          type="submit"
+                          variant="contained"
+                        >
+                          Continuar con Google
+                        </Button>
                       </form>
 
                       <form action="/auth/login/facebook" autoComplete="off" method="post">
-                          <Button
-                            data-loading-label="Abriendo Facebook..."
-                            fullWidth
-                            startIcon={<FacebookRoundedIcon />}
-                            sx={{
-                              justifyContent: "flex-start",
-                              bgcolor: "#1877f2",
-                              color: "#f8fbff",
-                              "&:hover": { bgcolor: "#1464d2" }
-                            }}
-                            type="submit"
-                            variant="contained"
-                          >
-                            Continuar con Facebook
-                          </Button>
+                        <Button
+                          data-loading-label="Abriendo Facebook..."
+                          fullWidth
+                          startIcon={<FacebookRoundedIcon />}
+                          sx={{
+                            justifyContent: "flex-start",
+                            bgcolor: "#1877f2",
+                            color: "#f8fbff",
+                            "&:hover": { bgcolor: "#1464d2" }
+                          }}
+                          type="submit"
+                          variant="contained"
+                        >
+                          Continuar con Facebook
+                        </Button>
                       </form>
                     </Stack>
 
@@ -150,8 +173,14 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
 
                     <form action="/auth/login/email" autoComplete="off" method="post">
                       <Stack spacing={2}>
-                        <TextField label="Correo electrónico" name="email" required type="email" />
-                        <TextField label="Contraseña" name="password" required type="password" />
+                        <TextField label="Correo electronico" name="email" required type="email" />
+                        <TextField
+                          InputProps={{ endAdornment: getPasswordAdornment("signin") }}
+                          label="Contrasena"
+                          name="password"
+                          required
+                          type={passwordVisibility.signin ? "text" : "password"}
+                        />
                         <Button fullWidth type="submit" variant="contained">
                           Entrar a mi cuenta
                         </Button>
@@ -165,8 +194,8 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Stack spacing={0.25}>
                     <Typography variant="h2">Crear cuenta</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Registrar con tu correo electrónico
+                    <Typography color="text.secondary" variant="body2">
+                      Registrar con tu correo electronico
                     </Typography>
                   </Stack>
                 </AccordionSummary>
@@ -178,20 +207,22 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
 
                     <form action="/auth/signup/email" autoComplete="off" method="post">
                       <Stack spacing={2}>
-                        <TextField label="Correo electrónico" name="email" required type="email" />
+                        <TextField label="Correo electronico" name="email" required type="email" />
                         <TextField
+                          InputProps={{ endAdornment: getPasswordAdornment("signup") }}
                           inputProps={{ minLength: 8 }}
-                          label="Contraseña"
+                          label="Contrasena"
                           name="password"
                           required
-                          type="password"
+                          type={passwordVisibility.signup ? "text" : "password"}
                         />
                         <TextField
+                          InputProps={{ endAdornment: getPasswordAdornment("signupConfirm") }}
                           inputProps={{ minLength: 8 }}
-                          label="Confirmar contraseña"
+                          label="Confirmar contrasena"
                           name="passwordConfirm"
                           required
-                          type="password"
+                          type={passwordVisibility.signupConfirm ? "text" : "password"}
                         />
                         <Button fullWidth type="submit" variant="contained">
                           Crear cuenta
@@ -206,10 +237,7 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
             <Accordion expanded={expanded === "staff"} onChange={() => setExpanded("staff")}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Stack spacing={0.25}>
-                  <Typography variant="h2">Iniciar sesión</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    
-                  </Typography>
+                  <Typography variant="h2">Iniciar sesion</Typography>
                 </Stack>
               </AccordionSummary>
               <AccordionDetails>
@@ -221,13 +249,19 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
                   <form action="/auth/login/staff" autoComplete="off" method="post">
                     <Stack spacing={2}>
                       <TextField
-                        label="Correo de la organización"
+                        label="Correo de la organizacion"
                         name="email"
                         placeholder="contacto@dominio.mx"
                         required
                         type="email"
                       />
-                      <TextField label="Contraseña" name="password" required type="password" />
+                      <TextField
+                        InputProps={{ endAdornment: getPasswordAdornment("staff") }}
+                        label="Contrasena"
+                        name="password"
+                        required
+                        type={passwordVisibility.staff ? "text" : "password"}
+                      />
                       <Button fullWidth type="submit" variant="contained">
                         Entrar
                       </Button>
@@ -245,7 +279,7 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
           spacing={1}
           sx={{ pt: 0.5 }}
         >
-          <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
+          <Stack direction="row" flexWrap="wrap" spacing={2} useFlexGap>
             {isCustomer ? <Link href="/admin/login">Admin</Link> : <Link href="/login">Soy cliente</Link>}
             <Link href="/">Ir a la web</Link>
           </Stack>

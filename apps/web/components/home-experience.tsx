@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { InfluencerCollage } from "./influencer-collage";
+import { formatEventDateTimeWallClock } from "../lib/date-format";
 import type { HomePageViewModel } from "../lib/data/home";
 
 type HomeExperienceProps = {
@@ -11,12 +12,6 @@ type HomeExperienceProps = {
 
 const saleToneClasses = ["sale-mud", "sale-gold", "sale-blue", "sale-pink"] as const;
 const menuSponsorToneClasses = ["menu-sponsor-tone-1", "menu-sponsor-tone-2", "menu-sponsor-tone-3"] as const;
-const mexicoEventDateTime = new Intl.DateTimeFormat("es-MX", {
-  dateStyle: "medium",
-  timeStyle: "short",
-  timeZone: "America/Mexico_City"
-});
-
 function getStaticIntentHref(intent: "tickets" | "merch") {
   return `/login?intent=${intent}`;
 }
@@ -366,11 +361,12 @@ export function HomeExperience({ data }: HomeExperienceProps) {
                 <div className="event-modal-copy">
                   <span className="event-modal-chip">Proximo evento</span>
                   <strong>{data.event.latest.title}</strong>
+                  {data.event.latest.description || data.event.latest.shortDescription ? (
+                    <p>{data.event.latest.description || data.event.latest.shortDescription}</p>
+                  ) : null}
                   <div className="meta-row">
                     {[
-                      data.event.latest.startsAt
-                        ? mexicoEventDateTime.format(new Date(data.event.latest.startsAt))
-                        : null,
+                      formatEventDateTimeWallClock(data.event.latest.startsAt),
                       data.event.latest.city,
                       data.event.latest.venueName
                     ]
@@ -403,9 +399,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
                     <p>{eventItem.shortDescription || "Evento programado en la agenda de LODO LAND."}</p>
                     <div className="meta-row">
                       {[
-                        eventItem.startsAt
-                          ? mexicoEventDateTime.format(new Date(eventItem.startsAt))
-                          : null,
+                        formatEventDateTimeWallClock(eventItem.startsAt),
                         eventItem.city,
                         eventItem.venueName
                       ]

@@ -1,4 +1,5 @@
 import { buildStoragePublicUrl } from "../media";
+import { formatEventDateWallClock } from "../date-format";
 import { createClient } from "../supabase/server";
 import { getCmsPageConfig, type CmsItem, type CmsMediaAsset } from "./cms";
 import { getNextEvent, getUpcomingEvents, type EventCard } from "./portal";
@@ -422,9 +423,7 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
   });
 
   const meta = [
-    nextEvent?.startsAt
-      ? new Intl.DateTimeFormat("es-MX", { dateStyle: "medium" }).format(new Date(nextEvent.startsAt))
-      : null,
+    formatEventDateWallClock(nextEvent?.startsAt),
     nextEvent?.city || null,
     nextEvent?.venueName || null
   ].filter(Boolean) as string[];

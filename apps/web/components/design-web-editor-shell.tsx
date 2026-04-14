@@ -16,6 +16,7 @@ import {
   Typography
 } from "@mui/material";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
+import ContentCopyOutlinedIcon from "@mui/icons-material/ContentCopyOutlined";
 
 type AssetListItem = {
   id: string;
@@ -48,6 +49,7 @@ export function DesignWebEditorShell({
   const [assetModalOpen, setAssetModalOpen] = useState(false);
   const [blockingMessage, setBlockingMessage] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(Boolean(successMessage || errorMessage));
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setSnackbarOpen(Boolean(successMessage || errorMessage));
@@ -98,6 +100,15 @@ export function DesignWebEditorShell({
   }, [errorMessage]);
 
   const snackbarMessage = errorMessage || successMessage || "";
+
+  const copyAssetId = async (assetId: string) => {
+    try {
+      await navigator.clipboard.writeText(assetId);
+      setCopyMessage("Asset ID copiado.");
+    } catch {
+      setCopyMessage("No se pudo copiar el Asset ID.");
+    }
+  };
 
   return (
     <>
@@ -252,10 +263,21 @@ export function DesignWebEditorShell({
                     bgcolor: "background.paper",
                     p: 1.5,
                     display: "grid",
-                    gap: 0.5
+                    gap: 0.75
                   }}
                 >
-                  <Typography sx={{ fontWeight: 700, wordBreak: "break-all" }}>Asset ID: {asset.id}</Typography>
+                  <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
+                    <Typography sx={{ fontWeight: 700, wordBreak: "break-all" }}>Asset ID: {asset.id}</Typography>
+                    <Button
+                      onClick={() => void copyAssetId(asset.id)}
+                      size="small"
+                      startIcon={<ContentCopyOutlinedIcon />}
+                      type="button"
+                      variant="outlined"
+                    >
+                      Copiar
+                    </Button>
+                  </Stack>
                   <Typography color="text.secondary">{asset.title || "Sin titulo"}</Typography>
                   <Typography color="text.secondary" sx={{ wordBreak: "break-all" }}>
                     {asset.path}
@@ -294,6 +316,17 @@ export function DesignWebEditorShell({
       >
         <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: "100%" }}>
           {snackbarMessage}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        autoHideDuration={2600}
+        onClose={() => setCopyMessage(null)}
+        open={Boolean(copyMessage)}
+      >
+        <Alert onClose={() => setCopyMessage(null)} severity="success" sx={{ width: "100%" }}>
+          {copyMessage}
         </Alert>
       </Snackbar>
     </>
