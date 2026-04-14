@@ -218,118 +218,124 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
               </Box>
 
               <Box
-                component="form"
-                action={saveHomeSectionAction}
-                autoComplete="off"
-                data-blocking-form="true"
-                data-loading-label={`Guardando ${section.label}...`}
-                id={`section-form-${section.id}`}
-                sx={{ display: "grid" }}
+                sx={{ display: "grid", gap: 2 }}
               >
-                <input name="sectionKey" type="hidden" value={section.sectionKey} />
-                <input name="sectionLabel" type="hidden" value={section.label} />
-                <Stack spacing={2} sx={{ p: { xs: 2, md: 2.5 } }}>
-                {getVisibleSectionFields(section.sectionKey, section.fields).length ? (
-                  <Box
-                    sx={{
-                      display: "grid",
-                      gap: 2,
-                      gridTemplateColumns: { xs: "1fr", xl: "repeat(2, minmax(0, 1fr))" }
-                    }}
-                  >
-                    {getVisibleSectionFields(section.sectionKey, section.fields).map((field) => (
-                      <Box
-                        key={field.id}
-                        sx={{
-                          border: 1,
-                          borderColor: "divider",
-                          bgcolor: "background.paper",
-                          p: 2
-                        }}
-                      >
-                        <CmsFieldEditor field={field} helperText={getFieldHint(section.sectionKey, field.fieldKey)} scope="section" />
-                      </Box>
-                    ))}
-                  </Box>
-                ) : null}
-
-                {Object.values(section.groups)
-                  .sort((a, b) => a.sortOrder - b.sortOrder)
-                  .filter((group) => !["sponsor_tiles", "influencer_profiles", "influencer_collage"].includes(group.groupKey))
-                  .filter(
-                    (group) =>
-                      getVisibleGroupFields(group.groupKey, group.items[0]?.fields || {}).length ||
-                      group.items.some((item) => getVisibleGroupFields(group.groupKey, item.fields).length)
-                  )
-                  .map((group) => (
-                    <Box key={group.id} sx={{ display: "grid", gap: 1.5 }}>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1.25,
-                          py: 1,
-                          borderTop: 1,
-                          borderBottom: 1,
-                          borderColor: "divider",
-                          background:
-                            "linear-gradient(90deg, rgba(255,255,255,0), rgba(124,77,255,0.08), rgba(0,188,212,0.08), rgba(255,255,255,0))"
-                        }}
-                      >
-                        <Box sx={{ width: 42, height: 4, bgcolor: "primary.main" }} />
-                        <Typography variant="h3">{group.label}</Typography>
-                      </Box>
-
+                <Box
+                  component="form"
+                  action={saveHomeSectionAction}
+                  autoComplete="off"
+                  data-blocking-form="true"
+                  data-loading-label={`Guardando ${section.label}...`}
+                  id={`section-form-${section.id}`}
+                  sx={{ display: "grid" }}
+                >
+                  <input name="sectionKey" type="hidden" value={section.sectionKey} />
+                  <input name="sectionLabel" type="hidden" value={section.label} />
+                  <Stack spacing={2} sx={{ p: { xs: 2, md: 2.5 } }}>
+                    {getVisibleSectionFields(section.sectionKey, section.fields).length ? (
                       <Box
                         sx={{
                           display: "grid",
                           gap: 2,
-                          gridTemplateColumns: { xs: "1fr", lg: "repeat(2, minmax(0, 1fr))" }
+                          gridTemplateColumns: { xs: "1fr", xl: "repeat(2, minmax(0, 1fr))" }
                         }}
                       >
-                        {group.items.map((item) => {
-                          const visibleFields = getVisibleGroupFields(group.groupKey, item.fields);
-
-                          if (!visibleFields.length) {
-                            return null;
-                          }
-
-                          return (
-                            <Box
-                              key={item.id}
-                              sx={{
-                                border: 1,
-                                borderColor: "divider",
-                                bgcolor: "background.paper",
-                                p: 2,
-                                display: "grid",
-                                gap: 1.5
-                              }}
-                            >
-                              <Typography sx={{ fontWeight: 700 }}>{item.label}</Typography>
-
-                              <Box sx={{ display: "grid", gap: 1.5 }}>
-                                {visibleFields.map((field) => (
-                                  <Box
-                                    key={field.id}
-                                    sx={{
-                                      border: 1,
-                                      borderColor: "divider",
-                                      bgcolor: "background.default",
-                                      p: 1.5
-                                    }}
-                                  >
-                                    <CmsFieldEditor field={field} helperText={getFieldHint(section.sectionKey, `${group.groupKey}.${field.fieldKey}`)} scope="group" />
-                                  </Box>
-                                ))}
-                              </Box>
-                            </Box>
-                          );
-                        })}
+                        {getVisibleSectionFields(section.sectionKey, section.fields).map((field) => (
+                          <Box
+                            key={field.id}
+                            sx={{
+                              border: 1,
+                              borderColor: "divider",
+                              bgcolor: "background.paper",
+                              p: 2
+                            }}
+                          >
+                            <CmsFieldEditor field={field} helperText={getFieldHint(section.sectionKey, field.fieldKey)} scope="section" />
+                          </Box>
+                        ))}
                       </Box>
-                    </Box>
-                  ))}
+                    ) : null}
 
+                    {Object.values(section.groups)
+                      .sort((a, b) => a.sortOrder - b.sortOrder)
+                      .filter((group) => !["sponsor_tiles", "influencer_profiles", "influencer_collage"].includes(group.groupKey))
+                      .filter(
+                        (group) =>
+                          getVisibleGroupFields(group.groupKey, group.items[0]?.fields || {}).length ||
+                          group.items.some((item) => getVisibleGroupFields(group.groupKey, item.fields).length)
+                      )
+                      .map((group) => (
+                        <Box key={group.id} sx={{ display: "grid", gap: 1.5 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1.25,
+                              py: 1,
+                              borderTop: 1,
+                              borderBottom: 1,
+                              borderColor: "divider",
+                              background:
+                                "linear-gradient(90deg, rgba(255,255,255,0), rgba(124,77,255,0.08), rgba(0,188,212,0.08), rgba(255,255,255,0))"
+                            }}
+                          >
+                            <Box sx={{ width: 42, height: 4, bgcolor: "primary.main" }} />
+                            <Typography variant="h3">{group.label}</Typography>
+                          </Box>
+
+                          <Box
+                            sx={{
+                              display: "grid",
+                              gap: 2,
+                              gridTemplateColumns: { xs: "1fr", lg: "repeat(2, minmax(0, 1fr))" }
+                            }}
+                          >
+                            {group.items.map((item) => {
+                              const visibleFields = getVisibleGroupFields(group.groupKey, item.fields);
+
+                              if (!visibleFields.length) {
+                                return null;
+                              }
+
+                              return (
+                                <Box
+                                  key={item.id}
+                                  sx={{
+                                    border: 1,
+                                    borderColor: "divider",
+                                    bgcolor: "background.paper",
+                                    p: 2,
+                                    display: "grid",
+                                    gap: 1.5
+                                  }}
+                                >
+                                  <Typography sx={{ fontWeight: 700 }}>{item.label}</Typography>
+
+                                  <Box sx={{ display: "grid", gap: 1.5 }}>
+                                    {visibleFields.map((field) => (
+                                      <Box
+                                        key={field.id}
+                                        sx={{
+                                          border: 1,
+                                          borderColor: "divider",
+                                          bgcolor: "background.default",
+                                          p: 1.5
+                                        }}
+                                      >
+                                        <CmsFieldEditor field={field} helperText={getFieldHint(section.sectionKey, `${group.groupKey}.${field.fieldKey}`)} scope="group" />
+                                      </Box>
+                                    ))}
+                                  </Box>
+                                </Box>
+                              );
+                            })}
+                          </Box>
+                        </Box>
+                      ))}
+                  </Stack>
+                </Box>
+
+                <Box sx={{ px: { xs: 2, md: 2.5 }, pb: { xs: 2, md: 2.5 }, display: "grid", gap: 2.5 }}>
                 {section.sectionKey === "patrocinadores" ? (
                   <ManagedGroupEditor
                     formAnchor="sponsors-manager-form"
@@ -351,7 +357,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                     singularTitle="Patrocinador"
                     schema={[...sponsorFormSchema]}
                     title="Patrocinadores"
-                  />
+                    />
                 ) : null}
 
                 {section.sectionKey === "influencers" ? (
@@ -512,7 +518,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                     })()}
                   </Stack>
                 ) : null}
-                </Stack>
+                </Box>
               </Box>
             </Box>
           ))}
