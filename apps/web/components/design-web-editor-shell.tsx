@@ -54,6 +54,12 @@ export function DesignWebEditorShell({
   }, [successMessage, errorMessage]);
 
   useEffect(() => {
+    if (successMessage || errorMessage || loadError) {
+      setBlockingMessage(null);
+    }
+  }, [successMessage, errorMessage, loadError]);
+
+  useEffect(() => {
     const handleSubmit = (event: Event) => {
       const form = event.target instanceof HTMLFormElement ? event.target : null;
 

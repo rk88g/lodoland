@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import FacebookRoundedIcon from "@mui/icons-material/FacebookRounded";
 import GoogleIcon from "@mui/icons-material/Google";
@@ -34,6 +34,12 @@ export function AuthPortal({ errorMessage, message, mode }: AuthPortalProps) {
   const [expanded, setExpanded] = useState(mode === "customer" ? "signin" : "staff");
   const [blocking, setBlocking] = useState(false);
   const isCustomer = mode === "customer";
+
+  useEffect(() => {
+    if (errorMessage || message) {
+      setBlocking(false);
+    }
+  }, [errorMessage, message]);
 
   return (
     <Box
