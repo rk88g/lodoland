@@ -7,6 +7,7 @@ import { requireAdmin } from "../../../lib/auth/session";
 import { getCmsPageConfig, type CmsFieldValue } from "../../../lib/data/cms";
 import { getMediaAssets, getMediaAssetsByPrefix } from "../../../lib/data/portal";
 import { controlNavItems } from "../../../lib/navigation";
+import { createClient } from "../../../lib/supabase/server";
 import {
   deleteInfluencerCollageAssetAction,
   registerMediaAssetAction,
@@ -92,16 +93,34 @@ function getVisibleGroupFields(groupKey: string, fields: Record<string, CmsField
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
-function getManagedGroup(section: NonNullable<Awaited<ReturnType<typeof getCmsPageConfig>>>["sections"][string], groupKey: string) {
-  return Object.values(section.groups).find((group) => group.groupKey === groupKey) || null;
-}
-
 export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWebPageProps) {
   await requireAdmin();
+  const supabase = createClient();
 
   let homeConfig: Awaited<ReturnType<typeof getCmsPageConfig>> = null;
   let mediaAssets = [] as Awaited<ReturnType<typeof getMediaAssets>>;
   let influencerFolderAssets = [] as Awaited<ReturnType<typeof getMediaAssetsByPrefix>>;
+  let sponsorRows: Array<{
+    id: string;
+    name: string;
+    website_url: string | null;
+    logo_asset_id: string | null;
+    background_color: string | null;
+    accent_color: string | null;
+    sort_order: number;
+  }> = [];
+  let influencerRows: Array<{
+    id: string;
+    display_name: string;
+    headline: string | null;
+    bio: string | null;
+    cover_asset_id: string | null;
+    instagram_url: string | null;
+    facebook_url: string | null;
+    youtube_url: string | null;
+    tiktok_url: string | null;
+    sort_order: number;
+  }> = [];
   let loadError: string | null = null;
 
   try {
@@ -110,6 +129,27 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
       getMediaAssets(120),
       getMediaAssetsByPrefix("home/influencers/collage/", 240)
     ]);
+
+    const sponsorSectionId = homeConfig?.sections.patrocinadores?.id || null;
+    const influencerSectionId = homeConfig?.sections.influencers?.id || null;
+
+    if (sponsorSectionId) {
+      const { data } = await supabase
+        .from("home_sponsors")
+        .select("id, name, website_url, logo_asset_id, background_color, accent_color, sort_order")
+        .eq("section_id", sponsorSectionId)
+        .order("sort_order", { ascending: true });
+      sponsorRows = data || [];
+    }
+
+    if (influencerSectionId) {
+      const { data } = await supabase
+        .from("home_influencers")
+        .select("id, display_name, headline, bio, cover_asset_id, instagram_url, facebook_url, youtube_url, tiktok_url, sort_order")
+        .eq("section_id", influencerSectionId)
+        .order("sort_order", { ascending: true });
+      influencerRows = data || [];
+    }
   } catch (error) {
     console.error("[admin/diseno-web] load error", error);
     loadError = error instanceof Error ? error.message : "No se pudo cargar la configuracion del editor.";
@@ -293,20 +333,21 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                 {section.sectionKey === "patrocinadores" ? (
                   <ManagedGroupEditor
                     formAnchor="sponsors-manager-form"
-                    groupKey="sponsor_tiles"
-                    items={(getManagedGroup(section, "sponsor_tiles")?.items || []).map((item) => ({
+                    entityKind="sponsor"
+                    items={sponsorRows.map((item) => ({
                       id: item.id,
-                      label: item.label,
-                      assetId: item.fields.logo_media?.mediaAssetId || null,
-                      primaryDetail: item.fields.target_url?.linkUrl || "Sin link",
+                      label: item.name,
+                      assetId: item.logo_asset_id || null,
+                      primaryDetail: item.website_url || "Sin link",
                       values: {
-                        name: item.fields.name?.textValue || item.label,
-                        target_url: item.fields.target_url?.linkUrl || "",
-                        logo_media: item.fields.logo_media?.mediaAssetId || "",
-                        background_color: item.fields.background_color?.textValue || "",
-                        accent_color: item.fields.accent_color?.textValue || ""
+                        name: item.name || "",
+                        target_url: item.website_url || "",
+                        logo_media: item.logo_asset_id || "",
+                        background_color: item.background_color || "",
+                        accent_color: item.accent_color || ""
                       }
                     }))}
+                    sectionKey="patrocinadores"
                     singularTitle="Patrocinador"
                     schema={[...sponsorFormSchema]}
                     title="Patrocinadores"
@@ -315,28 +356,35 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
 
                 {section.sectionKey === "influencers" ? (
                   <Stack spacing={2.5}>
+                    {(() => {
+                      const collageGroup =
+                        Object.values(section.groups).find((group) => group.groupKey === "influencer_collage") || null;
+
+                      return (
+                        <>
                     <ManagedGroupEditor
                       formAnchor="influencers-manager-form"
-                      groupKey="influencer_profiles"
-                      items={(getManagedGroup(section, "influencer_profiles")?.items || []).map((item) => ({
+                      entityKind="influencer"
+                      items={influencerRows.map((item) => ({
                         id: item.id,
-                        label: item.label,
-                        assetId: item.fields.cover_media?.mediaAssetId || null,
-                        primaryDetail: item.fields.role?.textValue || "Sin rol",
+                        label: item.display_name,
+                        assetId: item.cover_asset_id || null,
+                        primaryDetail: item.headline || "Sin rol",
                         badges: ["instagram_url", "facebook_url", "youtube_url", "tiktok_url"]
-                          .filter((key) => item.fields[key]?.linkUrl)
+                          .filter((key) => Boolean(item[key as keyof typeof item]))
                           .map((key) => key.replace("_url", "")),
                         values: {
-                          name: item.fields.name?.textValue || item.label,
-                          role: item.fields.role?.textValue || "",
-                          description: item.fields.description?.textValue || "",
-                          cover_media: item.fields.cover_media?.mediaAssetId || "",
-                          instagram_url: item.fields.instagram_url?.linkUrl || "",
-                          facebook_url: item.fields.facebook_url?.linkUrl || "",
-                          youtube_url: item.fields.youtube_url?.linkUrl || "",
-                          tiktok_url: item.fields.tiktok_url?.linkUrl || ""
+                          name: item.display_name || "",
+                          role: item.headline || "",
+                          description: item.bio || "",
+                          cover_media: item.cover_asset_id || "",
+                          instagram_url: item.instagram_url || "",
+                          facebook_url: item.facebook_url || "",
+                          youtube_url: item.youtube_url || "",
+                          tiktok_url: item.tiktok_url || ""
                         }
                       }))}
+                      sectionKey="influencers"
                       singularTitle="Influencer"
                       schema={[...influencerFormSchema]}
                       title="Influencers"
@@ -374,7 +422,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                           {influencerFolderAssets.length ? (
                             influencerFolderAssets.map((asset) => {
                               const groupItem =
-                                getManagedGroup(section, "influencer_collage")?.items.find(
+                                collageGroup?.items.find(
                                   (item) => item.fields.media?.mediaAssetId === asset.id
                                 ) || null;
 
@@ -459,6 +507,9 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                         </Button>
                       </Box>
                     </Box>
+                        </>
+                      );
+                    })()}
                   </Stack>
                 ) : null}
                 </Stack>

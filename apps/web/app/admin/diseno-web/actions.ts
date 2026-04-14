@@ -65,6 +65,21 @@ function buildAssetPath(folder: string, originalName: string, customPath: string
   return `${normalizedFolder}/${Date.now()}-${baseName}-${crypto.randomUUID().slice(0, 8)}${extension}`;
 }
 
+const homeEntityDefinitions = {
+  sponsor: {
+    table: "home_sponsors",
+    sectionKey: "patrocinadores",
+    entityType: "home_sponsor",
+    summaryLabel: "patrocinador"
+  },
+  influencer: {
+    table: "home_influencers",
+    sectionKey: "influencers",
+    entityType: "home_influencer",
+    summaryLabel: "influencer"
+  }
+} as const;
+
 export async function registerMediaAssetAction(formData: FormData) {
   const session = await requireAdmin();
   const supabase = createClient();
@@ -546,6 +561,185 @@ export async function upsertManagedGroupItemAction(formData: FormData) {
       label: labelSource
     }
   });
+
+  revalidatePath("/admin/diseno-web");
+  revalidatePath("/");
+  redirect(`/admin/diseno-web?success=${encodeURIComponent(`Se guardo correctamente el ${definition.summaryLabel}.`)}#${returnAnchor}`);
+}
+
+export async function upsertHomeEntityAction(formData: FormData) {
+  const session = await requireAdmin();
+  const supabase = createClient();
+
+  const entityKind = String(formData.get("entityKind") ?? "").trim() as keyof typeof homeEntityDefinitions;
+  const itemId = String(formData.get("itemId") ?? "").trim();
+  const returnAnchor = String(formData.get("returnAnchor") ?? "").trim() || "section-home";
+  const definition = homeEntityDefinitions[entityKind];
+
+  if (!definition) {
+    redirect(`/admin/diseno-web?error=${encodeURIComponent("No se encontro el tipo de entidad a guardar.")}#${returnAnchor}`);
+  }
+
+  const { data: sectionRow } = await supabase
+    .from("cms_sections")
+    .select("id")
+    .eq("section_key", definition.sectionKey)
+    .maybeSingle();
+
+  if (!sectionRow) {
+    redirect(`/admin/diseno-web?error=${encodeURIComponent("No se encontro la seccion relacionada.")}#${returnAnchor}`);
+  }
+
+  if (entityKind === "sponsor") {
+    const name = String(formData.get("name") ?? "").trim();
+    const targetUrl = String(formData.get("target_url") ?? "").trim();
+    const logoMedia = String(formData.get("logo_media") ?? "").trim();
+    const backgroundColor = String(formData.get("background_color") ?? "").trim();
+    const accentColor = String(formData.get("accent_color") ?? "").trim();
+
+    if (!name) {
+      redirect(`/admin/diseno-web?error=${encodeURIComponent("Debes indicar el nombre del patrocinador.")}#${returnAnchor}`);
+    }
+
+    const payload = {
+      section_id: sectionRow.id,
+      name,
+      company_name: null,
+      website_url: targetUrl || null,
+      logo_asset_id: logoMedia || null,
+      description: null,
+      accent_color: accentColor || null,
+      background_color: backgroundColor || null,
+      menu_label: name,
+      is_menu_featured: true
+    };
+
+    if (itemId) {
+      const { error } = await supabase.from(definition.table).update(payload).eq("id", itemId);
+
+      if (error) {
+        redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}#${returnAnchor}`);
+      }
+    } else {
+      const { data: lastRow } = await supabase
+        .from(definition.table)
+        .select("sort_order")
+        .eq("section_id", sectionRow.id)
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const { error } = await supabase.from(definition.table).insert({
+        ...payload,
+        sort_order: (lastRow?.sort_order || 0) + 1,
+        is_active: true
+      });
+
+      if (error) {
+        redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}#${returnAnchor}`);
+      }
+    }
+
+    if (logoMedia) {
+      const { error: mediaError } = await supabase.from("media_assets").update({ is_public: true }).eq("id", logoMedia);
+
+      if (mediaError) {
+        redirect(`/admin/diseno-web?error=${encodeURIComponent(mediaError.message)}#${returnAnchor}`);
+      }
+    }
+
+    await logAdminAction({
+      supabase,
+      actorUserId: session.profile?.id,
+      entityType: definition.entityType,
+      entityId: itemId || null,
+      action: itemId ? "update" : "create",
+      summary: `${itemId ? "Actualizacion" : "Alta"} de ${definition.summaryLabel}`,
+      payload: {
+        name,
+        websiteUrl: targetUrl || null,
+        logoMedia: logoMedia || null
+      }
+    });
+  }
+
+  if (entityKind === "influencer") {
+    const name = String(formData.get("name") ?? "").trim();
+    const role = String(formData.get("role") ?? "").trim();
+    const description = String(formData.get("description") ?? "").trim();
+    const coverMedia = String(formData.get("cover_media") ?? "").trim();
+    const instagramUrl = String(formData.get("instagram_url") ?? "").trim();
+    const facebookUrl = String(formData.get("facebook_url") ?? "").trim();
+    const youtubeUrl = String(formData.get("youtube_url") ?? "").trim();
+    const tiktokUrl = String(formData.get("tiktok_url") ?? "").trim();
+
+    if (!name) {
+      redirect(`/admin/diseno-web?error=${encodeURIComponent("Debes indicar el nombre del influencer.")}#${returnAnchor}`);
+    }
+
+    const payload = {
+      section_id: sectionRow.id,
+      display_name: name,
+      handle: null,
+      platform: "instagram",
+      profile_url: instagramUrl || facebookUrl || youtubeUrl || tiktokUrl || null,
+      avatar_asset_id: null,
+      cover_asset_id: coverMedia || null,
+      headline: role || null,
+      bio: description || null,
+      instagram_url: instagramUrl || null,
+      facebook_url: facebookUrl || null,
+      youtube_url: youtubeUrl || null,
+      tiktok_url: tiktokUrl || null
+    };
+
+    if (itemId) {
+      const { error } = await supabase.from(definition.table).update(payload).eq("id", itemId);
+
+      if (error) {
+        redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}#${returnAnchor}`);
+      }
+    } else {
+      const { data: lastRow } = await supabase
+        .from(definition.table)
+        .select("sort_order")
+        .eq("section_id", sectionRow.id)
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const { error } = await supabase.from(definition.table).insert({
+        ...payload,
+        sort_order: (lastRow?.sort_order || 0) + 1,
+        is_active: true
+      });
+
+      if (error) {
+        redirect(`/admin/diseno-web?error=${encodeURIComponent(error.message)}#${returnAnchor}`);
+      }
+    }
+
+    if (coverMedia) {
+      const { error: mediaError } = await supabase.from("media_assets").update({ is_public: true }).eq("id", coverMedia);
+
+      if (mediaError) {
+        redirect(`/admin/diseno-web?error=${encodeURIComponent(mediaError.message)}#${returnAnchor}`);
+      }
+    }
+
+    await logAdminAction({
+      supabase,
+      actorUserId: session.profile?.id,
+      entityType: definition.entityType,
+      entityId: itemId || null,
+      action: itemId ? "update" : "create",
+      summary: `${itemId ? "Actualizacion" : "Alta"} de ${definition.summaryLabel}`,
+      payload: {
+        displayName: name,
+        coverMedia: coverMedia || null
+      }
+    });
+  }
 
   revalidatePath("/admin/diseno-web");
   revalidatePath("/");

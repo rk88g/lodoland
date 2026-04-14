@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Box, Button, Chip, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from "@mui/material";
-import { upsertManagedGroupItemAction } from "../app/admin/diseno-web/actions";
+import { upsertHomeEntityAction } from "../app/admin/diseno-web/actions";
 
 type ManagedFieldSchema = {
   key: string;
@@ -23,7 +23,8 @@ type ManagedGroupEditorItem = {
 
 type ManagedGroupEditorProps = {
   formAnchor: string;
-  groupKey: "sponsor_tiles" | "influencer_profiles";
+  entityKind: "sponsor" | "influencer";
+  sectionKey: "patrocinadores" | "influencers";
   items: ManagedGroupEditorItem[];
   schema: readonly ManagedFieldSchema[];
   singularTitle: string;
@@ -39,7 +40,8 @@ function buildEmptyValues(schema: readonly ManagedFieldSchema[]) {
 
 export function ManagedGroupEditor({
   formAnchor,
-  groupKey,
+  entityKind,
+  sectionKey,
   items,
   schema,
   singularTitle,
@@ -48,7 +50,7 @@ export function ManagedGroupEditor({
   const emptyValues = useMemo(() => buildEmptyValues(schema), [schema]);
   const [selectedItemId, setSelectedItemId] = useState<string>("");
   const [formValues, setFormValues] = useState<Record<string, string>>(emptyValues);
-  const isSponsor = groupKey === "sponsor_tiles";
+  const isSponsor = entityKind === "sponsor";
   const selectedItem = items.find((item) => item.id === selectedItemId) || null;
 
   const handleSelect = (itemId: string) => {
@@ -145,14 +147,15 @@ export function ManagedGroupEditor({
 
       <Box
         component="form"
-        action={upsertManagedGroupItemAction}
+        action={upsertHomeEntityAction}
         autoComplete="off"
         data-blocking-form="true"
         data-loading-label={selectedItem ? `Guardando ${singularTitle.toLowerCase()}...` : `Creando ${singularTitle.toLowerCase()}...`}
         id={formAnchor}
         sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5, display: "grid", gap: 2 }}
       >
-        <input name="groupKey" type="hidden" value={groupKey} />
+        <input name="entityKind" type="hidden" value={entityKind} />
+        <input name="sectionKey" type="hidden" value={sectionKey} />
         <input name="itemId" type="hidden" value={selectedItemId} />
         <input name="returnAnchor" type="hidden" value={formAnchor} />
 
