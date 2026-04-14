@@ -824,8 +824,9 @@ export function HomeExperience({ data }: HomeExperienceProps) {
                       backgroundPosition: "center"
                     }}
                   />
-                ) : null}
-                {item.label}
+                ) : (
+                  item.label
+                )}
               </div>
             ))}
           </div>
