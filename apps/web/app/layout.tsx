@@ -11,7 +11,12 @@ const bodyFont = Roboto({
 
 export const metadata: Metadata = {
   title: "LODO LAND",
-  description: "Experiencias, tickets, rifas, quinielas y promociones en una sola plataforma."
+  description: "Experiencias, tickets, rifas, quinielas y promociones en una sola plataforma.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+    shortcut: "/icon.png"
+  }
 };
 
 export default function RootLayout({

@@ -102,9 +102,17 @@ export function DashboardShell({
     () => (
       <Box sx={{ height: "100%", display: "grid", gridTemplateRows: "auto 1fr auto" }}>
         <Box sx={{ px: 2.5, py: 2 }}>
-          <Typography sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em" }}>
-            LODO LAND
-          </Typography>
+          <Stack alignItems="center" direction="row" spacing={1.25}>
+            <Box
+              alt="LODO LAND"
+              component="img"
+              src="/brand/lodoland-logo.png"
+              sx={{ width: 42, height: 42, objectFit: "contain" }}
+            />
+            <Typography sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em" }}>
+              LODO LAND
+            </Typography>
+          </Stack>
         </Box>
 
         <List sx={{ px: 1 }}>

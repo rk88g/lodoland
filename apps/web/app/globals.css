@@ -183,12 +183,13 @@ main {
 }
 
 .floating-brand-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent 34%),
-    linear-gradient(145deg, var(--gold), var(--mud));
+  width: 54px;
+  height: 54px;
+  flex: 0 0 auto;
+  background-image: url("/brand/lodoland-logo.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 
 .tire-menu-button {
@@ -1244,6 +1245,9 @@ main {
   align-content: start;
   gap: 20px;
   padding: 14vh 6vw 8vh;
+  width: min(100%, 1440px);
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .sponsor-fog {
@@ -1280,7 +1284,9 @@ main {
   display: grid;
   gap: 10px;
   width: min(100%, 640px);
+  max-width: 100%;
   padding: 34px 42px;
+  box-sizing: border-box;
   border-radius: 42px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background:
@@ -1328,6 +1334,8 @@ main {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
   width: auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .sponsor-tile {
@@ -2842,6 +2850,7 @@ main {
     align-content: start;
     gap: 14px;
     padding: 96px 14px 28px;
+    width: 100%;
   }
 
   .section-sponsors .sponsor-showcase,

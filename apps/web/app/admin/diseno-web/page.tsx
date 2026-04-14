@@ -1,18 +1,20 @@
-import { Alert, Box, Button, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Chip, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { DesignWebEditorShell } from "../../../components/design-web-editor-shell";
 import { requireAdmin } from "../../../lib/auth/session";
-import { getCmsPageConfig, type CmsFieldValue } from "../../../lib/data/cms";
+import { getCmsPageConfig, type CmsFieldValue, type CmsGroup } from "../../../lib/data/cms";
 import { getMediaAssets } from "../../../lib/data/portal";
 import { controlNavItems } from "../../../lib/navigation";
-import { registerMediaAssetAction, saveHomeSectionAction } from "./actions";
+import { registerMediaAssetAction, saveHomeSectionAction, upsertManagedGroupItemAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 type AdminDisenoWebPageProps = {
   searchParams?: {
     error?: string;
+    editInfluencer?: string;
+    editSponsor?: string;
     success?: string;
   };
 };
@@ -66,6 +68,10 @@ function getVisibleGroupFields(groupKey: string, fields: Record<string, CmsField
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
+function getManagedGroup(section: NonNullable<Awaited<ReturnType<typeof getCmsPageConfig>>>["sections"][string], groupKey: string) {
+  return Object.values(section.groups).find((group) => group.groupKey === groupKey) || null;
+}
+
 export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWebPageProps) {
   await requireAdmin();
 
@@ -106,6 +112,8 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
       homeConfig?.sections[sectionKey]?.label ||
       sectionKey
   }));
+  const sponsorEditId = searchParams?.editSponsor || "";
+  const influencerEditId = searchParams?.editInfluencer || "";
 
   try {
     homeEditorContent = homeConfig ? (
@@ -178,6 +186,7 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
 
                 {Object.values(section.groups)
                   .sort((a, b) => a.sortOrder - b.sortOrder)
+                  .filter((group) => !["sponsor_tiles", "influencer_profiles"].includes(group.groupKey))
                   .filter(
                     (group) =>
                       getVisibleGroupFields(group.groupKey, group.items[0]?.fields || {}).length ||
@@ -251,6 +260,26 @@ export default async function AdminDisenoWebPage({ searchParams }: AdminDisenoWe
                       </Box>
                     </Box>
                   ))}
+
+                {section.sectionKey === "patrocinadores" ? (
+                  <ManagedGroupEditor
+                    editItemId={sponsorEditId}
+                    group={getManagedGroup(section, "sponsor_tiles")}
+                    groupKey="sponsor_tiles"
+                    singularTitle="Patrocinador"
+                    title="Patrocinadores"
+                  />
+                ) : null}
+
+                {section.sectionKey === "influencers" ? (
+                  <ManagedGroupEditor
+                    editItemId={influencerEditId}
+                    group={getManagedGroup(section, "influencer_profiles")}
+                    groupKey="influencer_profiles"
+                    singularTitle="Influencer"
+                    title="Influencers"
+                  />
+                ) : null}
                 </Stack>
               </Box>
             </Box>
@@ -422,4 +451,157 @@ function getFieldHint(sectionKey: string, fieldKey: string) {
     .replace(/^footer_marquee\./, "footer.footer_marquee.");
 
   return hints[`${sectionKey}.${fieldKey}`] || hints[normalized];
+}
+
+type ManagedGroupEditorProps = {
+  editItemId?: string;
+  group: CmsGroup | null;
+  groupKey: "sponsor_tiles" | "influencer_profiles";
+  singularTitle: string;
+  title: string;
+};
+
+function ManagedGroupEditor({ editItemId, group, groupKey, singularTitle, title }: ManagedGroupEditorProps) {
+  if (!group) {
+    return null;
+  }
+
+  const selectedItem = group.items.find((item) => item.id === editItemId) || null;
+  const formAnchor = groupKey === "sponsor_tiles" ? "sponsors-manager-form" : "influencers-manager-form";
+  const isSponsor = groupKey === "sponsor_tiles";
+
+  return (
+    <Stack spacing={2.5}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.25,
+          py: 1,
+          borderTop: 1,
+          borderBottom: 1,
+          borderColor: "divider",
+          background:
+            "linear-gradient(90deg, rgba(255,255,255,0), rgba(255,193,7,0.08), rgba(0,188,212,0.08), rgba(255,255,255,0))"
+        }}
+      >
+        <Box sx={{ width: 42, height: 4, bgcolor: "primary.main" }} />
+        <Typography variant="h3">{title}</Typography>
+      </Box>
+
+      <Box sx={{ overflowX: "auto", border: 1, borderColor: "divider", bgcolor: "background.paper" }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Nombre</TableCell>
+              <TableCell>{isSponsor ? "Logo / Foto" : "Rol"}</TableCell>
+              <TableCell>{isSponsor ? "Link" : "Redes"}</TableCell>
+              <TableCell>Asset ID</TableCell>
+              <TableCell align="right">Editar</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {group.items.length ? (
+              group.items.map((item) => (
+                <TableRow key={item.id} selected={item.id === selectedItem?.id}>
+                  <TableCell>{item.fields.name?.textValue || item.label}</TableCell>
+                  <TableCell>
+                    {isSponsor ? item.fields.logo_media?.mediaAssetId || "Sin asset" : item.fields.role?.textValue || "Sin rol"}
+                  </TableCell>
+                  <TableCell sx={{ maxWidth: 260 }}>
+                    {isSponsor ? (
+                      item.fields.target_url?.linkUrl || "Sin link"
+                    ) : (
+                      <Stack direction="row" flexWrap="wrap" gap={0.75}>
+                        {["instagram_url", "facebook_url", "youtube_url", "tiktok_url"]
+                          .filter((key) => item.fields[key]?.linkUrl)
+                          .map((key) => (
+                            <Chip key={key} label={key.replace("_url", "")} size="small" variant="outlined" />
+                          ))}
+                      </Stack>
+                    )}
+                  </TableCell>
+                  <TableCell>{isSponsor ? item.fields.logo_media?.mediaAssetId || "-" : item.fields.cover_media?.mediaAssetId || "-"}</TableCell>
+                  <TableCell align="right">
+                    <Button
+                      component="a"
+                      href={`/admin/diseno-web?${isSponsor ? "editSponsor" : "editInfluencer"}=${item.id}#${formAnchor}`}
+                      size="small"
+                      variant="outlined"
+                    >
+                      Editar
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5}>
+                  <Typography color="text.secondary">No hay registros todavia.</Typography>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </Box>
+
+      <Box
+        component="form"
+        action={upsertManagedGroupItemAction}
+        autoComplete="off"
+        id={formAnchor}
+        sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5, display: "grid", gap: 2 }}
+      >
+        <input name="groupKey" type="hidden" value={groupKey} />
+        <input name="itemId" type="hidden" value={selectedItem?.id || ""} />
+        <input name="returnAnchor" type="hidden" value={formAnchor} />
+
+        <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
+          <Typography variant="h3">{selectedItem ? `Editar ${singularTitle}` : `Nuevo ${singularTitle}`}</Typography>
+          {selectedItem ? (
+            <Button component="a" href={`/admin/diseno-web#${formAnchor}`} size="small" variant="text">
+              Limpiar formulario
+            </Button>
+          ) : null}
+        </Stack>
+
+        {isSponsor ? (
+          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
+            <TextField autoComplete="off" defaultValue={selectedItem?.fields.name?.textValue || ""} label="Nombre" name="name" required />
+            <TextField autoComplete="off" defaultValue={selectedItem?.fields.target_url?.linkUrl || ""} label="Link" name="target_url" />
+            <TextField autoComplete="off" defaultValue={selectedItem?.fields.logo_media?.mediaAssetId || ""} helperText="Asset ID del logo o imagen." label="Asset ID logo" name="logo_media" />
+            <TextField autoComplete="off" defaultValue={selectedItem?.fields.background_color?.textValue || ""} label="Color fondo" name="background_color" />
+            <TextField autoComplete="off" defaultValue={selectedItem?.fields.accent_color?.textValue || ""} label="Color acento" name="accent_color" />
+          </Box>
+        ) : (
+          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
+            <TextField autoComplete="off" defaultValue={selectedItem?.fields.name?.textValue || ""} label="Nombre" name="name" required />
+            <TextField autoComplete="off" defaultValue={selectedItem?.fields.role?.textValue || ""} label="Rol" name="role" />
+            <TextField autoComplete="off" defaultValue={selectedItem?.fields.cover_media?.mediaAssetId || ""} helperText="Asset ID de la foto." label="Asset ID foto" name="cover_media" />
+            <TextField autoComplete="off" defaultValue={selectedItem?.fields.instagram_url?.linkUrl || ""} label="Instagram" name="instagram_url" />
+            <TextField autoComplete="off" defaultValue={selectedItem?.fields.facebook_url?.linkUrl || ""} label="Facebook" name="facebook_url" />
+            <TextField autoComplete="off" defaultValue={selectedItem?.fields.youtube_url?.linkUrl || ""} label="YouTube" name="youtube_url" />
+            <TextField autoComplete="off" defaultValue={selectedItem?.fields.tiktok_url?.linkUrl || ""} label="TikTok" name="tiktok_url" />
+            <Box sx={{ gridColumn: "1 / -1" }}>
+              <TextField
+                autoComplete="off"
+                defaultValue={selectedItem?.fields.description?.textValue || ""}
+                label="Descripcion"
+                multiline
+                minRows={3}
+                name="description"
+                fullWidth
+              />
+            </Box>
+          </Box>
+        )}
+
+        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button type="submit" variant="contained">
+            {selectedItem ? `Guardar ${singularTitle}` : `Agregar ${singularTitle}`}
+          </Button>
+        </Box>
+      </Box>
+    </Stack>
+  );
 }

@@ -7,6 +7,34 @@ import { requireAdmin } from "../../../lib/auth/session";
 import { MEDIA_BUCKET } from "../../../lib/supabase/storage";
 import { createClient } from "../../../lib/supabase/server";
 
+const managedGroupDefinitions = {
+  sponsor_tiles: {
+    entityType: "sponsor_tile",
+    summaryLabel: "patrocinador",
+    fields: [
+      { key: "name", label: "Nombre", kind: "text", sortOrder: 1 },
+      { key: "target_url", label: "Link", kind: "link", sortOrder: 2 },
+      { key: "logo_media", label: "Logo", kind: "image", sortOrder: 3 },
+      { key: "background_color", label: "Color fondo", kind: "text", sortOrder: 4 },
+      { key: "accent_color", label: "Color acento", kind: "text", sortOrder: 5 }
+    ]
+  },
+  influencer_profiles: {
+    entityType: "influencer_profile",
+    summaryLabel: "influencer",
+    fields: [
+      { key: "name", label: "Nombre", kind: "text", sortOrder: 1 },
+      { key: "role", label: "Rol", kind: "text", sortOrder: 2 },
+      { key: "description", label: "Descripcion", kind: "textarea", sortOrder: 3 },
+      { key: "cover_media", label: "Foto", kind: "image", sortOrder: 4 },
+      { key: "instagram_url", label: "Instagram", kind: "link", sortOrder: 5 },
+      { key: "facebook_url", label: "Facebook", kind: "link", sortOrder: 6 },
+      { key: "youtube_url", label: "YouTube", kind: "link", sortOrder: 7 },
+      { key: "tiktok_url", label: "TikTok", kind: "link", sortOrder: 8 }
+    ]
+  }
+} as const;
+
 function toSlug(value: string) {
   return value
     .trim()
@@ -383,4 +411,141 @@ export async function saveHomeSectionAction(formData: FormData) {
   revalidatePath("/admin/diseno-web");
   revalidatePath("/");
   redirect(`/admin/diseno-web?success=${encodeURIComponent(`Se guardo correctamente la seccion ${sectionLabel}.`)}`);
+}
+
+export async function upsertManagedGroupItemAction(formData: FormData) {
+  const session = await requireAdmin();
+  const supabase = createClient();
+
+  const groupKey = String(formData.get("groupKey") ?? "").trim() as keyof typeof managedGroupDefinitions;
+  const itemId = String(formData.get("itemId") ?? "").trim();
+  const returnAnchor = String(formData.get("returnAnchor") ?? "").trim() || "section-diseno-web";
+  const labelSource = String(formData.get("name") ?? formData.get("label") ?? "").trim();
+  const definition = managedGroupDefinitions[groupKey];
+
+  if (!definition) {
+    redirect("/admin/diseno-web?error=No%20se%20reconocio%20el%20grupo%20a%20guardar.");
+  }
+
+  if (!labelSource) {
+    redirect(`/admin/diseno-web?error=${encodeURIComponent("Debes indicar el nombre principal del registro.")}#${returnAnchor}`);
+  }
+
+  const { data: groupRow } = await supabase
+    .from("cms_item_groups")
+    .select("id, label")
+    .eq("group_key", groupKey)
+    .maybeSingle();
+
+  if (!groupRow) {
+    redirect(`/admin/diseno-web?error=${encodeURIComponent("No se encontro el grupo a editar en la configuracion.")}#${returnAnchor}`);
+  }
+
+  let resolvedItemId = itemId;
+
+  if (!resolvedItemId) {
+    const { data: lastItem } = await supabase
+      .from("cms_group_items")
+      .select("sort_order")
+      .eq("group_id", groupRow.id)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const { data: insertedItem, error: insertItemError } = await supabase
+      .from("cms_group_items")
+      .insert({
+        group_id: groupRow.id,
+        item_key: `${toSlug(labelSource)}-${crypto.randomUUID().slice(0, 8)}`,
+        label: labelSource,
+        slug: toSlug(labelSource) || null,
+        sort_order: (lastItem?.sort_order || 0) + 1,
+        is_visible: true
+      })
+      .select("id")
+      .single();
+
+    if (insertItemError || !insertedItem) {
+      redirect(`/admin/diseno-web?error=${encodeURIComponent(insertItemError?.message || "No se pudo crear el nuevo elemento.")}#${returnAnchor}`);
+    }
+
+    resolvedItemId = insertedItem.id;
+  } else {
+    const { error: updateItemError } = await supabase
+      .from("cms_group_items")
+      .update({
+        label: labelSource,
+        slug: toSlug(labelSource) || null
+      })
+      .eq("id", resolvedItemId);
+
+    if (updateItemError) {
+      redirect(`/admin/diseno-web?error=${encodeURIComponent(updateItemError.message)}#${returnAnchor}`);
+    }
+  }
+
+  const rows = definition.fields.map((field) => {
+    const value = String(formData.get(field.key) ?? "").trim();
+    const baseRow = {
+      item_id: resolvedItemId,
+      field_key: field.key,
+      label: field.label,
+      kind: field.kind,
+      locale: "es-MX",
+      sort_order: field.sortOrder,
+      is_visible: true,
+      updated_by: session.profile?.id || null
+    } as Record<string, unknown>;
+
+    if (field.kind === "link") {
+      baseRow.link_url = value || null;
+    } else if (field.kind === "image") {
+      baseRow.media_asset_id = value || null;
+    } else {
+      baseRow.text_value = value || null;
+    }
+
+    return baseRow;
+  });
+
+  const { error: upsertFieldsError } = await supabase
+    .from("cms_group_item_fields")
+    .upsert(rows, { onConflict: "item_id,field_key,locale" });
+
+  if (upsertFieldsError) {
+    redirect(`/admin/diseno-web?error=${encodeURIComponent(upsertFieldsError.message)}#${returnAnchor}`);
+  }
+
+  const referencedMediaIds = rows
+    .map((row) => row.media_asset_id)
+    .filter((value): value is string => typeof value === "string" && value.length > 0);
+
+  if (referencedMediaIds.length) {
+    const { error: mediaError } = await supabase
+      .from("media_assets")
+      .update({ is_public: true })
+      .in("id", referencedMediaIds);
+
+    if (mediaError) {
+      redirect(`/admin/diseno-web?error=${encodeURIComponent(mediaError.message)}#${returnAnchor}`);
+    }
+  }
+
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: definition.entityType,
+    entityId: resolvedItemId,
+    action: itemId ? "update" : "create",
+    summary: `${itemId ? "Actualizacion" : "Alta"} de ${definition.summaryLabel}`,
+    payload: {
+      groupKey,
+      itemId: resolvedItemId,
+      label: labelSource
+    }
+  });
+
+  revalidatePath("/admin/diseno-web");
+  revalidatePath("/");
+  redirect(`/admin/diseno-web?success=${encodeURIComponent(`Se guardo correctamente el ${definition.summaryLabel}.`)}#${returnAnchor}`);
 }
