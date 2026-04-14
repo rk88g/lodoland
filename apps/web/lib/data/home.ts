@@ -199,6 +199,12 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
 
   const sponsorModalItem = eventSection?.groups.official_sponsor_modal?.items[0];
   const eventBannerItem = eventSection?.groups.event_side_banner?.items[0];
+  const eventHeroImage = optimizeMedia(eventSection?.fields.hero_media?.media || null, {
+    width: 1920,
+    height: 1440,
+    quality: 78,
+    resize: "cover"
+  });
   const socialItems = socialSection?.groups.social_profiles?.items || [];
   const collageItems = influencerSection?.groups.influencer_collage?.items || [];
   const influencerItems = influencerSection?.groups.influencer_profiles?.items || [];
@@ -243,12 +249,7 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
       meta: meta.length ? meta : ["Fecha pendiente", "Ciudad pendiente"],
       primaryLabel: eventSection?.fields.primary_cta_label?.textValue || "Ver evento",
       secondaryLabel: eventSection?.fields.secondary_cta_label?.textValue || "Comprar boletos",
-      heroImage: nextEvent?.cover || optimizeMedia(sponsorModalItem?.fields.media?.media || null, {
-        width: 1920,
-        height: 1440,
-        quality: 78,
-        resize: "cover"
-      }),
+      heroImage: eventHeroImage || nextEvent?.cover || null,
       heroAlt:
         eventSection?.fields.hero_image_alt?.textValue ||
         nextEvent?.cover?.altText ||

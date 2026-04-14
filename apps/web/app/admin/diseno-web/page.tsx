@@ -29,7 +29,7 @@ const editorSectionOrder = [
 ] as const;
 
 const sectionFieldKeys: Record<string, string[]> = {
-  evento_reciente: ["title", "description", "primary_cta_label", "secondary_cta_label", "hero_image_alt", "side_banner_alt"],
+  evento_reciente: ["title", "description", "primary_cta_label", "secondary_cta_label", "hero_media", "hero_image_alt", "side_banner_alt"],
   patrocinadores: ["title", "description", "banner_alt"],
   influencers: ["modal_button_label", "modal_title"],
   merch_destacado: ["title", "catalog_button_label"],
@@ -390,11 +390,12 @@ function CmsFieldEditor({ field, helperText, scope }: CmsFieldEditorProps) {
 }
 
 function getFieldHint(sectionKey: string, fieldKey: string) {
-  const hints: Record<string, string> = {
-    "menu_overlay.menu_links.label": "Texto que se vera en el menu principal.",
-    "menu_overlay.menu_links.url": "Ancla o ruta. Ejemplo: #ventas o /login.",
-    "evento_reciente.hero_image_alt": "Texto alternativo del flyer del proximo evento.",
-    "evento_reciente.official_sponsor_modal.media": "Asset ID de la imagen grande del patrocinador oficial.",
+    const hints: Record<string, string> = {
+      "menu_overlay.menu_links.label": "Texto que se vera en el menu principal.",
+      "menu_overlay.menu_links.url": "Ancla o ruta. Ejemplo: #ventas o /login.",
+      "evento_reciente.hero_media": "Asset ID de la imagen gigante principal del evento.",
+      "evento_reciente.hero_image_alt": "Texto alternativo del flyer del proximo evento.",
+      "evento_reciente.official_sponsor_modal.media": "Asset ID de la imagen grande del patrocinador oficial.",
     "evento_reciente.event_side_banner.media": "Asset ID del banner vertical del evento.",
     "redes_sociales.social_profiles.embed_url": "Usa una URL publica de embed. Si no existe, deja solo la preview.",
     "redes_sociales.social_profiles.preview_media": "Asset ID de la preview vertical de la red social.",
