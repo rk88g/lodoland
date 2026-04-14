@@ -730,6 +730,10 @@ main {
   width: min(100%, 860px);
 }
 
+.merch-modal {
+  width: min(calc(100vw - 40px), 1180px);
+}
+
 .sale-modal,
 .event-modal,
 .merch-modal {
@@ -825,6 +829,7 @@ main {
 
 .merch-modal-grid {
   gap: 8px;
+  padding: 0 20px 28px;
 }
 
 .merch-modal-item {
