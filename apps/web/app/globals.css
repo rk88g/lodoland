@@ -275,14 +275,37 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   min-height: min(76vh, 760px);
+  overflow: hidden;
+  align-items: stretch;
+}
+
+.spotlight-modal::before {
+  display: none;
 }
 
 .spotlight-visual {
+  position: relative;
   min-height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  isolation: isolate;
   background:
     radial-gradient(circle at 24% 24%, rgba(255, 186, 87, 0.22), transparent 28%),
     radial-gradient(circle at 70% 70%, rgba(65, 211, 194, 0.18), transparent 26%),
     linear-gradient(135deg, rgba(255, 107, 159, 0.12), rgba(160, 74, 33, 0.46), rgba(5, 7, 12, 0.92));
+}
+
+.spotlight-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(6, 7, 12, 0.04), rgba(6, 7, 12, 0.18));
+  pointer-events: none;
+}
+
+.spotlight-visual.has-media::after {
+  background: linear-gradient(180deg, rgba(6, 7, 12, 0.02), rgba(6, 7, 12, 0.16));
 }
 
 .spotlight-copy,
@@ -915,18 +938,26 @@ main {
 }
 
 .scene-flyer {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   background:
     radial-gradient(circle at 20% 26%, rgba(255, 186, 87, 0.24), transparent 22%),
     linear-gradient(135deg, rgba(255, 107, 159, 0.14), rgba(160, 74, 33, 0.56), rgba(8, 10, 18, 0.94));
-  transform: scale(1.08);
+  transform: scale(1.02);
+}
+
+.scene-flyer.has-media {
+  filter: saturate(1.06) contrast(1.04);
+  transform: scale(1.01);
 }
 
 .event-gradient {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(6, 7, 12, 0.82), rgba(6, 7, 12, 0.16) 52%, rgba(6, 7, 12, 0.74)),
-    linear-gradient(180deg, rgba(6, 7, 12, 0.12), rgba(6, 7, 12, 0.48));
+    linear-gradient(90deg, rgba(6, 7, 12, 0.68), rgba(6, 7, 12, 0.08) 52%, rgba(6, 7, 12, 0.58)),
+    linear-gradient(180deg, rgba(6, 7, 12, 0.08), rgba(6, 7, 12, 0.34));
 }
 
 .side-banner {
@@ -944,8 +975,14 @@ main {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)),
     rgba(8, 10, 18, 0.36);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow);
+  overflow: hidden;
+  text-indent: -9999px;
+  white-space: nowrap;
 }
 
 .section-social {
@@ -1429,6 +1466,12 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: linear-gradient(135deg, rgba(255, 186, 87, 0.12), rgba(65, 211, 194, 0.08));
   box-shadow: var(--shadow);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  overflow: hidden;
+  text-indent: -9999px;
+  white-space: nowrap;
 }
 
 .section-influencers {
@@ -2500,6 +2543,10 @@ main {
     grid-template-columns: 1fr;
   }
 
+  .spotlight-visual {
+    min-height: 40vh;
+  }
+
   .spotlight-modal,
   .influencer-modal,
   .event-modal,
@@ -2641,6 +2688,10 @@ main {
   .sale-modal,
   .merch-modal {
     padding: 30px 22px 24px;
+  }
+
+  .spotlight-visual {
+    min-height: 36vh;
   }
 
   .influencer-modal-list,

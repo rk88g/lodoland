@@ -179,14 +179,15 @@ export function HomeExperience({ data }: HomeExperienceProps) {
 
             <div
               aria-label={data.officialSponsor.image?.altText || "Imagen patrocinador oficial"}
-              className="spotlight-visual"
+              className={`spotlight-visual ${data.officialSponsor.image ? "has-media" : ""}`}
               role="img"
               style={
                 data.officialSponsor.image
                   ? {
                       backgroundImage: `url(${data.officialSponsor.image.url})`,
                       backgroundSize: "cover",
-                      backgroundPosition: "center"
+                      backgroundPosition: "center",
+                      backgroundRepeat: "no-repeat"
                     }
                   : undefined
               }
@@ -552,14 +553,15 @@ export function HomeExperience({ data }: HomeExperienceProps) {
         <div className="sticky-scene">
           <div
             aria-label={data.event.heroAlt}
-            className="scene-background scene-flyer"
+            className={`scene-background scene-flyer ${data.event.heroImage ? "has-media" : ""}`}
             role="img"
             style={
               data.event.heroImage
                 ? {
                     backgroundImage: `url(${data.event.heroImage.url})`,
                     backgroundSize: "cover",
-                    backgroundPosition: "center"
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat"
                   }
                 : undefined
             }
@@ -597,6 +599,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
                     backgroundImage: `url(${data.event.sideBannerImage.url})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
                     color: "transparent"
                   }
                 : undefined
@@ -716,6 +719,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
                     backgroundImage: `url(${data.sponsors.bannerImage.url})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
                     color: "transparent"
                   }
                 : undefined
