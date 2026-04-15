@@ -7,7 +7,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select coalesce(public.current_app_role() = 'staff', false)
+  select coalesce(public.current_app_role()::text = 'staff', false)
 $$;
 
 create or replace function public.is_operator()
@@ -17,7 +17,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select coalesce(public.current_app_role() in ('staff', 'admin', 'super_admin'), false)
+  select coalesce(public.current_app_role()::text in ('staff', 'admin', 'super_admin'), false)
 $$;
 
 drop policy if exists "profiles_operator_select" on public.profiles;

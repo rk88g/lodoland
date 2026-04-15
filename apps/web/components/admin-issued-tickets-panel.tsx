@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import {
   Box,
   Button,
@@ -24,9 +23,9 @@ import {
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import type { AdminIssuedTicketSummary } from "../lib/data/tickets";
 import { formatEventDateTimeWallClock } from "../lib/date-format";
-import { buildQrCodeUrl } from "../lib/qr";
-import { validateIssuedTicketAction } from "../app/admin/tickets/actions";
-import { updateIssuedTicketStatusAction } from "../app/admin/tickets/actions";
+import { validateIssuedTicketAction, updateIssuedTicketStatusAction } from "../app/admin/tickets/actions";
+import type { TicketPassDetail } from "../lib/data/ticket-pass";
+import { TicketPass } from "./ticket-pass";
 
 function formatDate(dateValue: string | null) {
   return formatEventDateTimeWallClock(dateValue) || "Sin fecha";
@@ -35,24 +34,19 @@ function formatDate(dateValue: string | null) {
 function formatTicketStatus(status: string) {
   switch (status) {
     case "checked_in":
-      return "Usado";
+      return "Utilizado";
     case "issued":
       return "Emitido";
     case "cancelled":
       return "Cancelado";
     case "refunded":
-      return "Reembolsado";
+      return "Reintegro";
     default:
       return status;
   }
 }
 
-const ticketStatuses = [
-  "issued",
-  "checked_in",
-  "cancelled",
-  "refunded"
-];
+const ticketStatuses = ["issued", "checked_in", "cancelled", "refunded"];
 
 function getTicketStatusSx(status: string) {
   if (status === "issued") {
@@ -79,9 +73,11 @@ function getTicketStatusSx(status: string) {
 }
 
 export function AdminIssuedTicketsPanel({
-  items
+  items,
+  ticketDetails
 }: {
   items: AdminIssuedTicketSummary[];
+  ticketDetails: Record<string, TicketPassDetail>;
 }) {
   const [query, setQuery] = useState("");
   const [selectedTicket, setSelectedTicket] = useState<AdminIssuedTicketSummary | null>(null);
@@ -108,9 +104,16 @@ export function AdminIssuedTicketsPanel({
     );
   }, [items, query]);
 
+  const selectedDetail = selectedTicket ? ticketDetails[selectedTicket.id] || null : null;
+
   return (
     <Stack spacing={1.5}>
-      <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} justifyContent="space-between" alignItems={{ xs: "stretch", md: "center" }}>
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        spacing={1.5}
+        justifyContent="space-between"
+        alignItems={{ xs: "stretch", md: "center" }}
+      >
         <Typography variant="h2">Tickets emitidos</Typography>
         <TextField
           label="Buscar ticket"
@@ -163,8 +166,8 @@ export function AdminIssuedTicketsPanel({
                     <Stack spacing={0.35}>
                       <Typography variant="body2">{formatDate(ticket.issuedAt)}</Typography>
                       {ticket.checkedInAt ? (
-                        <Typography color="success.main" variant="body2">
-                          Usado: {formatDate(ticket.checkedInAt)}
+                        <Typography color="info.main" variant="body2">
+                          Utilizado: {formatDate(ticket.checkedInAt)}
                         </Typography>
                       ) : null}
                     </Stack>
@@ -196,55 +199,49 @@ export function AdminIssuedTicketsPanel({
         </Typography>
       )}
 
-      <Dialog fullWidth maxWidth="md" onClose={() => setSelectedTicket(null)} open={Boolean(selectedTicket)}>
-        <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1 }}>
+      <Dialog
+        fullScreen
+        onClose={() => setSelectedTicket(null)}
+        open={Boolean(selectedTicket)}
+        PaperProps={{
+          sx: {
+            bgcolor: "#08111d"
+          }
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1,
+            px: { xs: 2, md: 3 }
+          }}
+        >
           Ticket emitido
           <IconButton onClick={() => setSelectedTicket(null)}>
             <CloseOutlinedIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers>
-          {selectedTicket ? (
-            <Box sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", overflow: "hidden" }}>
-              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "280px minmax(0, 1fr)" } }}>
-                <Box
-                  sx={{
-                    display: "grid",
-                    placeItems: "center",
-                    minHeight: 280,
-                    p: 3,
-                    background: "linear-gradient(160deg, rgba(255,157,92,0.22) 0%, rgba(255,105,180,0.16) 45%, rgba(88,160,255,0.18) 100%)"
-                  }}
-                >
-                  <Box sx={{ width: "100%", maxWidth: 220, aspectRatio: "1 / 1", bgcolor: "#fff", p: 1.5 }}>
-                    <Box
-                      alt={`QR ${selectedTicket.ticketCode}`}
-                      component="img"
-                      src={buildQrCodeUrl(selectedTicket.qrPayload || selectedTicket.ticketCode, 240)}
-                      sx={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-                    />
-                  </Box>
-                </Box>
-                <Stack spacing={2} sx={{ p: 3 }}>
-                  <Typography variant="h2">{selectedTicket.eventTitle}</Typography>
-                  <Typography color="text.secondary">Ticket {selectedTicket.ticketCode}</Typography>
-                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                    <Chip label={selectedTicket.ticketTypeName} />
-                    {selectedTicket.ticketLotLabel ? <Chip label={selectedTicket.ticketLotLabel} /> : null}
-                    <Chip label={formatTicketStatus(selectedTicket.status)} sx={getTicketStatusSx(selectedTicket.status)} />
-                  </Stack>
-                  <Typography color="text.secondary">Emitido: {formatDate(selectedTicket.issuedAt)}</Typography>
-                  {selectedTicket.checkedInAt ? (
-                    <Typography color="success.main">Usado: {formatDate(selectedTicket.checkedInAt)}</Typography>
-                  ) : null}
-                  {selectedTicket.ownerLabel ? (
-                    <Typography color="text.secondary">Cuenta: {selectedTicket.ownerLabel}</Typography>
-                  ) : null}
-                  {selectedTicket.purchaserName || selectedTicket.purchaserEmail || selectedTicket.purchaserPhone ? (
-                    <Typography color="text.secondary">
-                      {[selectedTicket.purchaserName, selectedTicket.purchaserEmail, selectedTicket.purchaserPhone].filter(Boolean).join(" - ")}
-                    </Typography>
-                  ) : null}
+        <DialogContent dividers sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
+          {selectedTicket && selectedDetail ? (
+            <Stack spacing={2.5}>
+              <TicketPass ticket={selectedDetail} />
+
+              <Stack
+                direction={{ xs: "column", xl: "row" }}
+                spacing={1.5}
+                justifyContent="space-between"
+                sx={{ p: { xs: 2, md: 2.5 }, bgcolor: "background.paper", border: 1, borderColor: "divider" }}
+              >
+                <Stack spacing={0.4}>
+                  <Typography fontWeight={800}>Operacion del ticket</Typography>
+                  <Typography color="text.secondary" variant="body2">
+                    Cambia el estatus o valida el acceso desde esta misma ventana.
+                  </Typography>
+                </Stack>
+
+                <Stack direction={{ xs: "column", lg: "row" }} spacing={1} useFlexGap flexWrap="wrap">
                   <form action={updateIssuedTicketStatusAction} method="post">
                     <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
                       <input name="redirectTo" type="hidden" value="/admin/tickets" />
@@ -261,23 +258,19 @@ export function AdminIssuedTicketsPanel({
                       </Button>
                     </Stack>
                   </form>
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                    <Button component={Link} href={`/admin/tickets/${selectedTicket.id}`} variant="outlined">
-                      Abrir detalle
-                    </Button>
-                    {selectedTicket.status !== "checked_in" && selectedTicket.status !== "cancelled" && selectedTicket.status !== "refunded" ? (
-                      <form action={validateIssuedTicketAction} method="post">
-                        <input name="redirectTo" type="hidden" value="/admin/tickets" />
-                        <input name="scanValue" type="hidden" value={selectedTicket.qrPayload || selectedTicket.ticketCode} />
-                        <Button type="submit" variant="contained">
-                          Validar y quemar
-                        </Button>
-                      </form>
-                    ) : null}
-                  </Stack>
+
+                  {selectedTicket.status !== "checked_in" && selectedTicket.status !== "cancelled" && selectedTicket.status !== "refunded" ? (
+                    <form action={validateIssuedTicketAction} method="post">
+                      <input name="redirectTo" type="hidden" value="/admin/tickets" />
+                      <input name="scanValue" type="hidden" value={selectedTicket.qrPayload || selectedTicket.ticketCode} />
+                      <Button type="submit" variant="contained">
+                        Validar y quemar
+                      </Button>
+                    </form>
+                  ) : null}
                 </Stack>
-              </Box>
-            </Box>
+              </Stack>
+            </Stack>
           ) : null}
         </DialogContent>
       </Dialog>

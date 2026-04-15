@@ -9,16 +9,32 @@ function formatDate(dateValue: string | null) {
 function formatTicketStatus(status: string) {
   switch (status) {
     case "checked_in":
-      return "Usado";
+      return "Utilizado";
     case "issued":
       return "Emitido";
     case "cancelled":
       return "Cancelado";
     case "refunded":
-      return "Reembolsado";
+      return "Reintegro";
     default:
       return status;
   }
+}
+
+function formatAccessStatus(status: string, checkedInAt: string | null) {
+  if (status === "checked_in") {
+    return checkedInAt ? `Utilizado · ${formatDate(checkedInAt)}` : "Utilizado";
+  }
+
+  if (status === "cancelled") {
+    return "Cancelado";
+  }
+
+  if (status === "refunded") {
+    return "Reintegro";
+  }
+
+  return "Disponible";
 }
 
 function getTicketStatusSx(status: string) {
@@ -70,16 +86,15 @@ export function TicketPass({ ticket }: { ticket: TicketPassDetail }) {
         sx={{
           borderRadius: 3,
           overflow: "hidden",
-          border: "1px solid rgba(148, 163, 184, 0.32)",
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(246,248,252,0.98) 100%)",
+          border: "1px solid rgba(148, 163, 184, 0.24)",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(246,248,252,0.98) 100%)",
           boxShadow: "0 24px 80px rgba(3, 7, 18, 0.18)"
         }}
       >
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "1fr", lg: "minmax(300px, 34%) minmax(0, 1fr)" }
+            gridTemplateColumns: { xs: "1fr", xl: "minmax(340px, 37%) minmax(0, 1fr)" }
           }}
         >
           <Box
@@ -88,19 +103,17 @@ export function TicketPass({ ticket }: { ticket: TicketPassDetail }) {
               px: { xs: 3, md: 4 },
               py: { xs: 3, md: 4 },
               color: "#fff",
-              background:
-                "linear-gradient(180deg, #0455d4 0%, #0d6cf2 48%, #0f67dd 100%)"
+              background: "linear-gradient(180deg, #0455d4 0%, #0d6cf2 48%, #0f67dd 100%)"
             }}
           >
-            <Stack spacing={2.5} sx={{ minHeight: "100%" }}>
+            <Stack spacing={2.3} sx={{ minHeight: "100%" }}>
               <Stack direction="row" justifyContent="space-between" spacing={1} alignItems="flex-start">
                 <Box
                   sx={{
                     px: 1.5,
                     py: 0.65,
                     borderRadius: 999,
-                    bgcolor: "rgba(255,255,255,0.16)",
-                    border: "1px solid rgba(255,255,255,0.24)"
+                    bgcolor: "rgba(255,255,255,0.16)"
                   }}
                 >
                   <Typography sx={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.1em" }}>
@@ -119,7 +132,7 @@ export function TicketPass({ ticket }: { ticket: TicketPassDetail }) {
                 />
               </Stack>
 
-              <Stack spacing={1}>
+              <Stack spacing={0.9}>
                 <Typography sx={{ fontSize: { xs: 34, md: 42 }, fontWeight: 900, lineHeight: 0.98 }}>
                   {ticket.eventTitle}
                 </Typography>
@@ -128,23 +141,72 @@ export function TicketPass({ ticket }: { ticket: TicketPassDetail }) {
                 </Typography>
               </Stack>
 
-              <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+              <Box sx={{ display: "grid", gap: 1.25, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
                 <TicketMetric light label="Fecha" value={formatDate(ticket.eventStartsAt)} />
                 <TicketMetric light label="Tipo" value={ticket.ticketTypeName} />
                 <TicketMetric light label="Drop" value={ticket.ticketLotLabel || "General"} />
-                <TicketMetric light label="Codigo" value={ticket.ticketCode} />
+                <TicketMetric light label="Acceso" value={formatAccessStatus(ticket.status, ticket.checkedInAt)} />
               </Box>
 
               <Box
                 sx={{
-                  mt: "auto",
-                  pt: 2,
-                  borderTop: "1px dashed rgba(255,255,255,0.28)"
+                  px: 2,
+                  py: 1.75,
+                  borderRadius: 2.5,
+                  bgcolor: "rgba(255,255,255,0.08)"
                 }}
               >
-                <Typography sx={{ fontSize: 12, letterSpacing: "0.08em", opacity: 0.8 }}>
-                  {ticket.siteHost}
+                <Typography sx={{ fontSize: 11, color: "rgba(255,255,255,0.74)", letterSpacing: "0.08em" }}>
+                  CODIGO DEL BOLETO
                 </Typography>
+                <Typography
+                  sx={{
+                    mt: 0.55,
+                    fontSize: { xs: 17, md: 21 },
+                    fontWeight: 900,
+                    letterSpacing: "0.035em",
+                    lineHeight: 1.15,
+                    wordBreak: "break-word"
+                  }}
+                >
+                  {ticket.ticketCode}
+                </Typography>
+              </Box>
+
+              {ticket.sponsors.official ? (
+                <Stack spacing={0.7}>
+                  <Typography sx={{ fontSize: 10.5, color: "rgba(255,255,255,0.78)", letterSpacing: "0.1em" }}>
+                    PATROCINADOR OFICIAL
+                  </Typography>
+                  <Box
+                    sx={{
+                      minHeight: 118,
+                      display: "grid",
+                      placeItems: "center",
+                      borderRadius: 2.5,
+                      bgcolor: "rgba(255,255,255,0.1)",
+                      px: 2.5,
+                      py: 2
+                    }}
+                  >
+                    {ticket.sponsors.official.imageUrl ? (
+                      <Box
+                        alt={ticket.sponsors.official.name}
+                        component="img"
+                        src={ticket.sponsors.official.imageUrl}
+                        sx={{ maxHeight: 80, maxWidth: "100%", objectFit: "contain", display: "block" }}
+                      />
+                    ) : (
+                      <Typography sx={{ fontSize: 22, fontWeight: 900, color: "#fff", textAlign: "center" }}>
+                        {ticket.sponsors.official.name}
+                      </Typography>
+                    )}
+                  </Box>
+                </Stack>
+              ) : null}
+
+              <Box sx={{ mt: "auto", pt: 1.5 }}>
+                <Typography sx={{ fontSize: 12, letterSpacing: "0.08em", opacity: 0.82 }}>{ticket.siteHost}</Typography>
               </Box>
             </Stack>
           </Box>
@@ -157,34 +219,25 @@ export function TicketPass({ ticket }: { ticket: TicketPassDetail }) {
               bgcolor: "#fbfcfe"
             }}
           >
-            <Stack spacing={2.5}>
+            <Stack spacing={2.25}>
               <Box
                 sx={{
                   display: "grid",
-                  gap: 2,
+                  gap: 2.25,
                   alignItems: "center",
-                  gridTemplateColumns: { xs: "1fr", md: "minmax(220px, 260px) minmax(0, 1fr)" }
+                  gridTemplateColumns: { xs: "1fr", lg: "minmax(250px, 280px) minmax(0, 1fr)" }
                 }}
               >
-                <Box
-                  sx={{
-                    display: "grid",
-                    placeItems: "center",
-                    border: "1px solid rgba(148, 163, 184, 0.3)",
-                    borderRadius: 3,
-                    bgcolor: "#fff",
-                    p: 2.25
-                  }}
-                >
+                <Box sx={{ display: "grid", placeItems: "center", bgcolor: "#fff", p: 2.25, borderRadius: 3 }}>
                   <Box
                     alt={`QR ${ticket.ticketCode}`}
                     component="img"
                     src={ticket.qrImageUrl}
-                    sx={{ width: "100%", maxWidth: 220, aspectRatio: "1 / 1", objectFit: "contain", display: "block" }}
+                    sx={{ width: "100%", maxWidth: 240, aspectRatio: "1 / 1", objectFit: "contain", display: "block" }}
                   />
                 </Box>
 
-                <Stack spacing={1.35}>
+                <Stack spacing={1.2}>
                   <Typography sx={{ fontSize: 15, fontWeight: 800, color: "#0f172a", letterSpacing: "0.04em" }}>
                     PRESENTA ESTE QR EN EL ACCESO
                   </Typography>
@@ -199,25 +252,17 @@ export function TicketPass({ ticket }: { ticket: TicketPassDetail }) {
               <Box sx={{ display: "grid", gap: 1.25, gridTemplateColumns: { xs: "1fr", md: "repeat(3, minmax(0, 1fr))" } }}>
                 <TicketMetric label="Direccion" value={ticket.eventAddress || "Pendiente"} />
                 <TicketMetric label="Precio" value={ticket.priceLabel} />
-                <TicketMetric label="Acceso" value={ticket.checkedInAt ? formatDate(ticket.checkedInAt) : "Pendiente"} />
+                <TicketMetric label="Acceso" value={formatAccessStatus(ticket.status, ticket.checkedInAt)} />
               </Box>
 
               <Box
                 sx={{
                   pt: 2,
-                  borderTop: "1px dashed rgba(148, 163, 184, 0.45)",
+                  borderTop: "1px dashed rgba(148, 163, 184, 0.32)",
                   display: "grid",
-                  gap: 1.6
+                  gap: 1.45
                 }}
               >
-                {ticket.sponsors.official ? (
-                  <SponsorBlock
-                    imageHeight={76}
-                    item={ticket.sponsors.official}
-                    label="Patrocinador oficial"
-                  />
-                ) : null}
-
                 {ticket.sponsors.featured.length ? (
                   <SponsorRow items={ticket.sponsors.featured} label="Nivel 2 · 3 · 4" logoHeight={48} />
                 ) : null}
@@ -240,13 +285,7 @@ export function TicketPass({ ticket }: { ticket: TicketPassDetail }) {
         </Box>
       </Box>
 
-      <Box
-        sx={{
-          border: "1px solid rgba(148, 163, 184, 0.24)",
-          bgcolor: "background.paper",
-          p: { xs: 2, md: 2.25 }
-        }}
-      >
+      <Box sx={{ bgcolor: "background.paper", p: { xs: 2, md: 2.25 } }}>
         <Stack spacing={0.75}>
           <Typography sx={{ fontSize: 13, fontWeight: 800, letterSpacing: "0.08em" }}>
             Recomendaciones importantes
@@ -279,8 +318,8 @@ function TicketMetric({
         borderRadius: 2,
         px: 1.6,
         py: 1.25,
-        border: light ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(148, 163, 184, 0.28)",
-        bgcolor: light ? "rgba(255,255,255,0.08)" : "rgba(241, 245, 249, 0.72)"
+        border: "none",
+        bgcolor: light ? "rgba(255,255,255,0.08)" : "rgba(241, 245, 249, 0.82)"
       }}
     >
       <Stack spacing={0.35}>
@@ -292,45 +331,6 @@ function TicketMetric({
         </Typography>
       </Stack>
     </Box>
-  );
-}
-
-function SponsorBlock({
-  label,
-  item,
-  imageHeight
-}: {
-  label: string;
-  item: { name: string; imageUrl: string | null };
-  imageHeight: number;
-}) {
-  return (
-    <Stack spacing={0.7}>
-      <Typography sx={{ fontSize: 10.5, color: "#64748b", letterSpacing: "0.1em" }}>{label.toUpperCase()}</Typography>
-      <Box
-        sx={{
-          minHeight: imageHeight + 22,
-          display: "grid",
-          placeItems: "center",
-          borderRadius: 2,
-          border: "1px solid rgba(148, 163, 184, 0.24)",
-          bgcolor: "rgba(248, 250, 252, 0.88)",
-          px: 2,
-          py: 1.25
-        }}
-      >
-        {item.imageUrl ? (
-          <Box
-            alt={item.name}
-            component="img"
-            src={item.imageUrl}
-            sx={{ maxHeight: imageHeight, maxWidth: "100%", objectFit: "contain", display: "block" }}
-          />
-        ) : (
-          <Typography sx={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>{item.name}</Typography>
-        )}
-      </Box>
-    </Stack>
   );
 }
 
@@ -355,8 +355,7 @@ function SponsorRow({
               display: "grid",
               placeItems: "center",
               borderRadius: 2,
-              border: "1px solid rgba(148, 163, 184, 0.24)",
-              bgcolor: "rgba(248, 250, 252, 0.88)",
+              bgcolor: "rgba(248, 250, 252, 0.92)",
               px: 1.25,
               py: 1
             }}

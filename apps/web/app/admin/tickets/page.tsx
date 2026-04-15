@@ -15,6 +15,7 @@ import { TicketQrScanner } from "../../../components/ticket-qr-scanner";
 import { requireAdmin } from "../../../lib/auth/session";
 import { readFlashMessage } from "../../../lib/flash";
 import { getCustomerAccountOptions } from "../../../lib/data/admin-sales";
+import { getTicketPassDetail } from "../../../lib/data/ticket-pass";
 import {
   getAdminTicketLots,
   getAdminTicketTypes,
@@ -55,6 +56,23 @@ export default async function AdminTicketsPage() {
       getCustomerAccountOptions(120),
       getRecentIssuedTickets(80)
     ]);
+
+  const ticketDetailsEntries = await Promise.all(
+    issuedTickets.map(async (ticket) => {
+      const detail = await getTicketPassDetail(ticket.id);
+      return [ticket.id, detail] as const;
+    })
+  );
+
+  const ticketDetails = Object.fromEntries(
+    ticketDetailsEntries.reduce<Array<[string, NonNullable<(typeof ticketDetailsEntries)[number][1]>]>>((acc, entry) => {
+      if (entry[1]) {
+        acc.push([entry[0], entry[1]]);
+      }
+
+      return acc;
+    }, [])
+  );
 
   return (
     <DashboardShell navItems={controlNavItems} subtitle="Drops, emision, QR y validacion" title="Tickets">
@@ -350,7 +368,7 @@ export default async function AdminTicketsPage() {
       </AdminSectionCard>
 
       <AdminSectionCard description="Busca, abre en modal y valida tickets emitidos sin salir del flujo." title="Tickets emitidos">
-        <AdminIssuedTicketsPanel items={issuedTickets} />
+        <AdminIssuedTicketsPanel items={issuedTickets} ticketDetails={ticketDetails} />
       </AdminSectionCard>
     </DashboardShell>
   );
