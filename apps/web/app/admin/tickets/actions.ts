@@ -564,11 +564,7 @@ export async function updateIssuedTicketStatusAction(formData: FormData) {
   const ticketId = String(formData.get("ticketId") ?? "").trim();
   const nextStatus = String(formData.get("status") ?? "").trim();
   const allowedStatuses = new Set([
-    "available",
-    "reserved",
-    "sold",
     "issued",
-    "courtesy",
     "checked_in",
     "cancelled",
     "refunded"

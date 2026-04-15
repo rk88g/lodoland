@@ -77,28 +77,44 @@ export async function getTicketPassDetail(
   }
 
   const supabase = createClient();
-  const buildQuery = () =>
-    supabase
-      .from("issued_tickets")
-      .select(
-        "id, ticket_type_id, ticket_lot_id, owner_user_id, purchaser_name, purchaser_email, purchaser_phone, ticket_code, qr_payload, status, issued_at, checked_in_at, created_at"
-      )
-      .eq("id", ticketId);
-
-  const [ownerMatch, emailMatch, tokenMatch] = await Promise.all([
-    options?.ownerUserId ? buildQuery().eq("owner_user_id", options.ownerUserId).maybeSingle() : Promise.resolve({ data: null, error: null }),
-    options?.userEmail ? buildQuery().eq("purchaser_email", options.userEmail).maybeSingle() : Promise.resolve({ data: null, error: null }),
-    options?.token ? buildQuery().contains("metadata", { hash: options.token }).maybeSingle() : Promise.resolve({ data: null, error: null })
-  ]);
-
-  const ticket = ownerMatch.data || emailMatch.data || tokenMatch.data;
-  const error = ownerMatch.error || emailMatch.error || tokenMatch.error;
+  const { data: ticket, error } = await supabase
+    .from("issued_tickets")
+    .select(
+      "id, ticket_type_id, ticket_lot_id, owner_user_id, purchaser_name, purchaser_email, purchaser_phone, ticket_code, qr_payload, status, issued_at, checked_in_at, created_at, metadata"
+    )
+    .eq("id", ticketId)
+    .maybeSingle();
 
   if (error || !ticket) {
     return null;
   }
 
-  const issuedTicket = ticket as IssuedTicketRow;
+  const issuedTicket = ticket as IssuedTicketRow & {
+    metadata?: {
+      hash?: string;
+    } | null;
+  };
+
+  if (options?.ownerUserId || options?.userEmail) {
+    const ownsTicket = issuedTicket.owner_user_id === options?.ownerUserId;
+    const matchesPurchaserEmail = Boolean(
+      options?.userEmail &&
+      issuedTicket.purchaser_email &&
+      issuedTicket.purchaser_email.toLowerCase() === options.userEmail.toLowerCase()
+    );
+
+    if (!ownsTicket && !matchesPurchaserEmail) {
+      return null;
+    }
+  }
+
+  if (options?.token) {
+    const storedHash = issuedTicket.metadata?.hash || null;
+
+    if (!storedHash || storedHash !== options.token) {
+      return null;
+    }
+  }
 
   const [{ data: ticketType }, { data: lot }, { data: owner }] = await Promise.all([
     supabase
