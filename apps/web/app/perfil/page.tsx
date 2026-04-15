@@ -10,7 +10,7 @@ import {
   Typography
 } from "@mui/material";
 import { DashboardShell } from "../../components/dashboard-shell";
-import { requireUser } from "../../lib/auth/session";
+import { isEmailConfirmed, requireUser } from "../../lib/auth/session";
 import { getCustomerPools, getCustomerRaffles, getCustomerTickets } from "../../lib/data/customer";
 import { getAvatarPresets, getNextEvent } from "../../lib/data/portal";
 import { formatEventDateTimeWallClock } from "../../lib/date-format";
@@ -23,6 +23,7 @@ type ProfilePageProps = {
   searchParams?: {
     error?: string;
     success?: string;
+    message?: string;
   };
 };
 
@@ -44,11 +45,19 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const activeAvatar = avatarPresets.find((avatarPreset) => avatarPreset.id === profile?.avatar_preset_id) || null;
   const errorMessage = searchParams?.error ? decodeURIComponent(searchParams.error) : null;
   const successMessage = searchParams?.success ? decodeURIComponent(searchParams.success) : null;
+  const infoMessage = searchParams?.message ? decodeURIComponent(searchParams.message) : null;
+  const emailConfirmed = isEmailConfirmed(user);
 
   return (
     <DashboardShell navItems={customerNavItems} subtitle="Intranet de clientes" title="Mi perfil">
       {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
       {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
+      {infoMessage ? <Alert severity="warning">{infoMessage}</Alert> : null}
+      {!emailConfirmed ? (
+        <Alert severity="warning">
+          Tu cuenta esta en modo limitado. Confirma tu correo para usar compras, eventos, rifas y quinielas.
+        </Alert>
+      ) : null}
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Proximo evento</Typography>
@@ -84,10 +93,10 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 ) : null}
                 <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap">
                   <Link href="/eventos" style={{ textDecoration: "none" }}>
-                    <Button variant="contained">Ver evento</Button>
+                    <Button disabled={!emailConfirmed} variant="contained">Ver evento</Button>
                   </Link>
                   <Link href="/perfil/compras" style={{ textDecoration: "none" }}>
-                    <Button variant="outlined">Mis compras</Button>
+                    <Button disabled={!emailConfirmed} variant="outlined">Mis compras</Button>
                   </Link>
                 </Stack>
               </Stack>
@@ -252,7 +261,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
           <Typography variant="h2">Mis compras</Typography>
           <Link href="/perfil/compras" style={{ textDecoration: "none" }}>
-            <Button variant="outlined">Ver todo</Button>
+            <Button disabled={!emailConfirmed} variant="outlined">Ver todo</Button>
           </Link>
         </Stack>
         <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", xl: "repeat(3, minmax(0, 1fr))" } }}>

@@ -37,6 +37,42 @@ function formatAccessStatus(status: string, checkedInAt: string | null) {
   return "Disponible";
 }
 
+function maskEmail(email: string | null) {
+  if (!email) {
+    return "Sin correo registrado";
+  }
+
+  const [local, domain] = email.split("@");
+
+  if (!domain) {
+    return email;
+  }
+
+  if (local.length <= 2) {
+    return `${local.slice(0, 1)}***@${domain}`;
+  }
+
+  return `${local.slice(0, 2)}${"*".repeat(Math.max(local.length - 2, 3))}@${domain}`;
+}
+
+function maskPhone(phone: string | null) {
+  if (!phone) {
+    return "Sin telefono";
+  }
+
+  const digits = phone.replace(/\D/g, "");
+
+  if (!digits) {
+    return phone;
+  }
+
+  if (digits.length <= 3) {
+    return `***${digits}`;
+  }
+
+  return `${digits.slice(0, -3).replace(/\d/g, "*")}${digits.slice(-3)}`;
+}
+
 function getTicketStatusSx(status: string) {
   if (status === "issued") {
     return {
@@ -243,8 +279,8 @@ export function TicketPass({ ticket }: { ticket: TicketPassDetail }) {
                   </Typography>
                   <TicketMetric label="Cuenta" value={ticket.ownerLabel || ticket.purchaserEmail || "Cliente"} />
                   <TicketMetric label="Comprador" value={ticket.purchaserName || "Sin nombre registrado"} />
-                  <TicketMetric label="Correo" value={ticket.purchaserEmail || "Sin correo registrado"} />
-                  <TicketMetric label="Telefono" value={ticket.purchaserPhone || "Sin telefono"} />
+                  <TicketMetric label="Correo" value={maskEmail(ticket.purchaserEmail)} />
+                  <TicketMetric label="Telefono" value={maskPhone(ticket.purchaserPhone)} />
                   <TicketMetric label="Emitido" value={formatDate(ticket.issuedAt)} />
                 </Stack>
               </Box>
@@ -264,11 +300,11 @@ export function TicketPass({ ticket }: { ticket: TicketPassDetail }) {
                 }}
               >
                 {ticket.sponsors.featured.length ? (
-                  <SponsorRow items={ticket.sponsors.featured} label="Nivel 2 · 3 · 4" logoHeight={48} />
+                  <SponsorRow items={ticket.sponsors.featured} label="Nivel 2 · 3 · 4" logoHeight={58} />
                 ) : null}
 
                 {ticket.sponsors.standard.length ? (
-                  <SponsorRow items={ticket.sponsors.standard} label="Nivel 5 · 6 · 7" logoHeight={36} />
+                  <SponsorRow items={ticket.sponsors.standard} label="Nivel 5 · 6 · 7" logoHeight={38} />
                 ) : null}
 
                 {ticket.sponsors.support.length ? (

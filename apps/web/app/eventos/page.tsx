@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Box, Button, Chip, Stack, Typography } from "@mui/material";
 import { DashboardShell } from "../../components/dashboard-shell";
-import { requireUser } from "../../lib/auth/session";
+import { isEmailConfirmed, requireUser } from "../../lib/auth/session";
 import { getUpcomingEvents } from "../../lib/data/portal";
 import { getCustomerEventTicketOptions } from "../../lib/data/tickets";
 import { formatEventDateTimeWallClock } from "../../lib/date-format";
 import { customerNavItems } from "../../lib/navigation";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,12 @@ function formatDate(dateValue: string | null) {
 }
 
 export default async function EventsPage() {
-  await requireUser();
+  const { user } = await requireUser();
+
+  if (!isEmailConfirmed(user)) {
+    redirect("/perfil?message=Confirma tu correo para usar el modulo de eventos.");
+  }
+
   const [upcomingEvents, ticketOptions] = await Promise.all([getUpcomingEvents(5), getCustomerEventTicketOptions()]);
 
   return (

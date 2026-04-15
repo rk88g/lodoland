@@ -50,6 +50,10 @@ export async function getCurrentSessionProfile() {
   };
 }
 
+export function isEmailConfirmed(user: { email_confirmed_at?: string | null } | null | undefined) {
+  return Boolean(user?.email_confirmed_at);
+}
+
 export async function requireUser() {
   if (isBuildPhase()) {
     return {

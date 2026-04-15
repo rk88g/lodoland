@@ -71,12 +71,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${siteUrl}/login?error=${encodeURIComponent("Tu cuenta esta desactivada.")}`);
   }
 
-  const response = NextResponse.redirect(
+  const destination =
     profile?.role === "admin" || profile?.role === "super_admin"
       ? controlUrl
       : profile?.role === "staff"
         ? staffUrl
-        : intranetUrl
+        : intranetUrl;
+
+  const response = NextResponse.redirect(
+    `${siteUrl}/auth/continue?to=${encodeURIComponent(destination)}`
   );
 
   cookiesToSet.forEach(({ name, value, options }) => {

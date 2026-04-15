@@ -1,9 +1,10 @@
 import { Box, Chip, Stack, Typography } from "@mui/material";
 import { DashboardShell } from "../../components/dashboard-shell";
-import { requireUser } from "../../lib/auth/session";
+import { isEmailConfirmed, requireUser } from "../../lib/auth/session";
 import { getAvailableRaffles, getCustomerRaffles } from "../../lib/data/customer";
 import { formatEventDateTimeWallClock } from "../../lib/date-format";
 import { customerNavItems } from "../../lib/navigation";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,11 @@ function formatNumberLabel(numberValue: number, digits: number) {
 
 export default async function RafflesPage() {
   const { user } = await requireUser();
+
+  if (!isEmailConfirmed(user)) {
+    redirect("/perfil?message=Confirma tu correo para usar el modulo de rifas.");
+  }
+
   const [myEntries, raffles] = await Promise.all([getCustomerRaffles(user.id), getAvailableRaffles(12)]);
 
   return (

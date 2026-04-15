@@ -1,10 +1,12 @@
-import { Box, Button, Chip, Stack, Typography } from "@mui/material";
-import Link from "next/link";
+import { Box, Chip, Stack, Typography } from "@mui/material";
+import { CustomerTicketPurchasesPanel } from "../../../components/customer-ticket-purchases-panel";
 import { DashboardShell } from "../../../components/dashboard-shell";
-import { requireUser } from "../../../lib/auth/session";
+import { isEmailConfirmed, requireUser } from "../../../lib/auth/session";
 import { getCustomerPools, getCustomerRaffles, getCustomerTickets } from "../../../lib/data/customer";
+import { getTicketPassDetail } from "../../../lib/data/ticket-pass";
 import { formatEventDateTimeWallClock } from "../../../lib/date-format";
 import { customerNavItems } from "../../../lib/navigation";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -14,11 +16,36 @@ function formatDate(dateValue: string | null) {
 
 export default async function CustomerPurchasesPage() {
   const { user } = await requireUser();
+
+  if (!isEmailConfirmed(user)) {
+    redirect("/perfil?message=Confirma tu correo para usar tus compras y modulos.");
+  }
+
   const [tickets, raffles, pools] = await Promise.all([
     getCustomerTickets(user.id, user.email),
     getCustomerRaffles(user.id),
     getCustomerPools(user.id)
   ]);
+
+  const ticketDetailsEntries = await Promise.all(
+    tickets.map(async (ticket) => {
+      const detail = await getTicketPassDetail(ticket.id, {
+        ownerUserId: user.id,
+        userEmail: user.email
+      });
+      return [ticket.id, detail] as const;
+    })
+  );
+
+  const ticketDetails = Object.fromEntries(
+    ticketDetailsEntries.reduce<Array<[string, NonNullable<(typeof ticketDetailsEntries)[number][1]>]>>((acc, entry) => {
+      if (entry[1]) {
+        acc.push([entry[0], entry[1]]);
+      }
+
+      return acc;
+    }, [])
+  );
 
   return (
     <DashboardShell
@@ -26,10 +53,9 @@ export default async function CustomerPurchasesPage() {
       subtitle="Tickets, rifas y quinielas"
       title="Mis compras"
     >
-      <PurchaseSection
-        emptyLabel="Todavia no hay tickets emitidos en tu cuenta."
+      <CustomerTicketPurchasesPanel
         items={tickets.map((ticket) => ({
-          href: `/perfil/compras/tickets/${ticket.id}`,
+          id: ticket.id,
           title: ticket.eventTitle,
           chips: [ticket.ticketTypeName, ticket.priceLabel, ticket.status],
           detailLines: [
@@ -38,7 +64,7 @@ export default async function CustomerPurchasesPage() {
             `Ciudad: ${ticket.eventCity || "Pendiente"}`
           ]
         }))}
-        title="Tickets"
+        ticketDetails={ticketDetails}
       />
 
       <PurchaseSection
@@ -83,7 +109,6 @@ function PurchaseSection({
     title: string;
     chips: string[];
     detailLines: string[];
-    href?: string;
   }>;
   emptyLabel: string;
 }) {
@@ -106,13 +131,6 @@ function PurchaseSection({
                     {line}
                   </Typography>
                 ))}
-                {item.href ? (
-                  <Box>
-                    <Button component={Link} href={item.href} variant="outlined">
-                      Ver ticket
-                    </Button>
-                  </Box>
-                ) : null}
               </Stack>
             </Box>
           ))}
