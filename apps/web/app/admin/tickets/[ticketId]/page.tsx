@@ -12,11 +12,14 @@ type AdminTicketPassPageProps = {
   params: {
     ticketId: string;
   };
+  searchParams?: {
+    token?: string;
+  };
 };
 
-export default async function AdminTicketPassPage({ params }: AdminTicketPassPageProps) {
+export default async function AdminTicketPassPage({ params, searchParams }: AdminTicketPassPageProps) {
   await requireAdmin();
-  const ticket = await getTicketPassDetail(params.ticketId);
+  const ticket = await getTicketPassDetail(params.ticketId, { token: searchParams?.token || null });
 
   return (
     <DashboardShell navItems={controlNavItems} subtitle="Visual y validacion" title="Ticket emitido">

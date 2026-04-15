@@ -21,6 +21,30 @@ function formatTicketStatus(status: string) {
   }
 }
 
+function getTicketStatusSx(status: string) {
+  if (status === "issued") {
+    return {
+      bgcolor: "rgba(46, 125, 50, 0.22)",
+      color: "#b9f6ca",
+      borderColor: "rgba(46, 125, 50, 0.45)"
+    };
+  }
+
+  if (status === "checked_in") {
+    return {
+      bgcolor: "rgba(21, 101, 192, 0.22)",
+      color: "#90caf9",
+      borderColor: "rgba(21, 101, 192, 0.45)"
+    };
+  }
+
+  return {
+    bgcolor: "rgba(211, 47, 47, 0.2)",
+    color: "#ffb4ab",
+    borderColor: "rgba(211, 47, 47, 0.45)"
+  };
+}
+
 export function TicketPass({ ticket, adminMode = false }: { ticket: TicketPassDetail; adminMode?: boolean }) {
   return (
     <Box
@@ -95,7 +119,7 @@ export function TicketPass({ ticket, adminMode = false }: { ticket: TicketPassDe
                 Ticket {ticket.ticketCode}
               </Typography>
             </Stack>
-            <Chip color={ticket.status === "checked_in" ? "success" : "default"} label={formatTicketStatus(ticket.status)} />
+            <Chip label={formatTicketStatus(ticket.status)} sx={getTicketStatusSx(ticket.status)} />
           </Stack>
 
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">

@@ -4,6 +4,7 @@ import { sanitizeMessage } from "../auth/core";
 import {
   applyAppSessionCookie,
   clearAppSessionCookie,
+  getExistingAppSessionExpiry,
   getExpiredRedirectPath,
   isAppSessionExpired
 } from "../auth/session-policy";
@@ -72,7 +73,11 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse;
   }
 
-  applyAppSessionCookie(response, profile?.role ?? null);
+  const existingExpiry = getExistingAppSessionExpiry(request);
+
+  if (!existingExpiry) {
+    applyAppSessionCookie(response, profile?.role ?? null);
+  }
 
   return response;
 }

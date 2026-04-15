@@ -70,7 +70,7 @@ function formatMoney(value: number | null | undefined, currency = "MXN") {
 
 export async function getTicketPassDetail(
   ticketId: string,
-  options?: { ownerUserId?: string | null; userEmail?: string | null }
+  options?: { ownerUserId?: string | null; userEmail?: string | null; token?: string | null }
 ) {
   if (isBuildPhase()) {
     return null;
@@ -85,13 +85,14 @@ export async function getTicketPassDetail(
       )
       .eq("id", ticketId);
 
-  const [ownerMatch, emailMatch] = await Promise.all([
+  const [ownerMatch, emailMatch, tokenMatch] = await Promise.all([
     options?.ownerUserId ? buildQuery().eq("owner_user_id", options.ownerUserId).maybeSingle() : Promise.resolve({ data: null, error: null }),
-    options?.userEmail ? buildQuery().eq("purchaser_email", options.userEmail).maybeSingle() : Promise.resolve({ data: null, error: null })
+    options?.userEmail ? buildQuery().eq("purchaser_email", options.userEmail).maybeSingle() : Promise.resolve({ data: null, error: null }),
+    options?.token ? buildQuery().contains("metadata", { hash: options.token }).maybeSingle() : Promise.resolve({ data: null, error: null })
   ]);
 
-  const ticket = ownerMatch.data || emailMatch.data;
-  const error = ownerMatch.error || emailMatch.error;
+  const ticket = ownerMatch.data || emailMatch.data || tokenMatch.data;
+  const error = ownerMatch.error || emailMatch.error || tokenMatch.error;
 
   if (error || !ticket) {
     return null;

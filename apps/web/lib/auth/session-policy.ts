@@ -56,3 +56,7 @@ export function isAppSessionExpired(request: NextRequest) {
 
   return expiresAt <= Date.now();
 }
+
+export function getExistingAppSessionExpiry(request: NextRequest) {
+  return parseSessionExpiry(request.cookies.get(APP_SESSION_EXPIRES_COOKIE)?.value);
+}
