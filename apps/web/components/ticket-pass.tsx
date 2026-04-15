@@ -24,159 +24,358 @@ function formatTicketStatus(status: string) {
 function getTicketStatusSx(status: string) {
   if (status === "issued") {
     return {
-      bgcolor: "rgba(46, 125, 50, 0.22)",
-      color: "#b9f6ca",
-      borderColor: "rgba(46, 125, 50, 0.45)"
+      bgcolor: "rgba(46, 125, 50, 0.18)",
+      color: "#1b5e20",
+      borderColor: "rgba(46, 125, 50, 0.35)"
     };
   }
 
   if (status === "checked_in") {
     return {
-      bgcolor: "rgba(21, 101, 192, 0.22)",
-      color: "#90caf9",
-      borderColor: "rgba(21, 101, 192, 0.45)"
+      bgcolor: "rgba(25, 118, 210, 0.18)",
+      color: "#0d47a1",
+      borderColor: "rgba(25, 118, 210, 0.35)"
     };
   }
 
   return {
-    bgcolor: "rgba(211, 47, 47, 0.2)",
-    color: "#ffb4ab",
-    borderColor: "rgba(211, 47, 47, 0.45)"
+    bgcolor: "rgba(211, 47, 47, 0.14)",
+    color: "#b71c1c",
+    borderColor: "rgba(211, 47, 47, 0.35)"
   };
 }
 
-export function TicketPass({ ticket, adminMode = false }: { ticket: TicketPassDetail; adminMode?: boolean }) {
+export function TicketPass({ ticket }: { ticket: TicketPassDetail }) {
   return (
-    <Box
-      sx={{
-        border: 1,
-        borderColor: "divider",
-        bgcolor: "background.paper",
-        overflow: "hidden"
-      }}
-    >
+    <Stack spacing={2.25}>
+      {ticket.status === "checked_in" ? (
+        <Alert
+          severity="error"
+          sx={{
+            border: 2,
+            borderColor: "error.main",
+            bgcolor: "rgba(211, 47, 47, 0.12)",
+            "& .MuiAlert-message": {
+              fontSize: 20,
+              fontWeight: 800,
+              lineHeight: 1.35
+            }
+          }}
+        >
+          ESTA ENTRADA YA SE UTILIZO. REVISA TU COMPRA Y NO COMPARTAS TU TICKET.
+        </Alert>
+      ) : null}
+
       <Box
         sx={{
-          display: "grid",
-          gap: 0,
-          gridTemplateColumns: { xs: "1fr", lg: "340px minmax(0, 1fr)" }
+          borderRadius: 3,
+          overflow: "hidden",
+          border: "1px solid rgba(148, 163, 184, 0.32)",
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(246,248,252,0.98) 100%)",
+          boxShadow: "0 24px 80px rgba(3, 7, 18, 0.18)"
         }}
       >
         <Box
           sx={{
-            minHeight: { xs: 320, lg: "100%" },
-            px: 3,
-            py: 3,
             display: "grid",
-            placeItems: "center",
-            background:
-              "linear-gradient(160deg, rgba(255,157,92,0.22) 0%, rgba(255,105,180,0.16) 45%, rgba(88,160,255,0.18) 100%)"
+            gridTemplateColumns: { xs: "1fr", lg: "minmax(300px, 34%) minmax(0, 1fr)" }
           }}
         >
           <Box
             sx={{
-              width: "100%",
-              maxWidth: 260,
-              aspectRatio: "1 / 1",
-              border: 1,
-              borderColor: "divider",
-              bgcolor: "#fff",
-              p: 1.5
+              position: "relative",
+              px: { xs: 3, md: 4 },
+              py: { xs: 3, md: 4 },
+              color: "#fff",
+              background:
+                "linear-gradient(180deg, #0455d4 0%, #0d6cf2 48%, #0f67dd 100%)"
             }}
           >
-            <Box
-              alt={`QR ${ticket.ticketCode}`}
-              component="img"
-              src={ticket.qrImageUrl}
-              sx={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-            />
+            <Stack spacing={2.5} sx={{ minHeight: "100%" }}>
+              <Stack direction="row" justifyContent="space-between" spacing={1} alignItems="flex-start">
+                <Box
+                  sx={{
+                    px: 1.5,
+                    py: 0.65,
+                    borderRadius: 999,
+                    bgcolor: "rgba(255,255,255,0.16)",
+                    border: "1px solid rgba(255,255,255,0.24)"
+                  }}
+                >
+                  <Typography sx={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.1em" }}>
+                    EVENT TICKET
+                  </Typography>
+                </Box>
+                <Chip
+                  label={formatTicketStatus(ticket.status)}
+                  size="small"
+                  sx={{
+                    ...getTicketStatusSx(ticket.status),
+                    bgcolor: "rgba(255,255,255,0.18)",
+                    color: "#fff",
+                    borderColor: "rgba(255,255,255,0.28)"
+                  }}
+                />
+              </Stack>
+
+              <Stack spacing={1}>
+                <Typography sx={{ fontSize: { xs: 34, md: 42 }, fontWeight: 900, lineHeight: 0.98 }}>
+                  {ticket.eventTitle}
+                </Typography>
+                <Typography sx={{ fontSize: 14, opacity: 0.82 }}>
+                  {ticket.eventCity || "Ciudad pendiente"} · {ticket.eventVenue || "Venue pendiente"}
+                </Typography>
+              </Stack>
+
+              <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+                <TicketMetric light label="Fecha" value={formatDate(ticket.eventStartsAt)} />
+                <TicketMetric light label="Tipo" value={ticket.ticketTypeName} />
+                <TicketMetric light label="Drop" value={ticket.ticketLotLabel || "General"} />
+                <TicketMetric light label="Codigo" value={ticket.ticketCode} />
+              </Box>
+
+              <Box
+                sx={{
+                  mt: "auto",
+                  pt: 2,
+                  borderTop: "1px dashed rgba(255,255,255,0.28)"
+                }}
+              >
+                <Typography sx={{ fontSize: 12, letterSpacing: "0.08em", opacity: 0.8 }}>
+                  {ticket.siteHost}
+                </Typography>
+              </Box>
+            </Stack>
           </Box>
-        </Box>
 
-        <Stack spacing={2.5} sx={{ p: { xs: 3, lg: 4 } }}>
-          {ticket.status === "checked_in" ? (
-            <Alert
-              severity="error"
-              sx={{
-                border: 2,
-                borderColor: "error.main",
-                bgcolor: "rgba(211, 47, 47, 0.18)",
-                "& .MuiAlert-message": {
-                  fontSize: 18,
-                  fontWeight: 800,
-                  lineHeight: 1.35
-                }
-              }}
-            >
-              ESTA ENTRADA YA SE UTILIZO. REVISA TU COMPRA Y NO COMPARTAS TU TICKET.
-            </Alert>
-          ) : null}
+          <Box
+            sx={{
+              position: "relative",
+              px: { xs: 3, md: 4 },
+              py: { xs: 3, md: 4 },
+              bgcolor: "#fbfcfe"
+            }}
+          >
+            <Stack spacing={2.5}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gap: 2,
+                  alignItems: "center",
+                  gridTemplateColumns: { xs: "1fr", md: "minmax(220px, 260px) minmax(0, 1fr)" }
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "grid",
+                    placeItems: "center",
+                    border: "1px solid rgba(148, 163, 184, 0.3)",
+                    borderRadius: 3,
+                    bgcolor: "#fff",
+                    p: 2.25
+                  }}
+                >
+                  <Box
+                    alt={`QR ${ticket.ticketCode}`}
+                    component="img"
+                    src={ticket.qrImageUrl}
+                    sx={{ width: "100%", maxWidth: 220, aspectRatio: "1 / 1", objectFit: "contain", display: "block" }}
+                  />
+                </Box>
 
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="space-between" alignItems="flex-start">
-            <Stack spacing={1}>
-              <Typography variant="h2">{ticket.eventTitle}</Typography>
-              <Typography color="text.secondary" variant="body1">
-                Ticket {ticket.ticketCode}
+                <Stack spacing={1.35}>
+                  <Typography sx={{ fontSize: 15, fontWeight: 800, color: "#0f172a", letterSpacing: "0.04em" }}>
+                    PRESENTA ESTE QR EN EL ACCESO
+                  </Typography>
+                  <TicketMetric label="Cuenta" value={ticket.ownerLabel || ticket.purchaserEmail || "Cliente"} />
+                  <TicketMetric label="Comprador" value={ticket.purchaserName || "Sin nombre registrado"} />
+                  <TicketMetric label="Correo" value={ticket.purchaserEmail || "Sin correo registrado"} />
+                  <TicketMetric label="Telefono" value={ticket.purchaserPhone || "Sin telefono"} />
+                  <TicketMetric label="Emitido" value={formatDate(ticket.issuedAt)} />
+                </Stack>
+              </Box>
+
+              <Box sx={{ display: "grid", gap: 1.25, gridTemplateColumns: { xs: "1fr", md: "repeat(3, minmax(0, 1fr))" } }}>
+                <TicketMetric label="Direccion" value={ticket.eventAddress || "Pendiente"} />
+                <TicketMetric label="Precio" value={ticket.priceLabel} />
+                <TicketMetric label="Acceso" value={ticket.checkedInAt ? formatDate(ticket.checkedInAt) : "Pendiente"} />
+              </Box>
+
+              <Box
+                sx={{
+                  pt: 2,
+                  borderTop: "1px dashed rgba(148, 163, 184, 0.45)",
+                  display: "grid",
+                  gap: 1.6
+                }}
+              >
+                {ticket.sponsors.official ? (
+                  <SponsorBlock
+                    imageHeight={76}
+                    item={ticket.sponsors.official}
+                    label="Patrocinador oficial"
+                  />
+                ) : null}
+
+                {ticket.sponsors.featured.length ? (
+                  <SponsorRow items={ticket.sponsors.featured} label="Nivel 2 · 3 · 4" logoHeight={48} />
+                ) : null}
+
+                {ticket.sponsors.standard.length ? (
+                  <SponsorRow items={ticket.sponsors.standard} label="Nivel 5 · 6 · 7" logoHeight={36} />
+                ) : null}
+
+                {ticket.sponsors.support.length ? (
+                  <SponsorRow items={ticket.sponsors.support} label="Nivel 8 · 9 · 10" logoHeight={28} />
+                ) : null}
+              </Box>
+
+              <Typography sx={{ fontSize: 11.5, color: "#475569" }}>
+                No compartas este ticket. Si otra persona usa este QR antes que tu, no nos hacemos responsables y
+                sera necesario adquirir un nuevo acceso.
               </Typography>
             </Stack>
-            <Chip label={formatTicketStatus(ticket.status)} sx={getTicketStatusSx(ticket.status)} />
-          </Stack>
-
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-            <Chip label={ticket.ticketTypeName} />
-            {ticket.ticketLotLabel ? <Chip label={ticket.ticketLotLabel} /> : null}
-            <Chip label={ticket.priceLabel} />
-          </Stack>
-
-          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
-            <InfoBlock label="Fecha y hora" value={formatDate(ticket.eventStartsAt)} />
-            <InfoBlock label="Ciudad" value={ticket.eventCity || "Pendiente"} />
-            <InfoBlock label="Venue" value={ticket.eventVenue || "Pendiente"} />
-            <InfoBlock label="Direccion" value={ticket.eventAddress || "Pendiente"} />
-            <InfoBlock label="Emitido" value={formatDate(ticket.issuedAt)} />
-            <InfoBlock label="Acceso" value={ticket.checkedInAt ? formatDate(ticket.checkedInAt) : "Pendiente"} />
           </Box>
+        </Box>
+      </Box>
 
-          <Box sx={{ borderTop: 1, borderColor: "divider", pt: 2 }}>
-            <Typography color="text.secondary" variant="body2">
-              {adminMode ? "Presenta o escanea este QR en acceso. Una vez validado, el ticket quedara quemado." : "Presenta este QR en acceso. Al validarlo, el ticket quedara marcado como usado."}
-            </Typography>
-          </Box>
-
-          {ticket.ownerLabel || ticket.purchaserName || ticket.purchaserEmail || ticket.purchaserPhone ? (
-            <Box sx={{ display: "grid", gap: 1 }}>
-              {ticket.ownerLabel ? <InfoLine label="Cuenta" value={ticket.ownerLabel} /> : null}
-              {ticket.purchaserName ? <InfoLine label="Comprador" value={ticket.purchaserName} /> : null}
-              {ticket.purchaserEmail ? <InfoLine label="Correo" value={ticket.purchaserEmail} /> : null}
-              {ticket.purchaserPhone ? <InfoLine label="Telefono" value={ticket.purchaserPhone} /> : null}
-            </Box>
-          ) : null}
+      <Box
+        sx={{
+          border: "1px solid rgba(148, 163, 184, 0.24)",
+          bgcolor: "background.paper",
+          p: { xs: 2, md: 2.25 }
+        }}
+      >
+        <Stack spacing={0.75}>
+          <Typography sx={{ fontSize: 13, fontWeight: 800, letterSpacing: "0.08em" }}>
+            Recomendaciones importantes
+          </Typography>
+          <Typography color="text.secondary" variant="body2">
+            Nuestros sistemas de validacion son robustos y seguros. Las compras en linea se conectan con Mercado Pago
+            developer y el acceso solo se valida una vez por ticket.
+          </Typography>
+          <Typography color="text.secondary" variant="body2">
+            Conserva este ticket en tu cuenta y muestra el QR directamente desde tu perfil para acelerar el ingreso.
+          </Typography>
         </Stack>
       </Box>
-    </Box>
+    </Stack>
   );
 }
 
-function InfoBlock({ label, value }: { label: string; value: string }) {
+function TicketMetric({
+  label,
+  value,
+  light = false
+}: {
+  label: string;
+  value: string;
+  light?: boolean;
+}) {
   return (
-    <Box sx={{ border: 1, borderColor: "divider", bgcolor: "background.default", p: 2 }}>
-      <Stack spacing={0.5}>
-        <Typography color="text.secondary" variant="body2">
+    <Box
+      sx={{
+        borderRadius: 2,
+        px: 1.6,
+        py: 1.25,
+        border: light ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(148, 163, 184, 0.28)",
+        bgcolor: light ? "rgba(255,255,255,0.08)" : "rgba(241, 245, 249, 0.72)"
+      }}
+    >
+      <Stack spacing={0.35}>
+        <Typography sx={{ fontSize: 11, color: light ? "rgba(255,255,255,0.76)" : "#64748b", letterSpacing: "0.06em" }}>
           {label}
         </Typography>
-        <Typography variant="h3">{value}</Typography>
+        <Typography sx={{ fontSize: 15, fontWeight: 800, color: light ? "#fff" : "#0f172a", lineHeight: 1.25 }}>
+          {value}
+        </Typography>
       </Stack>
     </Box>
   );
 }
 
-function InfoLine({ label, value }: { label: string; value: string }) {
+function SponsorBlock({
+  label,
+  item,
+  imageHeight
+}: {
+  label: string;
+  item: { name: string; imageUrl: string | null };
+  imageHeight: number;
+}) {
   return (
-    <Typography color="text.secondary">
-      <Box component="span" sx={{ color: "text.primary", fontWeight: 700 }}>
-        {label}:
-      </Box>{" "}
-      {value}
-    </Typography>
+    <Stack spacing={0.7}>
+      <Typography sx={{ fontSize: 10.5, color: "#64748b", letterSpacing: "0.1em" }}>{label.toUpperCase()}</Typography>
+      <Box
+        sx={{
+          minHeight: imageHeight + 22,
+          display: "grid",
+          placeItems: "center",
+          borderRadius: 2,
+          border: "1px solid rgba(148, 163, 184, 0.24)",
+          bgcolor: "rgba(248, 250, 252, 0.88)",
+          px: 2,
+          py: 1.25
+        }}
+      >
+        {item.imageUrl ? (
+          <Box
+            alt={item.name}
+            component="img"
+            src={item.imageUrl}
+            sx={{ maxHeight: imageHeight, maxWidth: "100%", objectFit: "contain", display: "block" }}
+          />
+        ) : (
+          <Typography sx={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>{item.name}</Typography>
+        )}
+      </Box>
+    </Stack>
+  );
+}
+
+function SponsorRow({
+  label,
+  items,
+  logoHeight
+}: {
+  label: string;
+  items: Array<{ id: string; name: string; imageUrl: string | null }>;
+  logoHeight: number;
+}) {
+  return (
+    <Stack spacing={0.7}>
+      <Typography sx={{ fontSize: 10.5, color: "#64748b", letterSpacing: "0.1em" }}>{label.toUpperCase()}</Typography>
+      <Box sx={{ display: "grid", gap: 1, gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
+        {items.map((item) => (
+          <Box
+            key={item.id}
+            sx={{
+              minHeight: logoHeight + 24,
+              display: "grid",
+              placeItems: "center",
+              borderRadius: 2,
+              border: "1px solid rgba(148, 163, 184, 0.24)",
+              bgcolor: "rgba(248, 250, 252, 0.88)",
+              px: 1.25,
+              py: 1
+            }}
+          >
+            {item.imageUrl ? (
+              <Box
+                alt={item.name}
+                component="img"
+                src={item.imageUrl}
+                sx={{ maxHeight: logoHeight, maxWidth: "100%", objectFit: "contain", display: "block" }}
+              />
+            ) : (
+              <Typography sx={{ fontSize: 12, fontWeight: 800, color: "#0f172a", textAlign: "center" }}>
+                {item.name}
+              </Typography>
+            )}
+          </Box>
+        ))}
+      </Box>
+    </Stack>
   );
 }

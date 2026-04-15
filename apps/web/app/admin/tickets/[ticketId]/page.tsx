@@ -24,7 +24,7 @@ export default async function AdminTicketPassPage({ params, searchParams }: Admi
   return (
     <DashboardShell navItems={controlNavItems} subtitle="Visual y validacion" title="Ticket emitido">
       {ticket ? (
-        <TicketPass adminMode ticket={ticket} />
+        <TicketPass ticket={ticket} />
       ) : (
         <Stack spacing={2}>
           <Typography color="text.secondary">No encontramos ese ticket en control.</Typography>

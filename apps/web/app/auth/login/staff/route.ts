@@ -46,7 +46,11 @@ export async function POST(request: NextRequest) {
     ? await supabase.from("profiles").select("role, is_active").eq("id", user.id).maybeSingle()
     : { data: null };
 
-  if (user && profile?.is_active !== false && (profile?.role === "admin" || profile?.role === "super_admin")) {
+  if (
+    user &&
+    profile?.is_active !== false &&
+    (profile?.role === "admin" || profile?.role === "super_admin" || profile?.role === "staff")
+  ) {
     await logCollaboratorLogin({
       supabase,
       request,

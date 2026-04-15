@@ -19,6 +19,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       redirect("/admin");
     }
 
+    if (session.profile?.role === "staff") {
+      redirect("/staff/tickets");
+    }
+
     redirect("/perfil");
   }
 

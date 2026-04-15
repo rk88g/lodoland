@@ -1,6 +1,7 @@
 import { isBuildPhase } from "../runtime";
 import { createClient } from "../supabase/server";
 import { buildQrCodeUrl } from "../qr";
+import { buildStorageImageUrl } from "../media";
 
 type IssuedTicketRow = {
   id: string;
@@ -55,6 +56,28 @@ export type TicketPassDetail = {
   purchaserName: string | null;
   purchaserEmail: string | null;
   purchaserPhone: string | null;
+  siteHost: string;
+  sponsors: {
+    official: {
+      name: string;
+      imageUrl: string | null;
+    } | null;
+    featured: Array<{
+      id: string;
+      name: string;
+      imageUrl: string | null;
+    }>;
+    standard: Array<{
+      id: string;
+      name: string;
+      imageUrl: string | null;
+    }>;
+    support: Array<{
+      id: string;
+      name: string;
+      imageUrl: string | null;
+    }>;
+  };
 };
 
 function formatMoney(value: number | null | undefined, currency = "MXN") {
@@ -66,6 +89,101 @@ function formatMoney(value: number | null | undefined, currency = "MXN") {
     style: "currency",
     currency
   }).format(value);
+}
+
+function getSiteHost() {
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.lodoland.mx";
+    return new URL(siteUrl).host.replace(/^www\./, "");
+  } catch (_error) {
+    return "lodoland.mx";
+  }
+}
+
+async function getTicketSponsorGroups() {
+  const supabase = createClient();
+  const [{ data: featuredEvent }, { data: sponsorRows }] = await Promise.all([
+    supabase
+      .from("home_featured_event")
+      .select("sponsor_name, sponsor_media_asset_id, is_active")
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("home_sponsors")
+      .select("id, name, logo_asset_id, sort_order")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .limit(10)
+  ]);
+
+  const sponsorRowsTyped =
+    (sponsorRows || []) as Array<{
+      id: string;
+      name: string;
+      logo_asset_id: string | null;
+      sort_order: number;
+    }>;
+
+  const mediaIds = Array.from(
+    new Set(
+      [
+        featuredEvent?.sponsor_media_asset_id || null,
+        ...sponsorRowsTyped.map((sponsor) => sponsor.logo_asset_id)
+      ].filter(Boolean)
+    )
+  ) as string[];
+
+  const { data: mediaRows } = mediaIds.length
+    ? await supabase
+        .from("media_assets")
+        .select("id, bucket, path, title, alt_text")
+        .in("id", mediaIds)
+    : { data: [] };
+
+  const mediaMap = new Map(
+    (mediaRows || []).map((asset) => [
+      asset.id,
+      buildStorageImageUrl(asset.path, asset.bucket, {
+        width: 560,
+        height: 220,
+        quality: 82,
+        resize: "contain"
+      })
+    ])
+  );
+
+  const official =
+    featuredEvent?.sponsor_name || featuredEvent?.sponsor_media_asset_id
+      ? {
+          name: featuredEvent?.sponsor_name || "Patrocinador oficial",
+          imageUrl: featuredEvent?.sponsor_media_asset_id ? mediaMap.get(featuredEvent.sponsor_media_asset_id) || null : null
+        }
+      : null;
+
+  const remainingSponsors = sponsorRowsTyped.filter((sponsor) => {
+    if (!official) {
+      return true;
+    }
+
+    return (
+      sponsor.logo_asset_id !== featuredEvent?.sponsor_media_asset_id &&
+      sponsor.name.toLowerCase() !== official.name.toLowerCase()
+    );
+  });
+
+  const toSponsorItem = (sponsor: (typeof sponsorRowsTyped)[number]) => ({
+    id: sponsor.id,
+    name: sponsor.name,
+    imageUrl: sponsor.logo_asset_id ? mediaMap.get(sponsor.logo_asset_id) || null : null
+  });
+
+  return {
+    official,
+    featured: remainingSponsors.slice(0, 3).map(toSponsorItem),
+    standard: remainingSponsors.slice(3, 6).map(toSponsorItem),
+    support: remainingSponsors.slice(6, 10).map(toSponsorItem)
+  };
 }
 
 export async function getTicketPassDetail(
@@ -116,7 +234,7 @@ export async function getTicketPassDetail(
     }
   }
 
-  const [{ data: ticketType }, { data: lot }, { data: owner }] = await Promise.all([
+  const [{ data: ticketType }, { data: lot }, { data: owner }, sponsors] = await Promise.all([
     supabase
       .from("ticket_types")
       .select("id, event_id, name, price, currency")
@@ -131,7 +249,8 @@ export async function getTicketPassDetail(
           .select("id, email, first_name, last_name")
           .eq("id", issuedTicket.owner_user_id)
           .maybeSingle()
-      : Promise.resolve({ data: null })
+      : Promise.resolve({ data: null }),
+    getTicketSponsorGroups()
   ]);
 
   const typedTicketType = ticketType as TicketTypeRow | null;
@@ -167,6 +286,8 @@ export async function getTicketPassDetail(
     ownerLabel,
     purchaserName: issuedTicket.purchaser_name,
     purchaserEmail: issuedTicket.purchaser_email,
-    purchaserPhone: issuedTicket.purchaser_phone
+    purchaserPhone: issuedTicket.purchaser_phone,
+    siteHost: getSiteHost(),
+    sponsors
   } satisfies TicketPassDetail;
 }

@@ -2,7 +2,15 @@ import { redirect } from "next/navigation";
 import { isBuildPhase } from "../runtime";
 import { createClient } from "../supabase/server";
 
-type AppRole = "customer" | "admin" | "super_admin";
+type AppRole = "customer" | "staff" | "admin" | "super_admin";
+
+function isAdminRole(role: AppRole | null | undefined) {
+  return role === "admin" || role === "super_admin";
+}
+
+function isOperatorRole(role: AppRole | null | undefined) {
+  return role === "staff" || isAdminRole(role);
+}
 
 export async function getCurrentSessionProfile() {
   if (isBuildPhase()) {
@@ -96,7 +104,38 @@ export async function requireAdmin() {
   const session = await requireUser();
   const role = session.profile?.role;
 
-  if (role !== "admin" && role !== "super_admin") {
+  if (!isAdminRole(role)) {
+    redirect("/admin/login");
+  }
+
+  return session;
+}
+
+export async function requireOperator() {
+  if (isBuildPhase()) {
+    return {
+      user: {
+        id: "build-staff",
+        email: "build-staff@lodoland.local"
+      } as any,
+      profile: {
+        id: "build-staff",
+        email: "build-staff@lodoland.local",
+        first_name: "Build",
+        last_name: "Staff",
+        phone: null,
+        avatar_url: null,
+        avatar_preset_id: null,
+        role: "staff" as AppRole,
+        is_active: true
+      }
+    };
+  }
+
+  const session = await requireUser();
+  const role = session.profile?.role;
+
+  if (!isOperatorRole(role)) {
     redirect("/admin/login");
   }
 

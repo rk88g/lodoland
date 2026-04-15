@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const { url, anonKey } = getSupabaseEnv();
-  const { siteUrl, intranetUrl, controlUrl } = getPublicAppUrls();
+  const { siteUrl, intranetUrl, controlUrl, staffUrl } = getPublicAppUrls();
   const cookiesToSet: Array<{
     name: string;
     value: string;
@@ -72,7 +72,11 @@ export async function GET(request: NextRequest) {
   }
 
   const response = NextResponse.redirect(
-    profile?.role === "admin" || profile?.role === "super_admin" ? controlUrl : intranetUrl
+    profile?.role === "admin" || profile?.role === "super_admin"
+      ? controlUrl
+      : profile?.role === "staff"
+        ? staffUrl
+        : intranetUrl
   );
 
   cookiesToSet.forEach(({ name, value, options }) => {

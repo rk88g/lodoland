@@ -29,10 +29,14 @@ export async function resolveDestination(supabase: SupabaseClient) {
     return `/login?error=${sanitizeMessage("Tu cuenta esta desactivada.")}`;
   }
 
-  const { intranetUrl, controlUrl } = getPublicAppUrls();
+  const { intranetUrl, controlUrl, staffUrl } = getPublicAppUrls();
 
   if (profile?.role === "admin" || profile?.role === "super_admin") {
     return controlUrl;
+  }
+
+  if (profile?.role === "staff") {
+    return staffUrl;
   }
 
   return intranetUrl;

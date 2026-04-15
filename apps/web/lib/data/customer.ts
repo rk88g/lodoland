@@ -145,7 +145,7 @@ export async function getCustomerTickets(userId: string, userEmail?: string | nu
     ? supabase
         .from("issued_tickets")
         .select("id, ticket_code, status, issued_at, ticket_type_id")
-        .eq("purchaser_email", userEmail)
+        .ilike("purchaser_email", userEmail)
         .order("created_at", { ascending: false })
         .limit(24)
     : Promise.resolve({ data: [] as Array<{ id: string; ticket_code: string; status: string; issued_at: string | null; ticket_type_id: string }> });

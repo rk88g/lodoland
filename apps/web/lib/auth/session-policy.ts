@@ -1,6 +1,6 @@
 import type { NextRequest, NextResponse } from "next/server";
 
-type AppRole = "customer" | "admin" | "super_admin";
+type AppRole = "customer" | "staff" | "admin" | "super_admin";
 
 export const APP_SESSION_EXPIRES_COOKIE = "lodoland-app-session-expires-at";
 
@@ -21,7 +21,7 @@ export function parseSessionExpiry(value: string | undefined) {
 }
 
 export function getExpiredRedirectPath(pathname: string) {
-  return pathname.startsWith("/admin") ? "/admin/login" : "/login";
+  return pathname.startsWith("/admin") || pathname.startsWith("/staff") ? "/admin/login" : "/login";
 }
 
 export function clearAppSessionCookie(response: NextResponse) {

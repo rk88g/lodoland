@@ -72,6 +72,7 @@ export default async function AdminTicketsPage() {
 
       <AdminSectionCard description="Escanea el QR o pega el codigo visible del ticket para validar acceso y quemarlo." title="Validar acceso">
         <form action={validateIssuedTicketAction} autoComplete="off" id="ticket-scan-form" method="post">
+          <input name="redirectTo" type="hidden" value="/admin/tickets" />
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) 220px" } }}>
             <TextField id="ticket-scan-input" label="QR o codigo del ticket" name="scanValue" required />
             <Button sx={{ minHeight: 56 }} type="submit" variant="contained">
@@ -183,6 +184,7 @@ export default async function AdminTicketsPage() {
 
       <AdminSectionCard description="Crea la orden pagada y emite al instante los tickets unicos para el cliente." title="Autorizar venta manual">
         <form action={sellTicketsAsAdminAction} autoComplete="off" method="post">
+          <input name="redirectTo" type="hidden" value="/admin/tickets" />
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
               <TextField helperText="Cuenta del cliente donde quedaran los tickets." label="Cliente" name="ownerUserId" required select>

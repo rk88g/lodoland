@@ -15,6 +15,11 @@ export const controlNavItems: DashboardNavItem[] = [
   { href: "/admin/logs/accesos" as Route, icon: "access", label: "Log accesos" }
 ];
 
+export const staffNavItems: DashboardNavItem[] = [
+  { href: "/staff/tickets" as Route, icon: "tickets", label: "QR y accesos" },
+  { href: "/staff/rifas" as Route, icon: "raffles", label: "Venta rifas" }
+];
+
 export const customerNavItems: DashboardNavItem[] = [
   { href: "/perfil" as Route, icon: "profile", label: "Perfil" },
   { href: "/perfil/compras" as Route, icon: "purchases", label: "Mis compras" },

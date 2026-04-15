@@ -176,6 +176,7 @@ export function AdminIssuedTicketsPanel({
                       </Button>
                       {ticket.status !== "checked_in" && ticket.status !== "cancelled" && ticket.status !== "refunded" ? (
                         <form action={validateIssuedTicketAction} method="post">
+                          <input name="redirectTo" type="hidden" value="/admin/tickets" />
                           <input name="scanValue" type="hidden" value={ticket.qrPayload || ticket.ticketCode} />
                           <Button size="small" type="submit" variant="contained">
                             Quemar
@@ -246,6 +247,7 @@ export function AdminIssuedTicketsPanel({
                   ) : null}
                   <form action={updateIssuedTicketStatusAction} method="post">
                     <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                      <input name="redirectTo" type="hidden" value="/admin/tickets" />
                       <input name="ticketId" type="hidden" value={selectedTicket.id} />
                       <TextField defaultValue={selectedTicket.status} label="Estatus" name="status" select sx={{ minWidth: 220 }}>
                         {ticketStatuses.map((status) => (
@@ -265,6 +267,7 @@ export function AdminIssuedTicketsPanel({
                     </Button>
                     {selectedTicket.status !== "checked_in" && selectedTicket.status !== "cancelled" && selectedTicket.status !== "refunded" ? (
                       <form action={validateIssuedTicketAction} method="post">
+                        <input name="redirectTo" type="hidden" value="/admin/tickets" />
                         <input name="scanValue" type="hidden" value={selectedTicket.qrPayload || selectedTicket.ticketCode} />
                         <Button type="submit" variant="contained">
                           Validar y quemar

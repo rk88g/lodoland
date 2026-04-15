@@ -4,11 +4,12 @@ import { createHash, randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAdminAction } from "../../../lib/audit";
-import { requireAdmin } from "../../../lib/auth/session";
+import { requireAdmin, requireOperator } from "../../../lib/auth/session";
 import { setFlashMessage } from "../../../lib/flash";
 import { createClient } from "../../../lib/supabase/server";
 
 const FLASH_COOKIE = "admin-tickets-flash";
+const STAFF_FLASH_COOKIE = "staff-tickets-flash";
 
 function toSlugFragment(value: string) {
   return value
@@ -31,7 +32,7 @@ function generateTicketIdentity(prefix: string, eventId: string, lotId: string, 
   const code = `${prefix || "LL"}-${stamp}-${(index + 1).toString().padStart(2, "0")}-${id.slice(0, 8).toUpperCase()}`;
   const hash = createHash("sha256").update(`${id}:${code}:${eventId}:${lotId}`).digest("hex");
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
-  const qrUrl = `${siteUrl}/admin/tickets/${id}?token=${hash}`;
+  const qrUrl = `${siteUrl}/staff/tickets/${id}?token=${hash}`;
 
   return {
     id,
@@ -102,20 +103,37 @@ function parseTicketScanValue(scanValue: string) {
   };
 }
 
-function redirectWithError(message: string): never {
-  setFlashMessage(FLASH_COOKIE, {
+function resolveRedirectTarget(formData: FormData, fallbackPath: string) {
+  const redirectTo = String(formData.get("redirectTo") ?? "").trim();
+
+  if (
+    redirectTo.startsWith("/admin/tickets") ||
+    redirectTo.startsWith("/staff/tickets")
+  ) {
+    return redirectTo;
+  }
+
+  return fallbackPath;
+}
+
+function resolveFlashCookie(pathname: string) {
+  return pathname.startsWith("/staff/") ? STAFF_FLASH_COOKIE : FLASH_COOKIE;
+}
+
+function redirectWithError(message: string, targetPath = "/admin/tickets"): never {
+  setFlashMessage(resolveFlashCookie(targetPath), {
     type: "error",
     message
   });
-  redirect("/admin/tickets");
+  redirect(targetPath);
 }
 
-function redirectWithSuccess(message: string): never {
-  setFlashMessage(FLASH_COOKIE, {
+function redirectWithSuccess(message: string, targetPath = "/admin/tickets"): never {
+  setFlashMessage(resolveFlashCookie(targetPath), {
     type: "success",
     message
   });
-  redirect("/admin/tickets");
+  redirect(targetPath);
 }
 
 export async function createTicketTypeAction(formData: FormData) {
@@ -358,6 +376,7 @@ export async function saveMercadoPagoSettingsAction(formData: FormData) {
 export async function sellTicketsAsAdminAction(formData: FormData) {
   const session = await requireAdmin();
   const supabase = createClient();
+  const redirectTarget = resolveRedirectTarget(formData, "/admin/tickets");
 
   const ownerUserId = String(formData.get("ownerUserId") ?? "").trim();
   const ticketTypeId = String(formData.get("ticketTypeId") ?? "").trim();
@@ -368,7 +387,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
   const quantity = Number(String(formData.get("quantity") ?? "0").trim() || 0);
 
   if (!ownerUserId || !ticketTypeId || !ticketLotId || quantity < 1) {
-    redirectWithError("Debes indicar cliente, tipo, drop y cantidad para vender.");
+    redirectWithError("Debes indicar cliente, tipo, drop y cantidad para vender.", redirectTarget);
   }
 
   const { data: ownerProfile } = await supabase
@@ -384,7 +403,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
     .maybeSingle();
 
   if (ticketTypeError || !ticketType) {
-    redirectWithError(ticketTypeError?.message || "Tipo de ticket invalido.");
+    redirectWithError(ticketTypeError?.message || "Tipo de ticket invalido.", redirectTarget);
   }
 
   const { data: lot, error: lotError } = await supabase
@@ -394,12 +413,12 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
     .maybeSingle();
 
   if (lotError || !lot) {
-    redirectWithError(lotError?.message || "Drop invalido.");
+    redirectWithError(lotError?.message || "Drop invalido.", redirectTarget);
   }
 
   const lotAvailable = Math.max((lot.inventory_total || 0) - (lot.sold_count || 0) - (lot.reserved_count || 0), 0);
   if (lotAvailable < quantity) {
-    redirectWithError("El drop no tiene suficiente stock para completar la venta.");
+    redirectWithError("El drop no tiene suficiente stock para completar la venta.", redirectTarget);
   }
 
   const typeAvailable =
@@ -408,7 +427,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
       : Math.max((ticketType.quantity_total || 0) - (ticketType.quantity_sold || 0), 0);
 
   if (typeAvailable !== null && typeAvailable < quantity) {
-    redirectWithError("El tipo de ticket ya no tiene capacidad suficiente.");
+    redirectWithError("El tipo de ticket ya no tiene capacidad suficiente.", redirectTarget);
   }
 
   const subtotal = Number(ticketType.price) * quantity;
@@ -435,7 +454,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
   });
 
   if (orderError) {
-    redirectWithError(orderError.message);
+    redirectWithError(orderError.message, redirectTarget);
   }
 
   const { error: orderItemError } = await supabase.from("order_items").insert({
@@ -453,7 +472,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
   });
 
   if (orderItemError) {
-    redirectWithError(orderItemError.message);
+    redirectWithError(orderItemError.message, redirectTarget);
   }
 
   const { error: transactionError } = await supabase.from("payment_transactions").insert({
@@ -472,7 +491,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
   });
 
   if (transactionError) {
-    redirectWithError(transactionError.message);
+    redirectWithError(transactionError.message, redirectTarget);
   }
 
   const ticketsToInsert = Array.from({ length: quantity }, (_, index) => {
@@ -508,7 +527,7 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
     .select("id, ticket_code");
 
   if (issuedTicketsError) {
-    redirectWithError(issuedTicketsError.message);
+    redirectWithError(issuedTicketsError.message, redirectTarget);
   }
 
   await supabase
@@ -555,12 +574,13 @@ export async function sellTicketsAsAdminAction(formData: FormData) {
   revalidatePath("/perfil");
   revalidatePath("/perfil/compras");
   revalidatePath("/eventos");
-  redirectWithSuccess("Venta manual de tickets registrada correctamente.");
+  redirectWithSuccess("Venta manual de tickets registrada correctamente.", redirectTarget);
 }
 
 export async function updateIssuedTicketStatusAction(formData: FormData) {
-  const session = await requireAdmin();
+  const session = await requireOperator();
   const supabase = createClient();
+  const redirectTarget = resolveRedirectTarget(formData, "/admin/tickets");
   const ticketId = String(formData.get("ticketId") ?? "").trim();
   const nextStatus = String(formData.get("status") ?? "").trim();
   const allowedStatuses = new Set([
@@ -571,7 +591,7 @@ export async function updateIssuedTicketStatusAction(formData: FormData) {
   ]);
 
   if (!ticketId || !allowedStatuses.has(nextStatus)) {
-    redirectWithError("Debes indicar un ticket y un estatus valido.");
+    redirectWithError("Debes indicar un ticket y un estatus valido.", redirectTarget);
   }
 
   const { data: ticket, error } = await supabase
@@ -581,7 +601,7 @@ export async function updateIssuedTicketStatusAction(formData: FormData) {
     .maybeSingle();
 
   if (error || !ticket) {
-    redirectWithError(error?.message || "No encontramos ese ticket.");
+    redirectWithError(error?.message || "No encontramos ese ticket.", redirectTarget);
   }
 
   const checkedInAt = nextStatus === "checked_in" ? new Date().toISOString() : null;
@@ -594,7 +614,7 @@ export async function updateIssuedTicketStatusAction(formData: FormData) {
     .eq("id", ticketId);
 
   if (updateError) {
-    redirectWithError(updateError.message);
+    redirectWithError(updateError.message, redirectTarget);
   }
 
   await logAdminAction({
@@ -612,18 +632,21 @@ export async function updateIssuedTicketStatusAction(formData: FormData) {
   });
 
   revalidatePath("/admin/tickets");
+  revalidatePath("/staff/tickets");
   revalidatePath(`/admin/tickets/${ticketId}`);
+  revalidatePath(`/staff/tickets/${ticketId}`);
   revalidatePath("/perfil/compras");
-  redirectWithSuccess(`Estatus del ticket ${ticket.ticket_code} actualizado correctamente.`);
+  redirectWithSuccess(`Estatus del ticket ${ticket.ticket_code} actualizado correctamente.`, redirectTarget);
 }
 
 export async function validateIssuedTicketAction(formData: FormData) {
-  const session = await requireAdmin();
+  const session = await requireOperator();
   const supabase = createClient();
+  const redirectTarget = resolveRedirectTarget(formData, "/admin/tickets");
   const scanValue = String(formData.get("scanValue") ?? "").trim();
 
   if (!scanValue) {
-    redirectWithError("Debes escanear o pegar el codigo del ticket.");
+    redirectWithError("Debes escanear o pegar el codigo del ticket.", redirectTarget);
   }
 
   const parsed = parseTicketScanValue(scanValue);
@@ -637,13 +660,13 @@ export async function validateIssuedTicketAction(formData: FormData) {
   } else if (parsed.ticketCode) {
     query = query.eq("ticket_code", parsed.ticketCode);
   } else {
-    redirectWithError("No pudimos interpretar el QR o codigo enviado.");
+    redirectWithError("No pudimos interpretar el QR o codigo enviado.", redirectTarget);
   }
 
   const { data: ticket, error } = await query.maybeSingle();
 
   if (error || !ticket) {
-    redirectWithError(error?.message || "Ticket no encontrado.");
+    redirectWithError(error?.message || "Ticket no encontrado.", redirectTarget);
   }
 
   const storedHash =
@@ -652,15 +675,19 @@ export async function validateIssuedTicketAction(formData: FormData) {
       : "";
 
   if (parsed.hash && storedHash && parsed.hash !== storedHash) {
-    redirectWithError("El hash del ticket no coincide. Verifica el QR.");
+    redirectWithError("El hash del ticket no coincide. Verifica el QR.", redirectTarget);
   }
 
   if (ticket.status === "checked_in") {
-    redirectWithError("Este ticket ya fue usado y no puede volver a entrar.");
+    redirectWithError("Este ticket ya fue usado y no puede volver a entrar.", redirectTarget);
   }
 
   if (ticket.status === "cancelled" || ticket.status === "refunded") {
-    redirectWithError("Este ticket no es valido para acceso.");
+    redirectWithError("Este ticket no es valido para acceso.", redirectTarget);
+  }
+
+  if (ticket.status !== "issued") {
+    redirectWithError("Este ticket no esta emitido para acceso.", redirectTarget);
   }
 
   const checkedInAt = new Date().toISOString();
@@ -673,7 +700,7 @@ export async function validateIssuedTicketAction(formData: FormData) {
     .eq("id", ticket.id);
 
   if (updateError) {
-    redirectWithError(updateError.message);
+    redirectWithError(updateError.message, redirectTarget);
   }
 
   await logAdminAction({
@@ -690,7 +717,9 @@ export async function validateIssuedTicketAction(formData: FormData) {
   });
 
   revalidatePath("/admin/tickets");
+  revalidatePath("/staff/tickets");
   revalidatePath(`/admin/tickets/${ticket.id}`);
+  revalidatePath(`/staff/tickets/${ticket.id}`);
   revalidatePath("/perfil/compras");
-  redirectWithSuccess(`Ticket ${ticket.ticket_code} validado correctamente.`);
+  redirectWithSuccess(`Ticket ${ticket.ticket_code} validado correctamente.`, redirectTarget);
 }

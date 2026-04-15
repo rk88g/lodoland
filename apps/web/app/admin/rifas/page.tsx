@@ -107,6 +107,7 @@ export default async function AdminRafflesPage() {
         title="Venta manual de numeros"
       >
         <form action={sellRaffleNumbersAsAdminAction} autoComplete="off" method="post">
+          <input name="redirectTo" type="hidden" value="/admin/rifas" />
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
               <TextField label="Cliente" name="ownerUserId" required select>

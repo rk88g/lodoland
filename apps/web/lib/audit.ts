@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-type AppRole = "customer" | "admin" | "super_admin";
+type AppRole = "customer" | "staff" | "admin" | "super_admin";
 
 type AdminAuditInput = {
   supabase: SupabaseClient;

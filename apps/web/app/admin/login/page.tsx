@@ -14,8 +14,14 @@ type AdminLoginPageProps = {
 export default async function AdminLoginPage({ searchParams }: AdminLoginPageProps) {
   const session = await getCurrentSessionProfile();
 
-  if (session.user && (session.profile?.role === "admin" || session.profile?.role === "super_admin")) {
-    redirect("/admin");
+  if (session.user) {
+    if (session.profile?.role === "admin" || session.profile?.role === "super_admin") {
+      redirect("/admin");
+    }
+
+    if (session.profile?.role === "staff") {
+      redirect("/staff/tickets");
+    }
   }
 
   const errorMessage = searchParams?.error ? decodeURIComponent(searchParams.error) : null;
