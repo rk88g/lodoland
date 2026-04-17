@@ -5,20 +5,30 @@ import { FlashAlert } from "../../../components/flash-alert";
 import { requireOperator } from "../../../lib/auth/session";
 import { readFlashMessage } from "../../../lib/flash";
 import { getCustomerAccountOptions } from "../../../lib/data/admin-sales";
-import { getAvailableRaffles } from "../../../lib/data/customer";
+import { getAvailableRaffles, getOperatorRaffleSalesSummary } from "../../../lib/data/customer";
 import { staffNavItems } from "../../../lib/navigation";
 import { sellRaffleNumbersAsAdminAction } from "../../admin/rifas/actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function StaffRafflesPage() {
-  await requireOperator();
+  const session = await requireOperator();
   const flash = readFlashMessage("staff-raffles-flash");
-  const [raffles, customers] = await Promise.all([getAvailableRaffles(24), getCustomerAccountOptions(120)]);
+  const [raffles, customers, summary] = await Promise.all([
+    getAvailableRaffles(24),
+    getCustomerAccountOptions(120),
+    getOperatorRaffleSalesSummary(session.user.id)
+  ]);
 
   return (
     <DashboardShell navItems={staffNavItems} subtitle="Venta operativa" title="Venta rifas">
       <FlashAlert cookieName="staff-raffles-flash" payload={flash} />
+
+      <Box sx={{ display: "grid", gap: 1.25, gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", lg: "repeat(3, minmax(0, 1fr))" } }}>
+        <SummaryCard label="Ingresos por tus ventas" value={summary.totalRevenue} />
+        <SummaryCard label="Ventas cerradas" value={summary.totalSales} />
+        <SummaryCard label="Numeros vendidos" value={summary.totalNumbers} />
+      </Box>
 
       <AdminSectionCard
         description="Vende numeros directamente al cliente. Si la rifa esta configurada como aleatoria, no permitira captura manual."
@@ -94,6 +104,9 @@ export default async function StaffRafflesPage() {
                     Vendidos: {raffle.soldNumbers.length} / {raffle.totalNumbers || "abierto"}
                   </Typography>
                   <Typography color="text.secondary">
+                    Apartados activos: {raffle.reservedNumbers.length}
+                  </Typography>
+                  <Typography color="text.secondary">
                     Modo: {raffle.priceMode === "random_number" ? "Solo aleatoria" : raffle.allowManualPick ? "Manual o aleatoria" : "Aleatoria"}
                   </Typography>
                 </Stack>
@@ -105,5 +118,22 @@ export default async function StaffRafflesPage() {
         )}
       </AdminSectionCard>
     </DashboardShell>
+  );
+}
+
+function SummaryCard({ label, value }: { label: string; value: number }) {
+  return (
+    <Box sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 1.5 }}>
+      <Stack spacing={0.5}>
+        <Typography color="text.secondary" variant="body2">
+          {label}
+        </Typography>
+        <Typography sx={{ fontSize: 26, fontWeight: 900 }}>
+          {typeof value === "number" && !Number.isInteger(value)
+            ? new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(value)
+            : value}
+        </Typography>
+      </Stack>
+    </Box>
   );
 }

@@ -96,7 +96,25 @@ export type CustomerAvailableRaffle = {
   allowManualPick: boolean;
   priceMode: string;
   soldNumbers: number[];
+  reservedNumbers: number[];
+  availableCount: number;
   prizes: string[];
+};
+
+export type CustomerRaffleReservation = {
+  raffleId: string;
+  raffleTitle: string;
+  quantityGroup: string;
+  numbers: number[];
+  numberDigits: number;
+  selectionMode: string;
+  expiresAt: string;
+};
+
+export type OperatorRaffleSalesSummary = {
+  totalRevenue: number;
+  totalSales: number;
+  totalNumbers: number;
 };
 
 export type CustomerAvailablePool = {
@@ -309,13 +327,20 @@ export async function getAvailableRaffles(limit = 12) {
   }
 
   const raffleIds = raffleRows.map((raffle) => raffle.id);
-  const [{ data: soldNumbers }, { data: prizes }] = await Promise.all([
+  const [{ data: soldNumbers }, { data: prizes }, { data: reservedRows }] = await Promise.all([
     supabase.from("raffle_entry_numbers").select("raffle_id, number_value").in("raffle_id", raffleIds),
-    supabase.from("raffle_prizes").select("raffle_id, title").in("raffle_id", raffleIds).order("sort_order", { ascending: true })
+    supabase.from("raffle_prizes").select("raffle_id, title").in("raffle_id", raffleIds).order("sort_order", { ascending: true }),
+    supabase
+      .from("raffle_number_reservations")
+      .select("raffle_id, number_value")
+      .in("raffle_id", raffleIds)
+      .eq("status", "reserved")
+      .gt("expires_at", new Date().toISOString())
   ]);
 
   const soldMap = new Map<string, number[]>();
   const prizeMap = new Map<string, string[]>();
+  const reservedMap = new Map<string, number[]>();
 
   (soldNumbers || []).forEach((row) => {
     const current = soldMap.get(row.raffle_id) || [];
@@ -327,6 +352,12 @@ export async function getAvailableRaffles(limit = 12) {
     const current = prizeMap.get(row.raffle_id) || [];
     current.push(row.title);
     prizeMap.set(row.raffle_id, current);
+  });
+
+  (reservedRows || []).forEach((row) => {
+    const current = reservedMap.get(row.raffle_id) || [];
+    current.push(row.number_value);
+    reservedMap.set(row.raffle_id, current);
   });
 
   return raffleRows.map((raffle) => ({
@@ -345,8 +376,104 @@ export async function getAvailableRaffles(limit = 12) {
     allowManualPick: raffle.allow_manual_pick,
     priceMode: raffle.price_mode,
     soldNumbers: (soldMap.get(raffle.id) || []).sort((left, right) => left - right),
+    reservedNumbers: (reservedMap.get(raffle.id) || []).sort((left, right) => left - right),
+    availableCount: raffle.total_numbers
+      ? Math.max(
+          raffle.total_numbers - (soldMap.get(raffle.id) || []).length - (reservedMap.get(raffle.id) || []).length,
+          0
+        )
+      : 0,
     prizes: prizeMap.get(raffle.id) || []
   }));
+}
+
+export async function getCustomerRaffleReservations(userId: string) {
+  if (isBuildPhase()) {
+    return [] as CustomerRaffleReservation[];
+  }
+
+  const supabase = createClient();
+  const { data: reservations } = await supabase
+    .from("raffle_number_reservations")
+    .select("raffle_id, quantity_group, number_value, selection_mode, expires_at")
+    .eq("reserved_for_user_id", userId)
+    .eq("status", "reserved")
+    .gt("expires_at", new Date().toISOString())
+    .order("expires_at", { ascending: true })
+    .order("number_value", { ascending: true });
+
+  if (!reservations?.length) {
+    return [] as CustomerRaffleReservation[];
+  }
+
+  const raffleIds = Array.from(new Set(reservations.map((reservation) => reservation.raffle_id)));
+  const { data: raffles } = await supabase
+    .from("raffles")
+    .select("id, title, number_digits")
+    .in("id", raffleIds);
+
+  const raffleMap = new Map(
+    (raffles || []).map((raffle) => [
+      raffle.id,
+      {
+        title: raffle.title,
+        numberDigits: raffle.number_digits
+      }
+    ])
+  );
+
+  const grouped = new Map<string, CustomerRaffleReservation>();
+
+  reservations.forEach((reservation) => {
+    const key = reservation.quantity_group;
+    const existing = grouped.get(key);
+    const raffle = raffleMap.get(reservation.raffle_id);
+
+    if (existing) {
+      existing.numbers.push(reservation.number_value);
+      return;
+    }
+
+    grouped.set(key, {
+      raffleId: reservation.raffle_id,
+      raffleTitle: raffle?.title || "Rifa",
+      quantityGroup: reservation.quantity_group,
+      numbers: [reservation.number_value],
+      numberDigits: raffle?.numberDigits || 4,
+      selectionMode: reservation.selection_mode,
+      expiresAt: reservation.expires_at
+    });
+  });
+
+  return Array.from(grouped.values()).map((reservation) => ({
+    ...reservation,
+    numbers: reservation.numbers.sort((left, right) => left - right)
+  }));
+}
+
+export async function getOperatorRaffleSalesSummary(userId: string) {
+  if (isBuildPhase()) {
+    return {
+      totalRevenue: 0,
+      totalSales: 0,
+      totalNumbers: 0
+    } satisfies OperatorRaffleSalesSummary;
+  }
+
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("raffle_entries")
+    .select("quantity, unit_price, status")
+    .eq("created_by_user_id", userId)
+    .eq("status", "paid");
+
+  const rows = data || [];
+
+  return {
+    totalRevenue: rows.reduce((total, row) => total + Number(row.unit_price || 0) * Number(row.quantity || 0), 0),
+    totalSales: rows.length,
+    totalNumbers: rows.reduce((total, row) => total + Number(row.quantity || 0), 0)
+  } satisfies OperatorRaffleSalesSummary;
 }
 
 export async function getAvailablePools(limit = 12) {

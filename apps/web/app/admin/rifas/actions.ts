@@ -1,11 +1,11 @@
 "use server";
 
-import { randomInt, randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAdminAction } from "../../../lib/audit";
 import { requireAdmin, requireOperator } from "../../../lib/auth/session";
 import { setFlashMessage } from "../../../lib/flash";
+import { confirmRaffleReservationPurchase, reserveRaffleNumbers } from "../../../lib/raffle-sales";
 import { createClient } from "../../../lib/supabase/server";
 
 const FLASH_COOKIE = "admin-raffles-flash";
@@ -157,34 +157,6 @@ export async function createRaffleAction(formData: FormData) {
   redirectWithSuccess("Rifa creada correctamente.");
 }
 
-function parseManualNumbers(rawValue: string) {
-  return rawValue
-    .split(/[,\s]+/)
-    .map((chunk) => chunk.trim())
-    .filter(Boolean)
-    .map((value) => Number(value))
-    .filter((value) => Number.isInteger(value));
-}
-
-function pickRandomNumbers({
-  availableNumbers,
-  quantity
-}: {
-  availableNumbers: number[];
-  quantity: number;
-}) {
-  const pool = [...availableNumbers];
-  const picks: number[] = [];
-
-  while (pool.length && picks.length < quantity) {
-    const index = randomInt(0, pool.length);
-    const [picked] = pool.splice(index, 1);
-    picks.push(picked);
-  }
-
-  return picks.sort((left, right) => left - right);
-}
-
 export async function sellRaffleNumbersAsAdminAction(formData: FormData) {
   const session = await requireOperator();
   const supabase = createClient();
@@ -197,196 +169,63 @@ export async function sellRaffleNumbersAsAdminAction(formData: FormData) {
   const purchaserPhone = String(formData.get("purchaserPhone") ?? "").trim();
   const quantity = Number(String(formData.get("quantity") ?? "0").trim() || 0);
   const selectionMode = String(formData.get("selectionMode") ?? "manual").trim() || "manual";
-  const manualNumbers = parseManualNumbers(String(formData.get("manualNumbers") ?? "").trim());
+  const manualNumbers = String(formData.get("manualNumbers") ?? "").trim();
 
   if (!ownerUserId || !raffleId || quantity < 1) {
     redirectWithScopedMessage("error", "Debes indicar cliente, rifa y cantidad de numeros.", redirectTarget);
   }
 
-  const { data: raffle, error: raffleError } = await supabase
-    .from("raffles")
-    .select("id, title, entry_price, currency, entries_sold, total_numbers, numbers_start, numbers_end, number_digits, allow_manual_pick, price_mode")
-    .eq("id", raffleId)
-    .maybeSingle();
-
-  if (raffleError || !raffle) {
-    redirectWithScopedMessage("error", raffleError?.message || "Rifa invalida.", redirectTarget);
-  }
-
-  if (!raffle.total_numbers || !raffle.numbers_end) {
-    redirectWithScopedMessage("error", "La rifa no tiene configurada la cantidad total de numeros.", redirectTarget);
-  }
-
-  if (selectionMode === "manual" && (!raffle.allow_manual_pick || raffle.price_mode === "random_number")) {
-    redirectWithScopedMessage("error", "Esta rifa solo permite asignacion aleatoria de numeros.", redirectTarget);
-  }
-
-  const { data: soldRows } = await supabase
-    .from("raffle_entry_numbers")
-    .select("number_value")
-    .eq("raffle_id", raffleId);
-
-  const soldNumbers = new Set((soldRows || []).map((row) => row.number_value));
-  const availableNumbers = Array.from({ length: raffle.total_numbers }, (_, index) => raffle.numbers_start + index).filter(
-    (numberValue) => !soldNumbers.has(numberValue)
-  );
-
-  if (availableNumbers.length < quantity) {
-    redirectWithScopedMessage("error", "No hay suficientes numeros disponibles para completar la venta.", redirectTarget);
-  }
-
-  let selectedNumbers: number[] = [];
-
-  if (selectionMode === "manual") {
-    if (manualNumbers.length !== quantity) {
-      redirectWithScopedMessage("error", "La cantidad de numeros capturados no coincide con la cantidad solicitada.", redirectTarget);
-    }
-
-    const uniqueNumbers = new Set(manualNumbers);
-    if (uniqueNumbers.size !== manualNumbers.length) {
-      redirectWithScopedMessage("error", "No puedes repetir numeros en la misma venta.", redirectTarget);
-    }
-
-    const invalidNumber = manualNumbers.find(
-      (numberValue) =>
-        numberValue < raffle.numbers_start ||
-        numberValue > raffle.numbers_end ||
-        soldNumbers.has(numberValue)
-    );
-
-    if (invalidNumber) {
-      redirectWithScopedMessage("error", `El numero ${invalidNumber} no esta disponible.`, redirectTarget);
-    }
-
-    selectedNumbers = [...manualNumbers].sort((left, right) => left - right);
-  } else {
-    selectedNumbers = pickRandomNumbers({
-      availableNumbers,
-      quantity
+  try {
+    const { raffle, reservation } = await reserveRaffleNumbers({
+      supabase,
+      raffleId,
+      quantity,
+      selectionMode: selectionMode === "random" ? "random" : "manual",
+      manualNumbersRaw: manualNumbers,
+      reservedForUserId: ownerUserId,
+      createdByUserId: session.profile?.id || null,
+      purchaserName: purchaserName || null,
+      purchaserEmail: purchaserEmail || null,
+      purchaserPhone: purchaserPhone || null
     });
-  }
 
-  const subtotal = Number(raffle.entry_price) * quantity;
-  const orderId = randomUUID();
-  const orderItemId = randomUUID();
-  const raffleEntryId = randomUUID();
-
-  const { error: orderError } = await supabase.from("orders").insert({
-    id: orderId,
-    user_id: ownerUserId,
-    status: "paid",
-    currency: raffle.currency,
-    subtotal,
-    total: subtotal,
-    customer_name: purchaserName || null,
-    customer_email: purchaserEmail || null,
-    customer_phone: purchaserPhone || null,
-    notes: "Venta manual de numeros de rifa desde CONTROL",
-    metadata: {
-      saleOrigin: "admin_manual_raffle",
+    const sale = await confirmRaffleReservationPurchase({
+      supabase,
       raffleId,
-      quantity,
-      numbers: selectedNumbers
-    }
-  });
-
-  if (orderError) {
-    redirectWithScopedMessage("error", orderError.message, redirectTarget);
-  }
-
-  const { error: orderItemError } = await supabase.from("order_items").insert({
-    id: orderItemId,
-    order_id: orderId,
-    item_type: "raffle_entry",
-    reference_id: raffleId,
-    title_snapshot: raffle.title,
-    unit_price: raffle.entry_price,
-    quantity,
-    line_total: subtotal,
-    metadata: {
-      numbers: selectedNumbers,
-      selectionMode
-    }
-  });
-
-  if (orderItemError) {
-    redirectWithScopedMessage("error", orderItemError.message, redirectTarget);
-  }
-
-  const { error: transactionError } = await supabase.from("payment_transactions").insert({
-    order_id: orderId,
-    provider: "manual_admin",
-    provider_reference: `ADMIN-RAFFLE-${Date.now()}`,
-    amount: subtotal,
-    currency: raffle.currency,
-    status: "paid",
-    raw_payload: {
-      raffleId,
-      quantity,
-      numbers: selectedNumbers
-    },
-    processed_at: new Date().toISOString()
-  });
-
-  if (transactionError) {
-    redirectWithScopedMessage("error", transactionError.message, redirectTarget);
-  }
-
-  const { error: raffleEntryError } = await supabase.from("raffle_entries").insert({
-    id: raffleEntryId,
-    raffle_id: raffleId,
-    user_id: ownerUserId,
-    order_item_id: orderItemId,
-    quantity,
-    unit_price: raffle.entry_price,
-    status: "paid"
-  });
-
-  if (raffleEntryError) {
-    redirectWithScopedMessage("error", raffleEntryError.message, redirectTarget);
-  }
-
-  const { error: numbersError } = await supabase.from("raffle_entry_numbers").insert(
-    selectedNumbers.map((numberValue) => ({
-      raffle_entry_id: raffleEntryId,
-      raffle_id: raffleId,
-      number_value: numberValue,
-      assigned_mode: selectionMode
-    }))
-  );
-
-  if (numbersError) {
-    redirectWithScopedMessage("error", numbersError.message, redirectTarget);
-  }
-
-  await supabase
-    .from("raffles")
-    .update({
-      entries_sold: (raffle.entries_sold || 0) + quantity
-    })
-    .eq("id", raffleId);
-
-  await logAdminAction({
-    supabase,
-    actorUserId: session.profile?.id,
-    entityType: "raffle_sale",
-    entityId: raffleEntryId,
-    action: "create",
-    summary: "Venta manual de numeros de rifa desde control",
-    payload: {
-      raffleId,
-      orderId,
+      quantityGroup: reservation.quantityGroup,
       ownerUserId,
-      quantity,
-      selectionMode,
-      numbers: selectedNumbers
-    }
-  });
+      createdByUserId: session.profile?.id || null,
+      purchaserName: purchaserName || null,
+      purchaserEmail: purchaserEmail || null,
+      purchaserPhone: purchaserPhone || null,
+      saleOrigin: "admin_manual_raffle"
+    });
 
-  revalidatePath("/admin/rifas");
-  revalidatePath("/staff/rifas");
-  revalidatePath("/rifas");
-  revalidatePath("/perfil");
-  revalidatePath("/perfil/compras");
-  redirectWithScopedMessage("success", "Venta manual de numeros registrada correctamente.", redirectTarget);
+    await logAdminAction({
+      supabase,
+      actorUserId: session.profile?.id,
+      entityType: "raffle_sale",
+      entityId: sale.raffleEntryId,
+      action: "create",
+      summary: "Venta manual de numeros de rifa desde control",
+      payload: {
+        raffleId,
+        orderId: sale.orderId,
+        ownerUserId,
+        quantity,
+        selectionMode: reservation.selectionMode,
+        numbers: sale.numbers,
+        raffleTitle: raffle.title
+      }
+    });
+
+    revalidatePath("/admin/rifas");
+    revalidatePath("/staff/rifas");
+    revalidatePath("/rifas");
+    revalidatePath("/perfil");
+    revalidatePath("/perfil/compras");
+    redirectWithScopedMessage("success", "Venta manual de numeros registrada correctamente.", redirectTarget);
+  } catch (error) {
+    redirectWithScopedMessage("error", error instanceof Error ? error.message : "No pudimos registrar la venta.", redirectTarget);
+  }
 }

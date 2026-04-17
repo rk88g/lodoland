@@ -16,10 +16,11 @@ export async function POST(request: NextRequest) {
   if (error || !data.url) {
     return withCookies(
       NextResponse.redirect(
-        new URL(`/login?error=${sanitizeMessage(error?.message || "No se pudo iniciar Google.")}`, siteUrl)
+        new URL(`/login?error=${sanitizeMessage(error?.message || "No se pudo iniciar Google.")}`, siteUrl),
+        303
       )
     );
   }
 
-  return withCookies(NextResponse.redirect(data.url));
+  return withCookies(NextResponse.redirect(data.url, 303));
 }

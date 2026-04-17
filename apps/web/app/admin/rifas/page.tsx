@@ -172,6 +172,8 @@ export default async function AdminRafflesPage() {
                     <Chip label={raffle.status} size="small" />
                     {raffle.totalNumbers ? <Chip label={`${raffle.totalNumbers} numeros`} size="small" /> : null}
                     <Chip label={raffle.priceMode === "random_number" ? "Aleatoria" : "Manual o aleatoria"} size="small" />
+                    <Chip label={`${raffle.availableCount} disponibles`} size="small" />
+                    {raffle.reservedNumbers.length ? <Chip label={`${raffle.reservedNumbers.length} apartados`} size="small" /> : null}
                   </Stack>
                   {raffle.description ? <Typography color="text.secondary">{raffle.description}</Typography> : null}
                   <Typography color="text.secondary">Cierre: {formatDate(raffle.endsAt)}</Typography>
@@ -212,6 +214,30 @@ export default async function AdminRafflesPage() {
                       <Typography color="text.secondary">Todavia no hay numeros vendidos.</Typography>
                     )}
                   </Box>
+                  {raffle.reservedNumbers.length ? (
+                    <Box sx={{ display: "grid", gap: 1 }}>
+                      <Typography variant="body2">Numeros apartados: {raffle.reservedNumbers.length}</Typography>
+                      <Box sx={{ display: "grid", gap: 0.75, gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))" }}>
+                        {raffle.reservedNumbers.map((numberValue) => (
+                          <Box
+                            key={`${raffle.id}-reserved-${numberValue}`}
+                            sx={{
+                              border: 1,
+                              borderColor: "divider",
+                              bgcolor: "background.paper",
+                              py: 1,
+                              px: 1.25,
+                              textAlign: "center"
+                            }}
+                          >
+                            <Typography variant="body2">
+                              {formatNumberLabel(numberValue, raffle.numberDigits)}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  ) : null}
                 </Stack>
               </Box>
             ))}

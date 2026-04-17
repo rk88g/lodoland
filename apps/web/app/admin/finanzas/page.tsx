@@ -7,7 +7,7 @@ import { getFinanceDashboardData } from "../../../lib/data/finance";
 import { readFlashMessage } from "../../../lib/flash";
 import { controlNavItems } from "../../../lib/navigation";
 import { createClient } from "../../../lib/supabase/server";
-import { createFinancialEntryAction } from "./actions";
+import { createFinancialCategoryAction, createFinancialEntryAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -27,18 +27,56 @@ function formatDate(dateValue: string) {
   }).format(new Date(dateValue));
 }
 
-export default async function AdminFinanzasPage() {
+type AdminFinanzasPageProps = {
+  searchParams?: {
+    eventId?: string;
+    month?: string;
+    year?: string;
+    from?: string;
+    to?: string;
+  };
+};
+
+const monthOptions = [
+  { value: 1, label: "Enero" },
+  { value: 2, label: "Febrero" },
+  { value: 3, label: "Marzo" },
+  { value: 4, label: "Abril" },
+  { value: 5, label: "Mayo" },
+  { value: 6, label: "Junio" },
+  { value: 7, label: "Julio" },
+  { value: 8, label: "Agosto" },
+  { value: 9, label: "Septiembre" },
+  { value: 10, label: "Octubre" },
+  { value: 11, label: "Noviembre" },
+  { value: 12, label: "Diciembre" }
+];
+
+export default async function AdminFinanzasPage({ searchParams }: AdminFinanzasPageProps) {
   await requireAdmin();
   const flash = readFlashMessage(FLASH_COOKIE);
+  const selectedEventId = String(searchParams?.eventId ?? "").trim() || null;
+  const selectedMonth = Number(String(searchParams?.month ?? "").trim() || 0) || null;
+  const selectedYear = Number(String(searchParams?.year ?? "").trim() || 0) || null;
+  const selectedFrom = String(searchParams?.from ?? "").trim() || null;
+  const selectedTo = String(searchParams?.to ?? "").trim() || null;
   const supabase = createClient();
+
   const [dashboard, eventsResponse, promotionsResponse] = await Promise.all([
-    getFinanceDashboardData(),
+    getFinanceDashboardData(30, {
+      eventId: selectedEventId,
+      month: selectedMonth,
+      year: selectedYear,
+      from: selectedFrom,
+      to: selectedTo
+    }),
     supabase.from("events").select("id, title").order("starts_at", { ascending: false }).limit(40),
     supabase.from("promotions").select("id, title").order("created_at", { ascending: false }).limit(40)
   ]);
 
   const events = eventsResponse.data || [];
   const promotions = promotionsResponse.data || [];
+  const yearOptions = Array.from({ length: 6 }, (_, index) => new Date().getFullYear() - index);
 
   return (
     <DashboardShell navItems={controlNavItems} subtitle="Ingresos, gastos y analitica operativa" title="Finanzas">
@@ -58,6 +96,92 @@ export default async function AdminFinanzasPage() {
           <SummaryCard accent="rgba(25, 118, 210, 0.16)" label="Balance" value={formatMoney(dashboard.totals.balance)} />
         </Box>
       </Stack>
+
+      <AdminSectionCard
+        description="Filtra por evento, mes, año o rango de fechas para hacer cortes operativos."
+        title="Filtros y cortes"
+      >
+        <form autoComplete="off" method="get">
+          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", xl: "repeat(12, minmax(0, 1fr))" } }}>
+            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 3" } }}>
+              <TextField defaultValue={selectedEventId || ""} label="Evento" name="eventId" select>
+                <MenuItem value="">Todos</MenuItem>
+                {events.map((event) => (
+                  <MenuItem key={event.id} value={event.id}>
+                    {event.title}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 2" } }}>
+              <TextField defaultValue={selectedMonth || ""} label="Mes" name="month" select>
+                <MenuItem value="">Todos</MenuItem>
+                {monthOptions.map((month) => (
+                  <MenuItem key={month.value} value={month.value}>
+                    {month.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 2" } }}>
+              <TextField defaultValue={selectedYear || ""} label="Año" name="year" select>
+                <MenuItem value="">Todos</MenuItem>
+                {yearOptions.map((year) => (
+                  <MenuItem key={year} value={year}>
+                    {year}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 2" } }}>
+              <TextField InputLabelProps={{ shrink: true }} defaultValue={selectedFrom || ""} label="Desde" name="from" type="date" />
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 2" } }}>
+              <TextField InputLabelProps={{ shrink: true }} defaultValue={selectedTo || ""} label="Hasta" name="to" type="date" />
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 1" }, display: "flex", alignItems: "flex-end" }}>
+              <Button fullWidth type="submit" variant="contained">
+                Filtrar
+              </Button>
+            </Box>
+          </Box>
+        </form>
+
+        <Box
+          sx={{
+            mt: 2,
+            display: "grid",
+            gap: 1.25,
+            gridTemplateColumns: { xs: "1fr", lg: "repeat(3, minmax(0, 1fr))" }
+          }}
+        >
+          <SummaryCard accent="rgba(16, 185, 129, 0.16)" label="Corte hoy" value={formatMoney(dashboard.cuts.today.balance)} />
+          <SummaryCard accent="rgba(59, 130, 246, 0.16)" label="Corte mes" value={formatMoney(dashboard.cuts.month.balance)} />
+          <SummaryCard accent="rgba(251, 191, 36, 0.16)" label="Corte año" value={formatMoney(dashboard.cuts.year.balance)} />
+        </Box>
+      </AdminSectionCard>
+
+      <AdminSectionCard description="Crea categorias para clasificar mejor ingresos y gastos." title="Categorias">
+        <form action={createFinancialCategoryAction} autoComplete="off" method="post">
+          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", xl: "repeat(12, minmax(0, 1fr))" } }}>
+            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 5" } }}>
+              <TextField label="Nombre de categoria" name="label" required />
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 4" } }}>
+              <TextField defaultValue="income" label="Tipo" name="kind" required select>
+                <MenuItem value="income">Ingreso</MenuItem>
+                <MenuItem value="expense">Gasto</MenuItem>
+                <MenuItem value="adjustment">Ajuste</MenuItem>
+              </TextField>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 3" }, display: "flex", alignItems: "flex-end" }}>
+              <Button fullWidth type="submit" variant="contained">
+                Crear categoria
+              </Button>
+            </Box>
+          </Box>
+        </form>
+      </AdminSectionCard>
 
       <AdminSectionCard
         description="Registra movimientos manuales y quedaran reflejados en los totales, los listados y el log de acciones."

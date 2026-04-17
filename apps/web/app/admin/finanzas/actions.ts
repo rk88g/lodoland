@@ -75,3 +75,46 @@ export async function createFinancialEntryAction(formData: FormData) {
   revalidatePath("/admin/logs/acciones");
   redirectWithMessage("success", "Movimiento financiero guardado correctamente.");
 }
+
+export async function createFinancialCategoryAction(formData: FormData) {
+  const session = await requireAdmin();
+  const supabase = createClient();
+
+  const label = String(formData.get("label") ?? "").trim();
+  const kind = String(formData.get("kind") ?? "").trim();
+
+  if (!label || !["income", "expense", "adjustment"].includes(kind)) {
+    redirectWithMessage("error", "Debes indicar nombre y tipo de categoria.");
+  }
+
+  const { data, error } = await supabase
+    .from("financial_categories")
+    .insert({
+      label,
+      kind,
+      is_active: true
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    redirectWithMessage("error", error.message);
+  }
+
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "financial_category",
+    entityId: data?.id || null,
+    action: "create",
+    summary: "Alta de categoria financiera",
+    payload: {
+      label,
+      kind
+    }
+  });
+
+  revalidatePath("/admin/finanzas");
+  revalidatePath("/admin/logs/acciones");
+  redirectWithMessage("success", "Categoria financiera creada correctamente.");
+}
