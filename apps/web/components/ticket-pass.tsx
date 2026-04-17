@@ -296,25 +296,25 @@ export function TicketPass({ ticket }: { ticket: TicketPassDetail }) {
                   pt: 2,
                   borderTop: "1px dashed rgba(148, 163, 184, 0.32)",
                   display: "grid",
-                  gap: 1.45
+                  gap: 0.85
                 }}
               >
                 {ticket.sponsors.featured.length ? (
-                  <SponsorRow items={ticket.sponsors.featured} label="Nivel 2 · 3 · 4" logoHeight={58} />
+                  <SponsorRow items={ticket.sponsors.featured} logoHeight={70} />
                 ) : null}
 
                 {ticket.sponsors.standard.length ? (
-                  <SponsorRow items={ticket.sponsors.standard} label="Nivel 5 · 6 · 7" logoHeight={38} />
+                  <SponsorRow items={ticket.sponsors.standard} logoHeight={40} />
                 ) : null}
 
                 {ticket.sponsors.support.length ? (
-                  <SponsorRow items={ticket.sponsors.support} label="Nivel 8 · 9 · 10" logoHeight={28} />
+                  <SponsorRow items={ticket.sponsors.support} logoHeight={30} />
                 ) : null}
               </Box>
 
-              <Typography sx={{ fontSize: 11.5, color: "#475569" }}>
-                No compartas este ticket. Si otra persona usa este QR antes que tu, no nos hacemos responsables y
-                sera necesario adquirir un nuevo acceso.
+              <Typography sx={{ fontSize: 11.5, color: "#b91c1c", fontWeight: 700 }}>
+                Comprar tus accesos solo en nuestra plataforma LODO LAND. No comprar a revendedores. No nos hacemos
+                responsables del mal uso y operaciones ajenas al sistema.
               </Typography>
             </Stack>
           </Box>
@@ -326,11 +326,11 @@ export function TicketPass({ ticket }: { ticket: TicketPassDetail }) {
           <Typography sx={{ fontSize: 13, fontWeight: 800, letterSpacing: "0.08em" }}>
             Recomendaciones importantes
           </Typography>
-          <Typography color="text.secondary" variant="body2">
+          <Typography color="error.main" variant="body2">
             Nuestros sistemas de validacion son robustos y seguros. Las compras en linea se conectan con Mercado Pago
             developer y el acceso solo se valida una vez por ticket.
           </Typography>
-          <Typography color="text.secondary" variant="body2">
+          <Typography color="error.main" variant="body2">
             Conserva este ticket en tu cuenta y muestra el QR directamente desde tu perfil para acelerar el ingreso.
           </Typography>
         </Stack>
@@ -371,29 +371,25 @@ function TicketMetric({
 }
 
 function SponsorRow({
-  label,
   items,
   logoHeight
 }: {
-  label: string;
   items: Array<{ id: string; name: string; imageUrl: string | null }>;
   logoHeight: number;
 }) {
   return (
-    <Stack spacing={0.7}>
-      <Typography sx={{ fontSize: 10.5, color: "#64748b", letterSpacing: "0.1em" }}>{label.toUpperCase()}</Typography>
-      <Box sx={{ display: "grid", gap: 1, gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
+    <Box sx={{ display: "grid", gap: 0.8, gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
         {items.map((item) => (
           <Box
             key={item.id}
             sx={{
-              minHeight: logoHeight + 24,
+              minHeight: logoHeight + 18,
               display: "grid",
               placeItems: "center",
               borderRadius: 2,
               bgcolor: "rgba(248, 250, 252, 0.92)",
-              px: 1.25,
-              py: 1
+              px: 1,
+              py: 0.6
             }}
           >
             {item.imageUrl ? (
@@ -411,6 +407,5 @@ function SponsorRow({
           </Box>
         ))}
       </Box>
-    </Stack>
   );
 }

@@ -51,9 +51,14 @@ export default async function AdminAccessLogsPage() {
               }}
             >
               <Stack direction={{ xs: "column", md: "row" }} spacing={1} useFlexGap justifyContent="space-between">
-                <Typography sx={{ fontWeight: 700 }}>{log.email || "Colaborador"}</Typography>
+                <Stack spacing={0.35}>
+                  <Typography sx={{ fontWeight: 700 }}>{log.actorLabel || log.email || "Colaborador"}</Typography>
+                  <Typography color="text.secondary" variant="body2">
+                    {formatDate(log.createdAt)}
+                  </Typography>
+                </Stack>
                 <Typography color="text.secondary" variant="body2">
-                  {formatDate(log.createdAt)}
+                  {log.email || "Sin correo"}
                 </Typography>
               </Stack>
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">

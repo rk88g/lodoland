@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { InfluencerCollage } from "./influencer-collage";
+import { buildWallClockDate } from "../lib/date-format";
 import { formatEventDateTimeWallClock } from "../lib/date-format";
 import type { HomePageViewModel } from "../lib/data/home";
 
@@ -29,6 +30,44 @@ function buildSponsorToneStyle(backgroundColor: string | null, accentColor: stri
   } as CSSProperties;
 }
 
+function getEventCountdown(startValue: string | null, nowValue: number) {
+  const startDate = buildWallClockDate(startValue);
+
+  if (!startDate) {
+    return null;
+  }
+
+  const diffMs = startDate.getTime() - nowValue;
+
+  if (diffMs <= 0) {
+    return {
+      mode: "live" as const,
+      label: "El evento ya inicio"
+    };
+  }
+
+  const totalSeconds = Math.floor(diffMs / 1000);
+  const totalDays = Math.floor(totalSeconds / (24 * 60 * 60));
+
+  if (totalDays > 3) {
+    return {
+      mode: "days" as const,
+      label: `Faltan ${totalDays} dias`
+    };
+  }
+
+  const hours = Math.floor((totalSeconds % (24 * 60 * 60)) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return {
+    mode: "clock" as const,
+    label: `${totalDays}d ${hours.toString().padStart(2, "0")}h ${minutes
+      .toString()
+      .padStart(2, "0")}m ${seconds.toString().padStart(2, "0")}s`
+  };
+}
+
 export function HomeExperience({ data }: HomeExperienceProps) {
   const menuCollapsesRef = useRef<HTMLDivElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -40,10 +79,12 @@ export function HomeExperience({ data }: HomeExperienceProps) {
   const [saleModalIndex, setSaleModalIndex] = useState<number | null>(null);
   const [activeMenuPanel, setActiveMenuPanel] = useState(0);
   const [isMobileMenuViewport, setIsMobileMenuViewport] = useState(false);
+  const [nowValue, setNowValue] = useState(() => Date.now());
   const isOverlayOpen =
     sponsorModalOpen || eventModalOpen || menuOpen || influencerModalOpen || merchModalOpen || saleModalIndex !== null;
   const currentYear = new Date().getFullYear();
   const menuPageCount = data.menuSponsorPanels.length + 1;
+  const eventCountdown = getEventCountdown(data.event.startsAt, nowValue);
 
   const closeOverlay = () => {
     if (saleModalIndex !== null) {
@@ -123,6 +164,20 @@ export function HomeExperience({ data }: HomeExperienceProps) {
       mediaQuery.removeEventListener("change", updateViewport);
     };
   }, []);
+
+  useEffect(() => {
+    if (!data.event.startsAt) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setNowValue(Date.now());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [data.event.startsAt]);
 
   useEffect(() => {
     if (!menuOpen) {
@@ -590,6 +645,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
               {data.event.meta.map((item) => (
                 <span key={item}>{item}</span>
               ))}
+              {eventCountdown ? <span>{eventCountdown.label}</span> : null}
             </div>
             <div className="scene-actions">
               <button className="cta-solid" onClick={() => setEventModalOpen(true)} type="button">

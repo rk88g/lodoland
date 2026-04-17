@@ -65,7 +65,7 @@ export default async function EventsPage() {
 
                         {eventTickets.length ? (
                           <Stack spacing={1}>
-                            <Typography variant="body2">Configuracion activa de tickets</Typography>
+                            <Typography variant="body2">Lista de Precios</Typography>
                             <Box sx={{ display: "grid", gap: 1 }}>
                               {eventTickets.map((ticketOption) => (
                                 <Box
@@ -99,11 +99,7 @@ export default async function EventsPage() {
                                           </Typography>
                                         ))}
                                       </Box>
-                                    ) : (
-                                      <Typography color="text.secondary" variant="body2">
-                                        Sin drops configurados todavia.
-                                      </Typography>
-                                    )}
+                                    ) : null}
                                   </Stack>
                                 </Box>
                               ))}

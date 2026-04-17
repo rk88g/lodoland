@@ -29,10 +29,7 @@ export default async function CustomerPurchasesPage() {
 
   const ticketDetailsEntries = await Promise.all(
     tickets.map(async (ticket) => {
-      const detail = await getTicketPassDetail(ticket.id, {
-        ownerUserId: user.id,
-        userEmail: user.email
-      });
+      const detail = await getTicketPassDetail(ticket.id);
       return [ticket.id, detail] as const;
     })
   );

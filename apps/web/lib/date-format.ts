@@ -21,7 +21,7 @@ function parseWallClockParts(dateValue: string | null | undefined) {
   };
 }
 
-function buildWallClockDate(dateValue: string | null | undefined) {
+export function buildWallClockDate(dateValue: string | null | undefined) {
   const parts = parseWallClockParts(dateValue);
 
   if (!parts) {

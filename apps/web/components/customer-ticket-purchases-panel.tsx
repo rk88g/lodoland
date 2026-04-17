@@ -84,9 +84,9 @@ export function CustomerTicketPurchasesPanel({
             ? { bgcolor: "#08111d" }
             : {
                 bgcolor: "#08111d",
-                width: "min(980px, 68vw)",
-                maxWidth: "68vw",
-                maxHeight: "92vh"
+                width: "min(760px, 52vw)",
+                maxWidth: "52vw",
+                maxHeight: "88vh"
               }
         }}
       >
@@ -105,7 +105,22 @@ export function CustomerTicketPurchasesPanel({
           </IconButton>
         </DialogTitle>
         <DialogContent dividers sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
-          {selectedTicket ? <TicketPass ticket={selectedTicket} /> : null}
+          {selectedTicket ? (
+            <Stack spacing={2}>
+              <TicketPass ticket={selectedTicket} />
+              <Stack direction={{ xs: "column", md: "row" }} spacing={1} justifyContent="space-between">
+                <Typography color="error.main" variant="body2">
+                  Comprar tus accesos solo en nuestra plataforma LODO LAND. No comprar a revendedores. No nos hacemos responsables del mal uso y operaciones ajenas al sistema.
+                </Typography>
+                <Button
+                  onClick={() => window.open(`/perfil/compras/tickets/${selectedTicket.id}?print=1`, "_blank", "noopener,noreferrer")}
+                  variant="outlined"
+                >
+                  Descargar PDF
+                </Button>
+              </Stack>
+            </Stack>
+          ) : null}
         </DialogContent>
       </Dialog>
     </Stack>

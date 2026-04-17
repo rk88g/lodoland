@@ -67,6 +67,7 @@ export type HomePageViewModel = {
     title: string;
     description: string;
     meta: string[];
+    startsAt: string | null;
     primaryLabel: string;
     secondaryLabel: string;
     heroImage: CmsMediaAsset | null;
@@ -454,6 +455,7 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
         nextEvent?.shortDescription ||
         "La seccion principal presenta el evento mas reciente con acceso rapido a boletos.",
       meta: meta.length ? meta : ["Fecha pendiente", "Ciudad pendiente"],
+      startsAt: nextEvent?.startsAt || null,
       primaryLabel: featuredEventRow?.primary_cta_label || eventSection?.fields.primary_cta_label?.textValue || "Ver evento",
       secondaryLabel: featuredEventRow?.secondary_cta_label || eventSection?.fields.secondary_cta_label?.textValue || "Comprar boletos",
       heroImage: eventHeroImage || nextEvent?.cover || null,

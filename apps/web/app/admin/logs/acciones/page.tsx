@@ -15,6 +15,22 @@ function formatDate(dateValue: string) {
   }).format(new Date(dateValue));
 }
 
+function buildPayloadPreview(payload: Record<string, unknown>) {
+  if (payload.referenceLabel && typeof payload.referenceLabel === "string") {
+    return payload.referenceLabel;
+  }
+
+  if (payload.ticketCode && typeof payload.ticketCode === "string") {
+    return payload.ticketCode;
+  }
+
+  if (payload.quantity && payload.currency) {
+    return `${payload.quantity} · ${payload.currency}`;
+  }
+
+  return null;
+}
+
 export default async function AdminActionLogsPage() {
   await requireAdmin();
   const rawLogs = await getAdminAuditLogs(150);
@@ -73,16 +89,23 @@ export default async function AdminActionLogsPage() {
                   }}
                 >
                   <Stack direction={{ xs: "column", md: "row" }} spacing={1} useFlexGap justifyContent="space-between">
-                    <Typography sx={{ fontWeight: 700 }}>{log.summary || "Accion en control"}</Typography>
-                    <Typography color="text.secondary" variant="body2">
-                      {formatDate(log.createdAt)}
-                    </Typography>
+                    <Stack spacing={0.35}>
+                      <Typography sx={{ fontWeight: 700 }}>{log.summary || "Accion en control"}</Typography>
+                      <Typography color="text.secondary" variant="body2">
+                        {log.actorLabel || "Usuario no identificado"} · {formatDate(log.createdAt)}
+                      </Typography>
+                    </Stack>
+                    {buildPayloadPreview(log.payload) ? (
+                      <Typography color="text.secondary" variant="body2">
+                        {buildPayloadPreview(log.payload)}
+                      </Typography>
+                    ) : null}
                   </Stack>
                   <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                     <Chip label={log.action} size="small" />
                     <Chip label={log.entityType} size="small" />
                     {log.entityId ? <Chip label={log.entityId} size="small" /> : null}
-                    {log.actorUserId ? <Chip label={log.actorUserId} size="small" /> : null}
+                    {log.actorEmail ? <Chip label={log.actorEmail} size="small" /> : null}
                   </Stack>
                   {Object.keys(log.payload).length ? (
                     <Box

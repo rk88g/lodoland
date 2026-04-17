@@ -1,5 +1,6 @@
 import { Button, Stack, Typography } from "@mui/material";
 import Link from "next/link";
+import { PrintOnLoad } from "../../../../../components/print-on-load";
 import { TicketPass } from "../../../../../components/ticket-pass";
 import { DashboardShell } from "../../../../../components/dashboard-shell";
 import { isEmailConfirmed, requireUser } from "../../../../../lib/auth/session";
@@ -13,9 +14,12 @@ type CustomerTicketPassPageProps = {
   params: {
     ticketId: string;
   };
+  searchParams?: {
+    print?: string;
+  };
 };
 
-export default async function CustomerTicketPassPage({ params }: CustomerTicketPassPageProps) {
+export default async function CustomerTicketPassPage({ params, searchParams }: CustomerTicketPassPageProps) {
   const { user } = await requireUser();
 
   if (!isEmailConfirmed(user)) {
@@ -26,6 +30,20 @@ export default async function CustomerTicketPassPage({ params }: CustomerTicketP
     ownerUserId: user.id,
     userEmail: user.email
   });
+  const isPrintMode = searchParams?.print === "1";
+
+  if (isPrintMode) {
+    return ticket ? (
+      <main style={{ padding: 24 }}>
+        <PrintOnLoad />
+        <TicketPass ticket={ticket} />
+      </main>
+    ) : (
+      <Stack spacing={2} sx={{ p: 3 }}>
+        <Typography color="text.secondary">No encontramos ese ticket en tu cuenta.</Typography>
+      </Stack>
+    );
+  }
 
   return (
     <DashboardShell navItems={customerNavItems} subtitle="Codigo QR y acceso" title="Mi ticket">

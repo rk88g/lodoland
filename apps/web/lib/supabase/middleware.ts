@@ -76,7 +76,15 @@ export async function updateSession(request: NextRequest) {
   const existingExpiry = getExistingAppSessionExpiry(request);
 
   if (!existingExpiry) {
-    applyAppSessionCookie(response, profile?.role ?? null);
+    await supabase.auth.signOut();
+    const redirectUrl = new URL(getExpiredRedirectPath(request.nextUrl.pathname), request.url);
+    redirectUrl.searchParams.set("error", sanitizeMessage("Tu sesion expiro por seguridad."));
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie);
+    });
+    clearAppSessionCookie(redirectResponse);
+    return redirectResponse;
   }
 
   return response;

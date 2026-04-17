@@ -18,7 +18,9 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Typography
+  Typography,
+  useMediaQuery,
+  useTheme
 } from "@mui/material";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import type { AdminIssuedTicketSummary } from "../lib/data/tickets";
@@ -81,6 +83,8 @@ export function AdminIssuedTicketsPanel({
 }) {
   const [query, setQuery] = useState("");
   const [selectedTicket, setSelectedTicket] = useState<AdminIssuedTicketSummary | null>(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const filteredItems = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -200,13 +204,20 @@ export function AdminIssuedTicketsPanel({
       )}
 
       <Dialog
-        fullScreen
+        fullScreen={isMobile}
         onClose={() => setSelectedTicket(null)}
         open={Boolean(selectedTicket)}
         PaperProps={{
-          sx: {
-            bgcolor: "#08111d"
-          }
+          sx: isMobile
+            ? {
+                bgcolor: "#08111d"
+              }
+            : {
+                bgcolor: "#08111d",
+                width: "min(860px, 56vw)",
+                maxWidth: "56vw",
+                maxHeight: "90vh"
+              }
         }}
       >
         <DialogTitle
@@ -268,8 +279,17 @@ export function AdminIssuedTicketsPanel({
                       </Button>
                     </form>
                   ) : null}
+                  <Button
+                    onClick={() => window.open(`/admin/tickets/${selectedTicket.id}?print=1`, "_blank", "noopener,noreferrer")}
+                    variant="outlined"
+                  >
+                    Descargar PDF
+                  </Button>
                 </Stack>
               </Stack>
+              <Typography color="error.main" variant="body2">
+                Comprar tus accesos solo en nuestra plataforma LODO LAND. No comprar a revendedores. No nos hacemos responsables del mal uso y operaciones ajenas al sistema.
+              </Typography>
             </Stack>
           ) : null}
         </DialogContent>

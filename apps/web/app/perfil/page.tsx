@@ -10,6 +10,7 @@ import {
   Typography
 } from "@mui/material";
 import { DashboardShell } from "../../components/dashboard-shell";
+import { SensitiveRevealText } from "../../components/sensitive-reveal-text";
 import { isEmailConfirmed, requireUser } from "../../lib/auth/session";
 import { getCustomerPools, getCustomerRaffles, getCustomerTickets } from "../../lib/data/customer";
 import { getAvatarPresets, getNextEvent } from "../../lib/data/portal";
@@ -151,7 +152,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               ) : null}
             </Box>
             <Typography variant="h3">{fullName || "Cliente LODO LAND"}</Typography>
-            <Typography color="text.secondary">{profile?.email || user.email}</Typography>
+            <SensitiveRevealText label="Correo de cuenta" value={profile?.email || user.email || null} />
             <Typography color="text.secondary">
               Avatar actual: {activeAvatar?.label || "Sin seleccionar"}
             </Typography>
@@ -174,7 +175,19 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
               <TextField autoComplete="off" defaultValue={profile?.first_name || ""} label="Nombre" name="firstName" />
               <TextField autoComplete="off" defaultValue={profile?.last_name || ""} label="Apellidos" name="lastName" />
-              <TextField autoComplete="off" defaultValue={profile?.email || user.email || ""} disabled label="Correo" />
+              <Box
+                sx={{
+                  border: 1,
+                  borderColor: "divider",
+                  bgcolor: "background.default",
+                  px: 1.75,
+                  py: 1.5,
+                  display: "grid",
+                  alignContent: "center"
+                }}
+              >
+                <SensitiveRevealText label="Correo" value={profile?.email || user.email || null} />
+              </Box>
               <TextField autoComplete="off" defaultValue={profile?.phone || ""} label="Telefono" name="phone" />
             </Box>
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
