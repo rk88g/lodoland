@@ -320,7 +320,7 @@ export async function confirmRaffleReservationPurchase({
     throw new Error("Rifa invalida.");
   }
 
-  const { data: reservations } = await supabase
+   const { data: reservations } = await supabase
     .from("raffle_number_reservations")
     .select("id, number_value, expires_at, selection_mode")
     .eq("raffle_id", raffleId)
@@ -329,13 +329,21 @@ export async function confirmRaffleReservationPurchase({
     .eq("status", "reserved")
     .order("number_value", { ascending: true });
 
-  if (!reservations?.length) {
+  const typedReservations = (reservations || []) as Array<{
+    id: string;
+    number_value: number;
+    expires_at: string;
+    selection_mode: string;
+  }>;
+
+  if (!typedReservations.length) {
     throw new Error("El apartado ya no esta disponible. Intenta otra vez.");
   }
 
-  const quantity = reservations.length;
-  const numbers = reservations.map((row: { number_value: number }) => row.number_value).sort((left: number, right: number) => left - right);
-  const subtotal = Number(raffle.entry_price || 0) * quantity;
+  const quantity = typedReservations.length;
+  const numbers: number[] = typedReservations
+    .map((row) => row.number_value)
+    .sort((left, right) => left - right);const subtotal = Number(raffle.entry_price || 0) * quantity;
   const orderId = randomUUID();
   const orderItemId = randomUUID();
   const raffleEntryId = randomUUID();
@@ -420,11 +428,11 @@ export async function confirmRaffleReservationPurchase({
   }
 
   const { error: numbersError } = await supabase.from("raffle_entry_numbers").insert(
-    numbers.map((numberValue) => ({
+    numbers.map((numberValue: number) => ({
       raffle_entry_id: raffleEntryId,
       raffle_id: raffleId,
       number_value: numberValue,
-      assigned_mode: reservations[0].selection_mode
+      assigned_mode: typedReservations[0].selection_mode
     }))
   );
 
@@ -441,7 +449,7 @@ export async function confirmRaffleReservationPurchase({
     })
     .in(
       "id",
-      reservations.map((row: { id: string }) => row.id)
+      typedReservations.map((row) => row.id)
     );
 
   if (reservationUpdateError) {
