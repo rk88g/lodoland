@@ -409,16 +409,38 @@ main {
 
 .raffle27-kicker {
   position: absolute;
-  left: min(34rem, 39vw);
-  top: clamp(0.5rem, 2vw, 1.8rem);
-  width: min(28rem, 40vw);
-  color: #f8f5e8;
-  font-size: clamp(1.05rem, 2.7vw, 3rem);
-  line-height: 0.94;
+  left: -18vw;
+  top: 42vh;
+  z-index: 1;
+  width: 150vw;
+  padding: 0.46rem 0;
+  overflow: hidden;
+  color: #070806;
+  font-size: clamp(1.05rem, 2.4vw, 2.6rem);
+  line-height: 1;
   font-weight: 1000;
-  letter-spacing: 0.02em;
-  transform: rotate(-4deg);
-  text-shadow: 0.12rem 0.12rem 0 #111;
+  letter-spacing: 0.12em;
+  text-align: center;
+  white-space: nowrap;
+  background:
+    repeating-linear-gradient(115deg, rgba(8, 8, 6, 0.82) 0 1.2rem, transparent 1.25rem 2.4rem),
+    linear-gradient(90deg, #ffd300, #ff2b16 48%, #ffd300);
+  box-shadow:
+    0 0.4rem 0 rgba(0, 0, 0, 0.64),
+    0 0 2.6rem rgba(255, 43, 22, 0.32);
+  opacity: 0.62;
+  transform: rotate(-17deg);
+  transform-origin: center;
+  animation: raffle27-warning-tape 16s linear infinite;
+}
+
+.raffle27-kicker::before,
+.raffle27-kicker::after {
+  content: "RIFA ENTRE LODONAUTAS  /  ZONA DE SUERTE  /  RIFA ENTRE LODONAUTAS  /  ZONA DE SUERTE  /  ";
+}
+
+.raffle27-kicker::after {
+  margin-left: 1.2rem;
 }
 
 .raffle27-title {
@@ -445,20 +467,6 @@ main {
   font-weight: 1000;
   transform: skew(-13deg) rotate(-3deg);
   box-shadow: 0.35rem 0.45rem 0 rgba(0, 0, 0, 0.65);
-}
-
-.raffle27-luck-line {
-  position: absolute;
-  left: clamp(1rem, 5vw, 5rem);
-  top: clamp(25rem, 52vh, 32rem);
-  z-index: 5;
-  color: #fff;
-  font-size: clamp(1.15rem, 3vw, 2.4rem);
-  line-height: 1;
-  font-weight: 1000;
-  letter-spacing: 0.01em;
-  transform: rotate(-2deg);
-  text-shadow: 0.16rem 0.16rem 0 #111;
 }
 
 .raffle27-date-badge {
@@ -705,42 +713,6 @@ main {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(7, 8, 5, 0.72);
-}
-
-.raffle27-stats-line {
-  position: absolute;
-  right: clamp(1.4rem, 4vw, 4rem);
-  top: clamp(14rem, 27vh, 17.5rem);
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-}
-
-.raffle27-stat-card {
-  display: grid;
-  min-width: 6.9rem;
-  padding: 0.62rem 0.9rem;
-  background: rgba(0, 0, 0, 0.75);
-  color: #f8f5e8;
-  box-shadow: inset 0 0 0 1px rgba(216, 255, 0, 0.22);
-  transform: skew(-8deg);
-}
-
-.raffle27-stat-label {
-  color: rgba(248, 245, 232, 0.76);
-  font-size: 0.64rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.raffle27-stat-value {
-  color: #d8ff00;
-  font-size: clamp(1.3rem, 2.4vw, 2rem);
-  font-weight: 1000;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
 }
 
 .raffle27-hold-ribbon {
@@ -1000,6 +972,24 @@ main {
   }
 }
 
+@keyframes raffle27-warning-tape {
+  0% {
+    background-position: 0 0, 0 0;
+    translate: -5vw -1vh;
+    rotate: -1.5deg;
+  }
+  50% {
+    background-position: 7rem 0, 0 0;
+    translate: 5vw 1vh;
+    rotate: 1.5deg;
+  }
+  100% {
+    background-position: 14rem 0, 0 0;
+    translate: -5vw -1vh;
+    rotate: -1.5deg;
+  }
+}
+
 @media (max-width: 980px) {
   .raffle27-shell {
     min-height: auto;
@@ -1031,12 +1021,10 @@ main {
     top: 1rem;
   }
 
-  .raffle27-luck-line,
   .raffle27-countdown,
   .raffle27-hold-ribbon,
   .raffle27-howto-line,
   .raffle27-action-row,
-  .raffle27-stats-line,
   .raffle27-transfer-collapse {
     position: relative;
     left: auto;
@@ -1046,17 +1034,7 @@ main {
     margin-top: 1rem;
   }
 
-  .raffle27-luck-line {
-    width: fit-content;
-    margin-top: 1.2rem;
-  }
-
-  .raffle27-stats-line {
-    justify-content: flex-start;
-  }
-
-  .raffle27-countdown,
-  .raffle27-stats-line {
+  .raffle27-countdown {
     width: fit-content;
     max-width: 100%;
   }

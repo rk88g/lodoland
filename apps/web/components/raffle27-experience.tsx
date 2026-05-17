@@ -9,9 +9,9 @@ type Raffle27ExperienceProps = {
   holdExpiresAt: string | null;
   luckyNumber: number | null;
   message: string;
-  soldCount: number;
-  availableCount: number;
-  totalCount: number;
+  soldCount?: number;
+  availableCount?: number;
+  totalCount?: number;
   whatsappHref: string | null;
   receiptHref: string | null;
   transferInstructions: string;
@@ -57,9 +57,6 @@ export function Raffle27Experience({
   holdExpiresAt,
   luckyNumber,
   message,
-  soldCount,
-  availableCount,
-  totalCount,
   whatsappHref,
   receiptHref,
   transferInstructions
@@ -131,15 +128,14 @@ export function Raffle27Experience({
       <Box className="raffle27-sparks" aria-hidden="true" />
       <Box className="raffle27-poster-copy">
         <Typography className="raffle27-brand">Lodo Land GDL</Typography>
-        <Typography className="raffle27-kicker">Rifa entre lodonautas</Typography>
+        <Typography className="raffle27-kicker" aria-hidden="true">
+          Rifa entre lodonautas
+        </Typography>
         <Typography className="raffle27-title" variant="h1">
           Gran Rifa
         </Typography>
         <Typography className="raffle27-red-slash">
           3 premios que te cambian el juego
-        </Typography>
-        <Typography className="raffle27-luck-line">
-          Tu suerte esta en el primer numero que elijas
         </Typography>
       </Box>
 
@@ -177,12 +173,6 @@ export function Raffle27Experience({
           <CountdownCell label="Min" value={padUnit(countdown.minutes)} />
           <CountdownCell label="Seg" value={padUnit(countdown.seconds)} />
         </Box>
-      </Box>
-
-      <Box className="raffle27-stats-line" aria-label="Estado de boletos">
-        <StatCard label="Total" value={totalCount.toString()} />
-        <StatCard label="Vendidos" value={soldCount.toString()} />
-        <StatCard label="Disponibles" value={availableCount.toString()} />
       </Box>
 
       <Box className="raffle27-hold-ribbon">
@@ -245,15 +235,6 @@ function CountdownCell({ label, value }: { label: string; value: string }) {
     <Box className="raffle27-countdown-cell">
       <Typography className="raffle27-countdown-value">{value}</Typography>
       <Typography className="raffle27-countdown-caption">{label}</Typography>
-    </Box>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <Box className="raffle27-stat-card">
-      <Typography className="raffle27-stat-value">{value}</Typography>
-      <Typography className="raffle27-stat-label">{label}</Typography>
     </Box>
   );
 }
