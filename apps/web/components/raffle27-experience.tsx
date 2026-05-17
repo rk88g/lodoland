@@ -129,8 +129,16 @@ export function Raffle27Experience({
       <Box className="raffle27-poster-copy">
         <Typography className="raffle27-brand">Lodo Land GDL</Typography>
         <Box className="raffle27-warning-tapes" aria-hidden="true">
-          <span className="raffle27-warning-tape raffle27-warning-tape--yellow">Rifa entre</span>
-          <span className="raffle27-warning-tape raffle27-warning-tape--red">Lodonautas</span>
+          <span className="raffle27-warning-tape raffle27-warning-tape--yellow">
+            <b>Rifa entre</b>
+            <b>Rifa entre</b>
+            <b>Rifa entre</b>
+          </span>
+          <span className="raffle27-warning-tape raffle27-warning-tape--red">
+            <b>Lodonautas</b>
+            <b>Lodonautas</b>
+            <b>Lodonautas</b>
+          </span>
         </Box>
         <Typography className="raffle27-title" variant="h1">
           Gran Rifa
@@ -161,7 +169,6 @@ export function Raffle27Experience({
             {luckyNumber ? "Tu bola ganadora" : "Tombola lista"}
           </Typography>
           <Typography className="raffle27-stage-number">{formattedLuckyNumber}</Typography>
-          <Typography className="raffle27-stage-message">{message}</Typography>
         </Box>
         <Box className="raffle27-machine-base" aria-hidden="true" />
       </Box>
