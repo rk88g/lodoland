@@ -2,6 +2,7 @@ import { createClient } from "./supabase/server";
 
 const HOLD_MINUTES = 30;
 const LOCK_HOURS = 72;
+const TOTAL_RAFFLE_NUMBERS = 1500;
 
 type SupabaseLike = ReturnType<typeof createClient>;
 
@@ -185,7 +186,8 @@ async function findRandomAvailableNumber(supabase: SupabaseLike) {
   const { data } = await supabase
     .from("raffle27_numbers")
     .select("number_value")
-    .eq("status", "available");
+    .eq("status", "available")
+    .range(0, TOTAL_RAFFLE_NUMBERS - 1);
 
   const available = ((data || []) as Array<{ number_value: number }>).map((row) => row.number_value);
 
@@ -193,7 +195,25 @@ async function findRandomAvailableNumber(supabase: SupabaseLike) {
     return null;
   }
 
-  return available[Math.floor(Math.random() * available.length)];
+  const weightedPool = available.map((numberValue) => {
+    const normalized = numberValue / TOTAL_RAFFLE_NUMBERS;
+    const highThirdBoost = numberValue > 1000 ? 8 : numberValue > 500 ? 3.4 : 0.55;
+    return {
+      numberValue,
+      weight: highThirdBoost + Math.pow(normalized, 4) * 9
+    };
+  });
+  const totalWeight = weightedPool.reduce((sum, item) => sum + item.weight, 0);
+  let cursor = Math.random() * totalWeight;
+
+  for (const item of weightedPool) {
+    cursor -= item.weight;
+    if (cursor <= 0) {
+      return item.numberValue;
+    }
+  }
+
+  return weightedPool[weightedPool.length - 1]?.numberValue ?? available[available.length - 1];
 }
 
 async function findNextAvailableNumber(supabase: SupabaseLike, startFrom: number) {
@@ -452,7 +472,7 @@ export async function getRaffle27PublicData(deviceId?: string | null) {
 
   const [settings, countsResponse, experience] = await Promise.all([
     getRaffle27Settings(supabase),
-    supabase.from("raffle27_numbers").select("status"),
+    supabase.from("raffle27_numbers").select("status").range(0, TOTAL_RAFFLE_NUMBERS - 1),
     deviceId ? syncRaffle27VisitorExperience({ deviceId }) : Promise.resolve(null)
   ]);
 
@@ -487,7 +507,8 @@ export async function getRaffle27NumbersBoard() {
     .select(
       "number_value, status, held_by_device_id, held_at, hold_expires_at, sold_to_device_id, sold_to_name, sold_to_phone, sold_amount, sold_at, payment_date, created_by_user_id, notes, created_at, updated_at"
     )
-    .order("number_value", { ascending: true });
+    .order("number_value", { ascending: true })
+    .range(0, TOTAL_RAFFLE_NUMBERS - 1);
 
   return (data || []) as Raffle27NumberRow[];
 }

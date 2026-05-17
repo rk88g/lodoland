@@ -66,6 +66,7 @@ export default async function Listado27Mayo2026Page() {
           }
           receiptHref={receiptHref}
           soldCount={publicData.stats.sold}
+          totalCount={publicData.stats.total}
           transferInstructions={publicData.settings.transfer_instructions}
           whatsappHref={whatsappHref}
         />

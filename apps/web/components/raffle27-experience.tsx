@@ -10,6 +10,7 @@ type Raffle27ExperienceProps = {
   message: string;
   soldCount: number;
   availableCount: number;
+  totalCount: number;
   whatsappHref: string | null;
   receiptHref: string | null;
   transferInstructions: string;
@@ -20,8 +21,7 @@ function padUnit(value: number) {
 }
 
 function buildCountdown(targetDate: string) {
-  const now = Date.now();
-  const diff = Math.max(0, new Date(targetDate).getTime() - now);
+  const diff = Math.max(0, new Date(targetDate).getTime() - Date.now());
   const days = Math.floor(diff / 86_400_000);
   const hours = Math.floor((diff % 86_400_000) / 3_600_000);
   const minutes = Math.floor((diff % 3_600_000) / 60_000);
@@ -58,6 +58,7 @@ export function Raffle27Experience({
   message,
   soldCount,
   availableCount,
+  totalCount,
   whatsappHref,
   receiptHref,
   transferInstructions
@@ -96,7 +97,7 @@ export function Raffle27Experience({
     }
 
     let frame = 0;
-    const maxFrames = 22;
+    const maxFrames = 30;
     const intervalId = window.setInterval(() => {
       frame += 1;
       if (frame >= maxFrames) {
@@ -105,8 +106,9 @@ export function Raffle27Experience({
         return;
       }
 
-      setDisplayedNumber(Math.floor(Math.random() * 1500) + 1);
-    }, 80);
+      const highBiasedRoll = Math.floor(1 + Math.pow(Math.random(), 0.42) * 1500);
+      setDisplayedNumber(Math.min(1500, highBiasedRoll));
+    }, 58);
 
     return () => window.clearInterval(intervalId);
   }, [luckyNumber]);
@@ -121,62 +123,81 @@ export function Raffle27Experience({
 
   return (
     <Box className="raffle27-shell">
-      <Stack spacing={3}>
-        <Stack spacing={1.25}>
-          <Chip
-            className="raffle27-chip"
-            label={countdown.finished ? "La tombola ya cerro" : "Tu suerte se congela por 72 horas"}
-            sx={{ alignSelf: "flex-start" }}
-          />
-          <Typography className="raffle27-title" variant="h1">
-            RIFA 27 MAYO 2026
-          </Typography>
-          <Typography className="raffle27-subtitle">
-            Una tombola digital que guarda tu suerte, aparta tu numero por 30 minutos y te acompaña hasta cerrar la rifa.
-          </Typography>
-        </Stack>
+      <Box className="raffle27-orbit" />
+      <Box className="raffle27-scanline" />
 
-        <Box className="raffle27-countdown">
-          <Typography className="raffle27-countdown-label">Cuenta regresiva oficial</Typography>
-          <Box className="raffle27-countdown-grid">
-            <CountdownCell label="Dias" value={padUnit(countdown.days)} />
-            <CountdownCell label="Horas" value={padUnit(countdown.hours)} />
-            <CountdownCell label="Minutos" value={padUnit(countdown.minutes)} />
-            <CountdownCell label="Segundos" value={padUnit(countdown.seconds)} />
+      <Stack spacing={2.5}>
+        <Box className="raffle27-hero-grid">
+          <Stack className="raffle27-copy" spacing={1.35}>
+            <Chip
+              className="raffle27-chip"
+              label={countdown.finished ? "Tombola cerrada" : "Suerte bloqueada por 72 horas"}
+              sx={{ alignSelf: "flex-start" }}
+            />
+            <Typography className="raffle27-title" variant="h1">
+              RIFA 27 MAYO 2026
+            </Typography>
+            <Typography className="raffle27-subtitle">
+              El sistema gira, aparta tu numero y conserva tu suerte. Si dejas pasar el pago, el siguiente disponible toma el relevo.
+            </Typography>
+            <Box aria-hidden="true" className="raffle27-mini-feed">
+              <span>1098</span>
+              <span>1327</span>
+              <span>0744</span>
+              <span>1489</span>
+              <span>1166</span>
+              <span>0931</span>
+            </Box>
+          </Stack>
+
+          <Box className="raffle27-machine">
+            <Box className="raffle27-machine-ring" />
+            <Box className="raffle27-machine-core">
+              <Typography className="raffle27-stage-label">Numero asignado</Typography>
+              <Typography className="raffle27-stage-number">{formattedLuckyNumber}</Typography>
+              <Typography className="raffle27-stage-message">{message}</Typography>
+            </Box>
           </Box>
         </Box>
 
-        <Box className="raffle27-stage">
-          <Box className="raffle27-stage-drum">
-            <Typography className="raffle27-stage-label">Numero de la suerte</Typography>
-            <Typography className="raffle27-stage-number">{formattedLuckyNumber}</Typography>
-            <Typography className="raffle27-stage-message">{message}</Typography>
-            {holdCountdown ? (
-              <Typography className="raffle27-stage-hold">
-                Tu apartado exclusivo vence en {holdCountdown}. Despues de eso alguien mas podria comprarlo.
-              </Typography>
-            ) : (
-              <Typography className="raffle27-stage-hold raffle27-stage-hold--warning">
-                Si no pagaste a tiempo, otra persona puede adquirir ese numero y tu suerte se movera al siguiente disponible.
-              </Typography>
-            )}
+        <Box className="raffle27-command-strip">
+          <Box className="raffle27-countdown">
+            <Typography className="raffle27-countdown-label">Cierra en</Typography>
+            <Box className="raffle27-countdown-grid">
+              <CountdownCell label="Dias" value={padUnit(countdown.days)} />
+              <CountdownCell label="Horas" value={padUnit(countdown.hours)} />
+              <CountdownCell label="Min" value={padUnit(countdown.minutes)} />
+              <CountdownCell label="Seg" value={padUnit(countdown.seconds)} />
+            </Box>
           </Box>
 
-          <Stack className="raffle27-stage-side" spacing={1.5}>
+          <Box className="raffle27-status-rack">
+            <StatCard label="Total" value={totalCount.toString()} />
             <StatCard label="Vendidos" value={soldCount.toString()} />
             <StatCard label="Disponibles" value={availableCount.toString()} />
-            <Typography className="raffle27-whatsapp">WhatsApp ventas: +52 331 545 7641</Typography>
-          </Stack>
+          </Box>
         </Box>
 
-        <Stack direction={{ xs: "column", md: "row" }} spacing={1.25} useFlexGap flexWrap="wrap">
+        <Box className="raffle27-hold-panel">
+          <Typography className="raffle27-hold-title">
+            {holdCountdown ? `Apartado activo: ${holdCountdown}` : "Apartado vencido o pendiente de renovar"}
+          </Typography>
+          <Typography className={holdCountdown ? "raffle27-stage-hold" : "raffle27-stage-hold raffle27-stage-hold--warning"}>
+            {holdCountdown
+              ? "Durante este tiempo nadie mas puede comprar tu numero. Despues vuelve a estar disponible si no concretas el pago."
+              : "Si alguien mas compra tu numero anterior, tu suerte avanza al siguiente disponible."}
+          </Typography>
+          <Typography className="raffle27-whatsapp">WhatsApp ventas: +52 331 545 7641</Typography>
+        </Box>
+
+        <Stack className="raffle27-action-row" direction={{ xs: "column", md: "row" }} spacing={1.25} useFlexGap flexWrap="wrap">
           {whatsappHref ? (
             <Button className="raffle27-primary-action" component="a" href={whatsappHref} rel="noreferrer" target="_blank" variant="contained">
               Pagar por WhatsApp
             </Button>
           ) : null}
           <Button className="raffle27-secondary-action" onClick={() => setShowTransferInfo((current) => !current)} variant="outlined">
-            Informacion de transferencia
+            Transferencia
           </Button>
           {receiptHref ? (
             <Button className="raffle27-secondary-action" component="a" href={receiptHref} rel="noreferrer" target="_blank" variant="outlined">
@@ -191,9 +212,7 @@ export function Raffle27Experience({
         <Collapse in={showTransferInfo}>
           <Box className="raffle27-transfer-box">
             <Typography variant="h3">Transferencia / deposito</Typography>
-            <Typography color="text.secondary">
-              {transferInstructions}
-            </Typography>
+            <Typography color="text.secondary">{transferInstructions}</Typography>
             <Typography className="raffle27-transfer-note">
               En cuanto realices tu pago, usa el boton <strong>Ya pague</strong> y manda tu comprobante por WhatsApp.
             </Typography>
