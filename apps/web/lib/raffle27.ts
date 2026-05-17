@@ -307,6 +307,39 @@ async function holdAvailableNumber(supabase: SupabaseLike, numberValue: number, 
   return (data || null) as Raffle27NumberRow | null;
 }
 
+async function releaseRaffle27VisitorLuckyNumber(supabase: SupabaseLike, deviceId: string, numberValue: number) {
+  await supabase
+    .from("raffle27_visitors")
+    .update({
+      lucky_number: null,
+      last_shifted_from: numberValue,
+      last_seen_at: nowIso(),
+      updated_at: nowIso()
+    })
+    .eq("device_id", deviceId);
+}
+
+function emptyRaffle27VisitorExperience({
+  deviceId,
+  lockedUntil = null,
+  message = "Activa la tombola y descubre el numero que te toca."
+}: {
+  deviceId: string;
+  lockedUntil?: string | null;
+  message?: string;
+}) {
+  return {
+    deviceId,
+    luckyNumber: null,
+    holdExpiresAt: null,
+    lockedUntil,
+    status: null,
+    message,
+    wasShifted: false,
+    soldToMe: false
+  } satisfies Raffle27VisitorExperience;
+}
+
 async function assignFreshLuckyNumber({
   supabase,
   deviceId,
@@ -403,16 +436,7 @@ export async function syncRaffle27VisitorExperience({
 
   if (!visitor || !visitor.lucky_number) {
     if (!assignIfMissing) {
-      return {
-        deviceId,
-        luckyNumber: null,
-        holdExpiresAt: null,
-        lockedUntil: visitor?.locked_until ?? null,
-        status: null,
-        message: "Activa la tombola y descubre el numero que te toca.",
-        wasShifted: false,
-        soldToMe: false
-      } satisfies Raffle27VisitorExperience;
+      return emptyRaffle27VisitorExperience({ deviceId, lockedUntil: visitor?.locked_until ?? null });
     }
 
     const assigned = await assignFreshLuckyNumber({ supabase, deviceId, userAgent, ipAddress });
@@ -436,6 +460,11 @@ export async function syncRaffle27VisitorExperience({
   const currentNumber = await fetchRaffle27Number(supabase, visitor.lucky_number);
 
   if (!currentNumber) {
+    if (!assignIfMissing) {
+      await releaseRaffle27VisitorLuckyNumber(supabase, deviceId, visitor.lucky_number);
+      return emptyRaffle27VisitorExperience({ deviceId, lockedUntil: visitor.locked_until });
+    }
+
     const reassigned = await assignFreshLuckyNumber({
       supabase,
       deviceId,
@@ -471,6 +500,15 @@ export async function syncRaffle27VisitorExperience({
       isFuture(currentNumber.hold_expires_at));
 
   if (wasTakenByAnotherPerson) {
+    if (!assignIfMissing) {
+      await releaseRaffle27VisitorLuckyNumber(supabase, deviceId, visitor.lucky_number);
+      return emptyRaffle27VisitorExperience({
+        deviceId,
+        lockedUntil: visitor.locked_until,
+        message: "Tu numero anterior ya fue tomado. Puedes girar de nuevo."
+      });
+    }
+
     const shifted = await assignFreshLuckyNumber({
       supabase,
       deviceId,
@@ -499,6 +537,16 @@ export async function syncRaffle27VisitorExperience({
     };
   }
 
+  const soldToMe = currentNumber.status === "sold" && currentNumber.sold_to_device_id === deviceId;
+  if (soldToMe) {
+    await releaseRaffle27VisitorLuckyNumber(supabase, deviceId, visitor.lucky_number);
+    return emptyRaffle27VisitorExperience({
+      deviceId,
+      lockedUntil: visitor.locked_until,
+      message: "Tu numero ya quedo pagado. Puedes girar de nuevo."
+    });
+  }
+
   await supabase
     .from("raffle27_visitors")
     .update({
@@ -509,20 +557,15 @@ export async function syncRaffle27VisitorExperience({
     })
     .eq("device_id", deviceId);
 
-  const soldToMe = currentNumber.status === "sold" && currentNumber.sold_to_device_id === deviceId;
-  const message = soldToMe
-    ? `Tu numero ${visitor.lucky_number} ya quedo vendido a tu nombre. Conserva tu comprobante.`
-    : formatLuckyMessage(visitor.lucky_number);
-
   return {
     deviceId,
     luckyNumber: visitor.lucky_number,
     holdExpiresAt: currentNumber.hold_expires_at,
     lockedUntil: visitor.locked_until,
     status: currentNumber.status,
-    message,
+    message: formatLuckyMessage(visitor.lucky_number),
     wasShifted: false,
-    soldToMe
+    soldToMe: false
   } satisfies Raffle27VisitorExperience;
 }
 

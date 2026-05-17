@@ -7,7 +7,7 @@ import { requireAdmin } from "../../../../lib/auth/session";
 import { readFlashMessage } from "../../../../lib/flash";
 import { getRaffle27AdminData } from "../../../../lib/raffle27";
 import { controlNavItems } from "../../../../lib/navigation";
-import { saveRaffle27SettingsAction, sellRaffle27NumberAction } from "./actions";
+import { quickPayRaffle27LogNumberAction, saveRaffle27SettingsAction, sellRaffle27NumberAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +39,7 @@ export default async function AdminRaffle27May2026Page() {
   await requireAdmin();
   const flash = readFlashMessage(FLASH_COOKIE);
   const data = await getRaffle27AdminData();
+  const heldNumberValues = new Set(data.heldRows.map((row) => row.number_value));
 
   return (
     <DashboardShell navItems={controlNavItems} subtitle="Operacion y ventas de la landing especial" title="Rifa 27 Mayo 2026">
@@ -175,6 +176,17 @@ export default async function AdminRaffle27May2026Page() {
                 <Typography color="text.secondary" variant="body2">
                   {formatDate(log.created_at)} · {log.device_id || "Sin dispositivo"}
                 </Typography>
+                {typeof log.lucky_number === "number" && heldNumberValues.has(log.lucky_number) ? (
+                  <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+                    <form action={quickPayRaffle27LogNumberAction} method="post">
+                      <input name="numberValue" type="hidden" value={log.lucky_number} />
+                      <input name="deviceId" type="hidden" value={log.device_id || ""} />
+                      <Button size="small" type="submit" variant="contained">
+                        Pagar #{formatNumberLabel(log.lucky_number)}
+                      </Button>
+                    </form>
+                  </Box>
+                ) : null}
               </Box>
             ))}
           </Stack>

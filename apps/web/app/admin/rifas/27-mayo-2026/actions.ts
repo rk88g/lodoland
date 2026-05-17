@@ -112,3 +112,49 @@ export async function sellRaffle27NumberAction(formData: FormData) {
   revalidatePath("/listado27mayo2026/boletos-vendidos");
   redirectWithMessage("success", "Numero vendido y reflejado en finanzas correctamente.");
 }
+
+export async function quickPayRaffle27LogNumberAction(formData: FormData) {
+  const session = await requireAdmin();
+  const supabase = createClient();
+
+  const numberValue = Number(String(formData.get("numberValue") ?? "0").trim() || 0);
+  const deviceId = String(formData.get("deviceId") ?? "").trim();
+  const amount = numberValue;
+
+  if (!numberValue) {
+    redirectWithMessage("error", "No encontramos el numero para marcarlo como pagado.");
+  }
+
+  try {
+    await markRaffle27NumberSold({
+      numberValue,
+      buyerName: deviceId ? `Cliente micrositio ${deviceId.slice(0, 8)}` : "Cliente micrositio",
+      buyerPhone: "Pendiente",
+      amount,
+      paymentDate: null,
+      notes: deviceId ? `Pago rapido desde log. Device ID: ${deviceId}` : "Pago rapido desde log.",
+      actorUserId: session.profile?.id || null
+    });
+
+    await logAdminAction({
+      supabase,
+      actorUserId: session.profile?.id,
+      entityType: "special_raffle_27_sale",
+      action: "quick_pay",
+      summary: "Pago rapido desde log de la rifa 27 mayo 2026",
+      payload: {
+        numberValue,
+        amount,
+        deviceId: deviceId || null
+      }
+    });
+  } catch (error) {
+    redirectWithMessage("error", error instanceof Error ? error.message : "No pudimos marcar ese numero como pagado.");
+  }
+
+  revalidatePath(ADMIN_PATH);
+  revalidatePath("/admin/finanzas");
+  revalidatePath("/listado27mayo2026");
+  revalidatePath("/listado27mayo2026/boletos-vendidos");
+  redirectWithMessage("success", "Numero pagado desde log y reflejado en finanzas.");
+}
