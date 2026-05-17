@@ -418,13 +418,13 @@ main {
   position: absolute;
   left: -34vw;
   width: 172vw;
-  padding: clamp(0.35rem, 0.9vw, 0.75rem) 2rem;
+  padding: clamp(0.35rem, 0.9vw, 0.75rem) 2rem clamp(0.35rem, 0.9vw, 0.75rem) 12vw;
   color: #060704;
   font-size: clamp(3.6rem, 9.6vw, 10.5rem);
   line-height: 0.78;
   font-weight: 1000;
   letter-spacing: -0.08em;
-  text-align: center;
+  text-align: left;
   text-transform: uppercase;
   white-space: nowrap;
   box-shadow:
@@ -578,11 +578,13 @@ main {
   inset: 13%;
   z-index: 2;
   border-radius: 50%;
-  animation: raffle27-tumble-once 2.9s cubic-bezier(0.18, 0.88, 0.28, 1) both;
+  animation: none;
 }
 
 .raffle27-orbit-ball {
   --ball-index: 0;
+  --settle-x: 0rem;
+  --settle-y: 0rem;
   position: absolute;
   left: 50%;
   top: 50%;
@@ -610,7 +612,56 @@ main {
 .raffle27-orbit-ball b {
   display: block;
   transform-origin: center;
-  animation: raffle27-text-upright-once 2.9s cubic-bezier(0.18, 0.88, 0.28, 1) both;
+}
+
+.raffle27-orbit-ball:nth-child(1) {
+  --settle-x: -4.8rem;
+  --settle-y: 5.8rem;
+}
+
+.raffle27-orbit-ball:nth-child(2) {
+  --settle-x: -2.9rem;
+  --settle-y: 4.85rem;
+}
+
+.raffle27-orbit-ball:nth-child(3) {
+  --settle-x: -1.25rem;
+  --settle-y: 5.9rem;
+}
+
+.raffle27-orbit-ball:nth-child(4) {
+  --settle-x: 0.55rem;
+  --settle-y: 4.55rem;
+}
+
+.raffle27-orbit-ball:nth-child(5) {
+  --settle-x: 2.2rem;
+  --settle-y: 5.75rem;
+}
+
+.raffle27-orbit-ball:nth-child(6) {
+  --settle-x: 4rem;
+  --settle-y: 4.95rem;
+}
+
+.raffle27-orbit-ball:nth-child(7) {
+  --settle-x: -3.8rem;
+  --settle-y: 3.25rem;
+}
+
+.raffle27-orbit-ball:nth-child(8) {
+  --settle-x: -0.7rem;
+  --settle-y: 2.85rem;
+}
+
+.raffle27-orbit-ball:nth-child(9) {
+  --settle-x: 2.55rem;
+  --settle-y: 3.2rem;
+}
+
+.raffle27-orbit-ball:nth-child(10) {
+  --settle-x: 0.85rem;
+  --settle-y: 1.28rem;
 }
 
 .raffle27-orbit-ball:nth-child(2n) {
@@ -636,7 +687,7 @@ main {
     linear-gradient(145deg, #fff8dc, #d8ff00 57%, #9aaa00);
   color: #070806;
   box-shadow: 0 0.8rem 0 #111, 0 0 3rem rgba(216, 255, 0, 0.55);
-  animation: raffle27-winner-pop 2.4s ease-in-out infinite;
+  animation: none;
 }
 
 .raffle27-machine-base {
@@ -954,23 +1005,27 @@ main {
 
 @keyframes raffle27-ball-settle {
   0% {
-    translate: 0 -4.6rem;
+    transform:
+      rotate(calc(var(--ball-index) * 36deg))
+      translateX(clamp(5.9rem, 11.5vw, 10.4rem))
+      translateY(calc((var(--ball-index) - 5) * 0.12rem))
+      rotate(calc(var(--ball-index) * -36deg));
     scale: 0.96;
   }
   34% {
-    translate: 0.45rem 1.2rem;
+    transform: translate(calc(var(--settle-x) * 0.35), -2.8rem) rotate(95deg);
     scale: 1.04;
   }
   52% {
-    translate: -0.32rem -1.1rem;
+    transform: translate(calc(var(--settle-x) * 0.72), calc(var(--settle-y) + 0.85rem)) rotate(180deg);
     scale: 0.99;
   }
   72% {
-    translate: 0.18rem 0.55rem;
+    transform: translate(calc(var(--settle-x) * 0.9), calc(var(--settle-y) - 0.55rem)) rotate(260deg);
     scale: 1.01;
   }
   100% {
-    translate: calc((var(--ball-index) - 5) * 0.18rem) clamp(4rem, 7vw, 6.2rem);
+    transform: translate(var(--settle-x), var(--settle-y)) rotate(360deg);
     scale: 0.98;
   }
 }
