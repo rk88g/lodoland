@@ -450,7 +450,7 @@ main {
 .raffle27-luck-line {
   position: absolute;
   left: clamp(1rem, 5vw, 5rem);
-  top: clamp(21rem, 43vh, 27rem);
+  top: clamp(25rem, 52vh, 32rem);
   z-index: 5;
   color: #fff;
   font-size: clamp(1.15rem, 3vw, 2.4rem);
@@ -661,7 +661,7 @@ main {
 .raffle27-countdown {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
-  top: clamp(18.4rem, 36vh, 23rem);
+  top: clamp(16rem, 31vh, 20rem);
   z-index: 5;
   display: grid;
   gap: 0.3rem;
@@ -709,8 +709,8 @@ main {
 
 .raffle27-stats-line {
   position: absolute;
-  right: clamp(1rem, 3vw, 3rem);
-  top: clamp(7.8rem, 16vh, 10rem);
+  right: clamp(1.4rem, 4vw, 4rem);
+  top: clamp(14rem, 27vh, 17.5rem);
   z-index: 5;
   display: flex;
   align-items: center;
@@ -720,8 +720,8 @@ main {
 
 .raffle27-stat-card {
   display: grid;
-  min-width: 5.9rem;
-  padding: 0.5rem 0.75rem;
+  min-width: 6.9rem;
+  padding: 0.62rem 0.9rem;
   background: rgba(0, 0, 0, 0.75);
   color: #f8f5e8;
   box-shadow: inset 0 0 0 1px rgba(216, 255, 0, 0.22);
@@ -1053,6 +1053,12 @@ main {
 
   .raffle27-stats-line {
     justify-content: flex-start;
+  }
+
+  .raffle27-countdown,
+  .raffle27-stats-line {
+    width: fit-content;
+    max-width: 100%;
   }
 
   .raffle27-claim-dock {
