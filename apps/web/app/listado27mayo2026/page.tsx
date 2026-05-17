@@ -41,7 +41,7 @@ export default async function Listado27Mayo2026Page() {
 
         <Box className="raffle27-composition">
           {!publicData.experience?.luckyNumber ? (
-            <form action={claimRaffle27LuckyNumberAction} className="raffle27-claim-dock" method="post">
+            <form action={claimRaffle27LuckyNumberAction} className="raffle27-claim-dock raffle27-claim-dock--pending" method="post">
               <Button size="large" type="submit" variant="contained">
                 Girar mi suerte
               </Button>

@@ -124,7 +124,7 @@ export function Raffle27Experience({
   }, [displayedNumber]);
 
   return (
-    <Box className="raffle27-shell">
+    <Box className={luckyNumber ? "raffle27-shell raffle27-shell--winner" : "raffle27-shell"}>
       <Box className="raffle27-sparks" aria-hidden="true" />
       <Box className="raffle27-poster-copy">
         <Typography className="raffle27-brand">Lodo Land GDL</Typography>
@@ -165,6 +165,7 @@ export function Raffle27Experience({
           ))}
         </Box>
         <Box className="raffle27-winning-ball">
+          {luckyNumber ? <Box className="raffle27-celebration-burst" aria-hidden="true" /> : null}
           <Typography className="raffle27-stage-label">
             {luckyNumber ? "Tu bola ganadora" : "Tombola lista"}
           </Typography>

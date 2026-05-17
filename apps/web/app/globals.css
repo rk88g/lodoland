@@ -317,6 +317,10 @@ main {
   z-index: 8;
 }
 
+.raffle27-claim-dock--pending {
+  z-index: 30;
+}
+
 .raffle27-claim-dock .MuiButton-root {
   min-height: 3.65rem;
   padding-inline: 2rem;
@@ -705,6 +709,26 @@ main {
   animation: none;
 }
 
+.raffle27-shell--winner .raffle27-winning-ball {
+  animation: raffle27-winner-celebrate 1.15s cubic-bezier(0.18, 0.88, 0.28, 1) both;
+}
+
+.raffle27-shell--winner .raffle27-stage-number {
+  animation: raffle27-number-flash 1.4s ease-out both;
+}
+
+.raffle27-celebration-burst {
+  position: absolute;
+  inset: -42%;
+  z-index: -1;
+  border-radius: 50%;
+  background:
+    conic-gradient(from 0deg, transparent 0 8deg, rgba(216, 255, 0, 0.78) 9deg 12deg, transparent 13deg 34deg, rgba(255, 72, 0, 0.7) 35deg 39deg, transparent 40deg 58deg),
+    radial-gradient(circle, rgba(216, 255, 0, 0.3), transparent 62%);
+  animation: raffle27-burst-pop 1.4s ease-out both;
+  pointer-events: none;
+}
+
 .raffle27-machine-base {
   position: absolute;
   left: 22%;
@@ -1055,6 +1079,49 @@ main {
   }
 }
 
+@keyframes raffle27-winner-celebrate {
+  0% {
+    transform: scale(0.72) rotate(-10deg);
+    filter: saturate(1);
+  }
+  52% {
+    transform: scale(1.22) rotate(6deg);
+    filter: saturate(1.6);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: saturate(1.15);
+  }
+}
+
+@keyframes raffle27-number-flash {
+  0%,
+  100% {
+    text-shadow: 0.05rem 0.05rem 0 rgba(255, 255, 255, 0.68);
+  }
+  35%,
+  62% {
+    text-shadow:
+      0 0 0.4rem rgba(255, 255, 255, 0.95),
+      0 0 1.4rem rgba(216, 255, 0, 0.95),
+      0.05rem 0.05rem 0 rgba(255, 255, 255, 0.68);
+  }
+}
+
+@keyframes raffle27-burst-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.25) rotate(0deg);
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6) rotate(115deg);
+  }
+}
+
 @keyframes raffle27-sparks {
   0%,
   100% {
@@ -1289,6 +1356,14 @@ main {
     left: 1rem;
     right: 1rem;
     bottom: 9.2rem;
+  }
+
+  .raffle27-claim-dock--pending {
+    position: fixed;
+    top: 0.75rem;
+    bottom: auto;
+    z-index: 60;
+    filter: drop-shadow(0 0.75rem 1.2rem rgba(0, 0, 0, 0.7));
   }
 
   .raffle27-number-board {

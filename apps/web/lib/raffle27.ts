@@ -673,6 +673,18 @@ export async function markRaffle27NumberSold({
     throw new Error(updateError.message);
   }
 
+  if (soldToDeviceId) {
+    await supabase
+      .from("raffle27_visitors")
+      .update({
+        lucky_number: null,
+        last_shifted_from: numberValue,
+        last_seen_at: nowIso(),
+        updated_at: nowIso()
+      })
+      .eq("device_id", soldToDeviceId);
+  }
+
   const { error: financeError } = await supabase.from("financial_entries").insert({
     kind: "income",
     amount,
