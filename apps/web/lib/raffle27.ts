@@ -116,7 +116,7 @@ function isFuture(dateValue: string | null | undefined) {
 }
 
 function formatLuckyMessage(numberValue: number) {
-  return `No cambies tu suerte. Tu numero de la tombola es ${numberValue} y esa suerte se respeta por 72 horas.`;
+  return `No cambies tu suerte. Tu numero de la tombola es ${numberValue}.`;
 }
 
 async function logRaffle27Event({

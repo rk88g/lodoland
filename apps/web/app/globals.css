@@ -416,11 +416,11 @@ main {
 
 .raffle27-warning-tape {
   position: absolute;
-  left: -22vw;
-  width: 150vw;
+  left: -34vw;
+  width: 172vw;
   padding: clamp(0.35rem, 0.9vw, 0.75rem) 2rem;
   color: #060704;
-  font-size: clamp(4.6rem, 12vw, 13rem);
+  font-size: clamp(3.6rem, 9.6vw, 10.5rem);
   line-height: 0.78;
   font-weight: 1000;
   letter-spacing: -0.08em;
@@ -430,28 +430,28 @@ main {
   box-shadow:
     0 0.7rem 0 rgba(0, 0, 0, 0.7),
     0 0 3.2rem rgba(0, 0, 0, 0.48);
-  opacity: 0.47;
+  opacity: 0.4;
   transform-origin: center;
   mix-blend-mode: screen;
 }
 
 .raffle27-warning-tape--yellow {
-  top: 30vh;
+  top: 26vh;
   background:
     repeating-linear-gradient(115deg, rgba(0, 0, 0, 0.74) 0 2.2rem, transparent 2.3rem 4.4rem),
     linear-gradient(90deg, #e8ff00, #fff06a, #d8ff00);
-  transform: rotate(-15deg);
-  animation: raffle27-warning-tape-yellow 18s ease-in-out infinite;
+  transform: rotate(-11deg);
+  animation: raffle27-warning-tape-yellow 24s ease-in-out infinite;
 }
 
 .raffle27-warning-tape--red {
-  top: 48vh;
+  top: 44vh;
   color: #fff3e0;
   background:
     repeating-linear-gradient(115deg, rgba(0, 0, 0, 0.55) 0 2.2rem, transparent 2.3rem 4.4rem),
     linear-gradient(90deg, #ff2b16, #b90000, #ff4b1f);
-  transform: rotate(14deg);
-  animation: raffle27-warning-tape-red 20s ease-in-out infinite;
+  transform: rotate(10deg);
+  animation: raffle27-warning-tape-red 26s ease-in-out infinite;
 }
 
 .raffle27-title {
@@ -578,7 +578,7 @@ main {
   inset: 13%;
   z-index: 2;
   border-radius: 50%;
-  animation: raffle27-tumble 12s linear infinite;
+  animation: raffle27-tumble-once 2.9s cubic-bezier(0.18, 0.88, 0.28, 1) both;
 }
 
 .raffle27-orbit-ball {
@@ -603,14 +603,14 @@ main {
     translateY(calc((var(--ball-index) - 5) * 0.12rem))
     rotate(calc(var(--ball-index) * -36deg));
   box-shadow: 0 0.3rem 0 #111, 0 0 1.1rem rgba(216, 255, 0, 0.35);
-  animation: raffle27-ball-bounce 1.25s ease-in-out infinite alternate;
-  animation-delay: calc(var(--ball-index) * -0.17s);
+  animation: raffle27-ball-settle 3s cubic-bezier(0.18, 0.88, 0.28, 1) both;
+  animation-delay: calc(var(--ball-index) * 0.04s);
 }
 
 .raffle27-orbit-ball b {
   display: block;
   transform-origin: center;
-  animation: raffle27-text-upright 12s linear infinite;
+  animation: raffle27-text-upright-once 2.9s cubic-bezier(0.18, 0.88, 0.28, 1) both;
 }
 
 .raffle27-orbit-ball:nth-child(2n) {
@@ -897,6 +897,18 @@ main {
   }
 }
 
+@keyframes raffle27-tumble-once {
+  0% {
+    transform: rotate(0deg);
+  }
+  58% {
+    transform: rotate(310deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes raffle27-drum-rattle {
   0%,
   100% {
@@ -913,6 +925,18 @@ main {
   }
 }
 
+@keyframes raffle27-text-upright-once {
+  0% {
+    transform: rotate(0deg);
+  }
+  58% {
+    transform: rotate(-310deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
 @keyframes raffle27-ball-bounce {
   0% {
     translate: -0.2rem 0.15rem;
@@ -924,6 +948,29 @@ main {
   }
   100% {
     translate: -0.1rem 0.62rem;
+    scale: 0.98;
+  }
+}
+
+@keyframes raffle27-ball-settle {
+  0% {
+    translate: 0 -4.6rem;
+    scale: 0.96;
+  }
+  34% {
+    translate: 0.45rem 1.2rem;
+    scale: 1.04;
+  }
+  52% {
+    translate: -0.32rem -1.1rem;
+    scale: 0.99;
+  }
+  72% {
+    translate: 0.18rem 0.55rem;
+    scale: 1.01;
+  }
+  100% {
+    translate: calc((var(--ball-index) - 5) * 0.18rem) clamp(4rem, 7vw, 6.2rem);
     scale: 0.98;
   }
 }
@@ -1073,6 +1120,19 @@ main {
 }
 
 @media (max-width: 720px) {
+  .raffle27-page::before,
+  .raffle27-page::after,
+  .raffle27-shell::before,
+  .raffle27-sparks {
+    animation-duration: 36s;
+    opacity: 0.34;
+  }
+
+  .raffle27-shell::after {
+    opacity: 0.34;
+    filter: blur(1.8rem);
+  }
+
   .raffle27-page {
     padding: 0;
   }
@@ -1091,6 +1151,27 @@ main {
     font-size: clamp(4.3rem, 24vw, 6.7rem);
   }
 
+  .raffle27-warning-tape {
+    left: -74vw;
+    width: 248vw;
+    font-size: clamp(3.35rem, 21vw, 6.6rem);
+    opacity: 0.28;
+    box-shadow: 0 0.35rem 0 rgba(0, 0, 0, 0.52);
+    mix-blend-mode: normal;
+  }
+
+  .raffle27-warning-tape--yellow {
+    top: 24vh;
+    transform: rotate(-9deg);
+    animation-duration: 42s;
+  }
+
+  .raffle27-warning-tape--red {
+    top: 38vh;
+    transform: rotate(9deg);
+    animation-duration: 46s;
+  }
+
   .raffle27-date-badge {
     transform: skew(-8deg) rotate(1deg) scale(0.74);
     transform-origin: top right;
@@ -1098,6 +1179,7 @@ main {
 
   .raffle27-machine {
     width: min(24rem, 92vw);
+    filter: none;
   }
 
   .raffle27-orbit-ball {
@@ -1105,6 +1187,7 @@ main {
       rotate(calc(var(--ball-index) * 45deg))
       translateX(clamp(5.5rem, 30vw, 9rem))
       rotate(calc(var(--ball-index) * -45deg));
+    animation-duration: 2.2s;
   }
 
   .raffle27-winning-ball {

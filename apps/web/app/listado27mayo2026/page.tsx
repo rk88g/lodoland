@@ -55,7 +55,7 @@ export default async function Listado27Mayo2026Page() {
             luckyNumber={publicData.experience?.luckyNumber ?? null}
             message={
               publicData.experience?.message ||
-              "Activa la tombola. Tu numero quedara ligado a este dispositivo por 72 horas."
+              "Activa la tombola y descubre el numero que te toca."
             }
             receiptHref={receiptHref}
             soldCount={publicData.stats.sold}
