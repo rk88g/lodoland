@@ -134,6 +134,7 @@ type HomeFeaturedEventRow = {
   sponsor_social_label: string | null;
   sponsor_social_url: string | null;
   sponsor_media_asset_id: string | null;
+  updated_at: string | null;
 };
 
 type HomeSponsorRow = {
@@ -247,6 +248,28 @@ function optimizeMedia(
   } satisfies CmsMediaAsset;
 }
 
+function resolveMostRecentMedia(
+  primary: { asset: CmsMediaAsset | null; updatedAt: string | null },
+  fallback: { asset: CmsMediaAsset | null; updatedAt: string | null }
+) {
+  if (!primary.asset && !fallback.asset) {
+    return null;
+  }
+
+  if (primary.asset && !fallback.asset) {
+    return primary.asset;
+  }
+
+  if (!primary.asset && fallback.asset) {
+    return fallback.asset;
+  }
+
+  const primaryTime = primary.updatedAt ? new Date(primary.updatedAt).getTime() : 0;
+  const fallbackTime = fallback.updatedAt ? new Date(fallback.updatedAt).getTime() : 0;
+
+  return fallbackTime > primaryTime ? fallback.asset : primary.asset;
+}
+
 async function getMediaLookupMap(assetIds: Array<string | null | undefined>) {
   const ids = Array.from(new Set(assetIds.filter(Boolean))) as string[];
 
@@ -313,9 +336,9 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
   ] = await Promise.all([
     eventSection
       ? supabase
-          .from("home_featured_event")
-          .select(
-            "title, description, primary_cta_label, secondary_cta_label, hero_media_asset_id, side_banner_asset_id, side_banner_url, side_banner_alt, sponsor_name, sponsor_description, sponsor_website_label, sponsor_website_url, sponsor_social_label, sponsor_social_url, sponsor_media_asset_id"
+        .from("home_featured_event")
+        .select(
+            "title, description, primary_cta_label, secondary_cta_label, hero_media_asset_id, side_banner_asset_id, side_banner_url, side_banner_alt, sponsor_name, sponsor_description, sponsor_website_label, sponsor_website_url, sponsor_social_label, sponsor_social_url, sponsor_media_asset_id, updated_at"
           )
           .eq("section_id", eventSection.id)
           .eq("is_active", true)
@@ -416,12 +439,33 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
         accentColor: item.accent_color || null
       }));
 
-  const eventHeroImage = optimizeMedia(featuredEventRow?.hero_media_asset_id ? mediaMap.get(featuredEventRow.hero_media_asset_id) || null : eventSection?.fields.hero_media?.media || null, {
+  const featuredHeroImage = optimizeMedia(
+    featuredEventRow?.hero_media_asset_id ? mediaMap.get(featuredEventRow.hero_media_asset_id) || null : null,
+    {
+      width: 1920,
+      height: 1440,
+      quality: 78,
+      resize: "cover"
+    }
+  );
+
+  const cmsHeroImage = optimizeMedia(eventSection?.fields.hero_media?.media || null, {
     width: 1920,
     height: 1440,
     quality: 78,
     resize: "cover"
   });
+
+  const eventHeroImage = resolveMostRecentMedia(
+    {
+      asset: featuredHeroImage,
+      updatedAt: featuredEventRow?.updated_at || null
+    },
+    {
+      asset: cmsHeroImage,
+      updatedAt: eventSection?.fields.hero_media?.updatedAt || null
+    }
+  );
 
   const meta = [
     formatEventDateWallClock(nextEvent?.startsAt),

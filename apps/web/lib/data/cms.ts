@@ -32,6 +32,7 @@ type CmsFieldRow = {
   media_asset_id: string | null;
   sort_order: number;
   is_visible: boolean;
+  updated_at?: string | null;
 };
 
 type CmsGroupRow = {
@@ -86,6 +87,7 @@ export type CmsFieldValue = {
   media: CmsMediaAsset | null;
   sortOrder: number;
   isVisible: boolean;
+  updatedAt: string | null;
 };
 
 export type CmsItem = {
@@ -140,7 +142,8 @@ function mapField(row: CmsFieldRow, mediaMap: Map<string, CmsMediaAsset>) {
     mediaAssetId: row.media_asset_id,
     media: row.media_asset_id ? mediaMap.get(row.media_asset_id) || null : null,
     sortOrder: row.sort_order,
-    isVisible: row.is_visible
+    isVisible: row.is_visible,
+    updatedAt: row.updated_at || null
   } satisfies CmsFieldValue;
 }
 
@@ -191,7 +194,7 @@ export async function getCmsPageConfig(
   const [{ data: sectionFields }, { data: groups }] = await Promise.all([
     supabase
       .from("cms_section_fields")
-      .select("id, section_id, field_key, label, kind, text_value, json_value, boolean_value, number_value, link_url, media_asset_id, sort_order, is_visible")
+      .select("id, section_id, field_key, label, kind, text_value, json_value, boolean_value, number_value, link_url, media_asset_id, sort_order, is_visible, updated_at")
       .in("section_id", sectionIds)
       .order("sort_order", { ascending: true }),
     supabase
@@ -216,7 +219,7 @@ export async function getCmsPageConfig(
     groupIds.length
       ? supabase
           .from("cms_group_item_fields")
-          .select("id, item_id, field_key, label, kind, text_value, json_value, boolean_value, number_value, link_url, media_asset_id, sort_order, is_visible")
+          .select("id, item_id, field_key, label, kind, text_value, json_value, boolean_value, number_value, link_url, media_asset_id, sort_order, is_visible, updated_at")
           .order("sort_order", { ascending: true })
       : Promise.resolve({ data: [] as CmsFieldRow[] })
   ]);
