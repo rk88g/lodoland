@@ -1,4 +1,5 @@
 import { Box, Button, Chip, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import Link from "next/link";
 import { AdminSectionCard } from "../../../components/admin-section-card";
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { FlashAlert } from "../../../components/flash-alert";
@@ -28,6 +29,20 @@ export default async function AdminRafflesPage() {
   return (
     <DashboardShell navItems={controlNavItems} subtitle="Configuracion y operacion" title="Rifas">
       <FlashAlert cookieName="admin-raffles-flash" payload={flash} />
+
+      <AdminSectionCard
+        description="Landing especial independiente para la dinamica del 27 de mayo de 2026, con tombola publica, apartados temporales y reflejo directo en finanzas."
+        title="Rifa especial 27 Mayo 2026"
+      >
+        <Stack direction={{ xs: "column", md: "row" }} spacing={1.25} useFlexGap flexWrap="wrap">
+          <Button component={Link} href="/admin/rifas/27-mayo-2026" variant="contained">
+            Abrir consola especial
+          </Button>
+          <Button component={Link} href="/listado27mayo2026" target="_blank" variant="outlined">
+            Ver landing publica
+          </Button>
+        </Stack>
+      </AdminSectionCard>
 
       <AdminSectionCard
         description="Define total de numeros, premios, forma de cobro y si el cliente podra escoger o solo recibir numero al azar."
