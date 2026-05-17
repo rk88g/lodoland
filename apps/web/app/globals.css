@@ -262,7 +262,7 @@ main {
 .raffle27-page {
   position: relative;
   min-height: 100vh;
-  padding: 14px;
+  padding: 0;
   overflow: hidden;
   background:
     radial-gradient(circle at 80% 18%, rgba(214, 255, 0, 0.15), transparent 28rem),
@@ -296,12 +296,13 @@ main {
     linear-gradient(18deg, transparent 0 72%, rgba(220, 20, 16, 0.22) 72.5% 75%, transparent 75.5%);
   filter: blur(0.02rem);
   opacity: 0.8;
+  animation: raffle27-band-cross 11s linear infinite;
 }
 
 .raffle27-page-inner {
   position: relative;
   z-index: 2;
-  width: min(1320px, 100%);
+  width: 100%;
   margin: 0 auto;
 }
 
@@ -333,9 +334,10 @@ main {
 .raffle27-shell {
   position: relative;
   overflow: hidden;
-  min-height: calc(100vh - 28px);
+  min-height: 100vh;
+  min-height: 100dvh;
   padding: clamp(1.2rem, 3vw, 3.2rem);
-  border-radius: 1.4rem;
+  border-radius: 0;
   background:
     radial-gradient(circle at 75% 47%, rgba(214, 255, 0, 0.12), transparent 22rem),
     radial-gradient(circle at 42% 62%, rgba(255, 99, 0, 0.22), transparent 18rem),
@@ -350,9 +352,13 @@ main {
   inset: -8%;
   pointer-events: none;
   background:
+    linear-gradient(112deg, transparent 0 9%, rgba(216, 255, 0, 0.13) 9.4% 10.2%, transparent 10.8% 23%, rgba(255, 70, 18, 0.1) 23.4% 24.2%, transparent 24.8%),
+    linear-gradient(112deg, transparent 0 42%, rgba(216, 255, 0, 0.1) 42.4% 43.1%, transparent 43.8% 67%, rgba(255, 70, 18, 0.12) 67.3% 68.1%, transparent 68.7%),
     linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent 14% 86%, rgba(255, 255, 255, 0.06)),
     repeating-linear-gradient(0deg, transparent 0 0.45rem, rgba(255, 255, 255, 0.018) 0.5rem 0.56rem),
     repeating-linear-gradient(105deg, transparent 0 7rem, rgba(216, 255, 0, 0.04) 7.1rem 7.3rem);
+  background-size: 140% 100%, 160% 100%, 100% 100%, auto, auto;
+  animation: raffle27-moving-bands 8s linear infinite;
   opacity: 0.9;
 }
 
@@ -385,7 +391,7 @@ main {
 .raffle27-poster-copy {
   position: relative;
   z-index: 3;
-  width: min(54rem, 63vw);
+  width: min(48rem, 55vw);
   padding-top: 0.2rem;
   text-transform: uppercase;
 }
@@ -444,7 +450,7 @@ main {
 .raffle27-luck-line {
   position: absolute;
   left: clamp(1rem, 5vw, 5rem);
-  top: clamp(25rem, 52vh, 35rem);
+  top: clamp(23rem, 48vh, 31rem);
   z-index: 5;
   color: #fff;
   font-size: clamp(1.15rem, 3vw, 2.4rem);
@@ -485,12 +491,12 @@ main {
 
 .raffle27-machine {
   position: absolute;
-  right: clamp(1rem, 7vw, 7rem);
-  top: clamp(12rem, 25vh, 16rem);
+  right: clamp(1rem, 5vw, 5rem);
+  top: clamp(10rem, 22vh, 13.5rem);
   z-index: 4;
   display: grid;
   place-items: center;
-  width: min(38rem, 42vw);
+  width: min(31rem, 34vw);
   aspect-ratio: 1;
   filter: drop-shadow(0 1.5rem 2.5rem rgba(0, 0, 0, 0.7));
 }
@@ -544,6 +550,12 @@ main {
     translateX(clamp(7.2rem, 14vw, 13.6rem))
     rotate(calc(var(--ball-index) * -45deg));
   box-shadow: 0 0.3rem 0 #111, 0 0 1.1rem rgba(216, 255, 0, 0.35);
+}
+
+.raffle27-orbit-ball b {
+  display: block;
+  transform-origin: center;
+  animation: raffle27-text-upright 3.4s linear infinite;
 }
 
 .raffle27-orbit-ball:nth-child(2n) {
@@ -601,7 +613,7 @@ main {
 .raffle27-countdown {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
-  top: clamp(21rem, 44vh, 29rem);
+  top: clamp(20rem, 41vh, 26rem);
   z-index: 5;
   display: grid;
   gap: 0.3rem;
@@ -650,7 +662,7 @@ main {
 .raffle27-stats-line {
   position: absolute;
   right: clamp(1rem, 3vw, 3rem);
-  bottom: clamp(5.5rem, 11vw, 8rem);
+  top: clamp(7.8rem, 16vh, 10rem);
   z-index: 5;
   display: flex;
   align-items: center;
@@ -687,7 +699,7 @@ main {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
   right: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(11rem, 18vw, 12.5rem);
+  bottom: clamp(9.8rem, 15vw, 11rem);
   z-index: 5;
   display: flex;
   gap: 1rem;
@@ -719,7 +731,7 @@ main {
 .raffle27-action-row {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(2.4rem, 5vw, 3.2rem);
+  bottom: clamp(2.6rem, 4.5vw, 3.35rem);
   z-index: 7;
   display: flex;
   gap: 0.65rem;
@@ -773,7 +785,7 @@ main {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
   right: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(7.6rem, 13vw, 8.3rem);
+  bottom: clamp(6.4rem, 10vw, 7.3rem);
   z-index: 5;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -853,6 +865,12 @@ main {
   }
 }
 
+@keyframes raffle27-text-upright {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes raffle27-winner-pop {
   0%,
   100% {
@@ -878,6 +896,24 @@ main {
 @keyframes raffle27-grit-drift {
   100% {
     background-position: 4rem 7rem, -7rem 5rem, 0 0;
+  }
+}
+
+@keyframes raffle27-moving-bands {
+  0% {
+    background-position: -42% 0, 86% 0, 0 0, 0 0, 0 0;
+  }
+  100% {
+    background-position: 118% 0, -74% 0, 0 0, 0 0, 0 0;
+  }
+}
+
+@keyframes raffle27-band-cross {
+  0% {
+    transform: translate3d(-3%, -2%, 0);
+  }
+  100% {
+    transform: translate3d(3%, 2%, 0);
   }
 }
 
@@ -944,11 +980,11 @@ main {
 
 @media (max-width: 720px) {
   .raffle27-page {
-    padding: 0.55rem;
+    padding: 0;
   }
 
   .raffle27-shell {
-    border-radius: 1rem;
+    border-radius: 0;
     padding: 1rem;
     padding-bottom: 18rem;
   }

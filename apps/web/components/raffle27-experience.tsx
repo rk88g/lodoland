@@ -153,7 +153,7 @@ export function Raffle27Experience({
         <Box className="raffle27-ball-track" aria-hidden="true">
           {orbitBalls.map((ball, index) => (
             <span className="raffle27-orbit-ball" key={`${ball}-${index}`} style={{ "--ball-index": index } as CSSProperties}>
-              {ball}
+              <b>{ball}</b>
             </span>
           ))}
         </Box>
