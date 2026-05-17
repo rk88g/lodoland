@@ -183,11 +183,7 @@ async function fetchRaffle27Number(supabase: SupabaseLike, numberValue: number) 
 }
 
 async function findRandomAvailableNumber(supabase: SupabaseLike) {
-  const { data } = await supabase
-    .from("raffle27_numbers")
-    .select("number_value")
-    .eq("status", "available")
-    .range(0, TOTAL_RAFFLE_NUMBERS - 1);
+  const data = await fetchAllRaffle27NumberValues(supabase, "available");
 
   const available = ((data || []) as Array<{ number_value: number }>).map((row) => row.number_value);
 
@@ -214,6 +210,55 @@ async function findRandomAvailableNumber(supabase: SupabaseLike) {
   }
 
   return weightedPool[weightedPool.length - 1]?.numberValue ?? available[available.length - 1];
+}
+
+async function countRaffle27NumbersByStatus(supabase: SupabaseLike, status?: Raffle27NumberRow["status"]) {
+  let query = supabase.from("raffle27_numbers").select("number_value", { count: "exact", head: true });
+
+  if (status) {
+    query = query.eq("status", status);
+  }
+
+  const { count } = await query;
+  return count || 0;
+}
+
+async function fetchAllRaffle27NumberValues(supabase: SupabaseLike, status?: Raffle27NumberRow["status"]) {
+  const rows: Array<{ number_value: number }> = [];
+  const pageSize = 1000;
+
+  for (let from = 0; from < TOTAL_RAFFLE_NUMBERS; from += pageSize) {
+    let query = supabase
+      .from("raffle27_numbers")
+      .select("number_value")
+      .order("number_value", { ascending: true })
+      .range(from, Math.min(from + pageSize - 1, TOTAL_RAFFLE_NUMBERS - 1));
+
+    if (status) {
+      query = query.eq("status", status);
+    }
+
+    const { data } = await query;
+    rows.push(...((data || []) as Array<{ number_value: number }>));
+  }
+
+  return rows;
+}
+
+async function getRaffle27Stats(supabase: SupabaseLike) {
+  const [total, sold, held, available] = await Promise.all([
+    countRaffle27NumbersByStatus(supabase),
+    countRaffle27NumbersByStatus(supabase, "sold"),
+    countRaffle27NumbersByStatus(supabase, "held"),
+    countRaffle27NumbersByStatus(supabase, "available")
+  ]);
+
+  return {
+    sold,
+    held,
+    available,
+    total
+  };
 }
 
 async function findNextAvailableNumber(supabase: SupabaseLike, startFrom: number) {
@@ -472,28 +517,13 @@ export async function getRaffle27PublicData(deviceId?: string | null) {
 
   const [settings, countsResponse, experience] = await Promise.all([
     getRaffle27Settings(supabase),
-    supabase.from("raffle27_numbers").select("status").range(0, TOTAL_RAFFLE_NUMBERS - 1),
+    getRaffle27Stats(supabase),
     deviceId ? syncRaffle27VisitorExperience({ deviceId }) : Promise.resolve(null)
   ]);
 
-  const counts = ((countsResponse.data || []) as Array<{ status: string }>).reduce(
-    (acc, row) => {
-      acc.total += 1;
-      if (row.status === "sold") {
-        acc.sold += 1;
-      } else if (row.status === "held") {
-        acc.held += 1;
-      } else {
-        acc.available += 1;
-      }
-      return acc;
-    },
-    { sold: 0, held: 0, available: 0, total: 0 }
-  );
-
   return {
     settings,
-    stats: counts,
+    stats: countsResponse,
     experience
   } satisfies Raffle27PublicData;
 }
@@ -502,15 +532,22 @@ export async function getRaffle27NumbersBoard() {
   const supabase = createClient();
   await cleanupExpiredRaffle27Holds(supabase);
 
-  const { data } = await supabase
-    .from("raffle27_numbers")
-    .select(
-      "number_value, status, held_by_device_id, held_at, hold_expires_at, sold_to_device_id, sold_to_name, sold_to_phone, sold_amount, sold_at, payment_date, created_by_user_id, notes, created_at, updated_at"
-    )
-    .order("number_value", { ascending: true })
-    .range(0, TOTAL_RAFFLE_NUMBERS - 1);
+  const rows: Raffle27NumberRow[] = [];
+  const pageSize = 1000;
 
-  return (data || []) as Raffle27NumberRow[];
+  for (let from = 0; from < TOTAL_RAFFLE_NUMBERS; from += pageSize) {
+    const { data } = await supabase
+      .from("raffle27_numbers")
+      .select(
+        "number_value, status, held_by_device_id, held_at, hold_expires_at, sold_to_device_id, sold_to_name, sold_to_phone, sold_amount, sold_at, payment_date, created_by_user_id, notes, created_at, updated_at"
+      )
+      .order("number_value", { ascending: true })
+      .range(from, Math.min(from + pageSize - 1, TOTAL_RAFFLE_NUMBERS - 1));
+
+    rows.push(...((data || []) as Raffle27NumberRow[]));
+  }
+
+  return rows;
 }
 
 export async function getRaffle27AdminData() {

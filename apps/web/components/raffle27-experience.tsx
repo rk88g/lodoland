@@ -69,7 +69,7 @@ export function Raffle27Experience({
   const [holdCountdown, setHoldCountdown] = useState(() => buildRemainingHold(holdExpiresAt));
   const [showTransferInfo, setShowTransferInfo] = useState(false);
   const orbitBalls = useMemo(
-    () => ["1428", "0887", "1264", "0519", "1399", "1176", "0641", "1500"],
+    () => ["1428", "0887", "1264", "0519", "1399", "1176", "0641", "1500", "1022", "1335"],
     []
   );
 
@@ -149,7 +149,9 @@ export function Raffle27Experience({
       </Box>
 
       <Box className="raffle27-machine" aria-label={`Numero asignado ${formattedLuckyNumber}`}>
+        <Box className="raffle27-machine-handle" aria-hidden="true" />
         <Box className="raffle27-machine-ring" />
+        <Box className="raffle27-machine-glass" aria-hidden="true" />
         <Box className="raffle27-ball-track" aria-hidden="true">
           {orbitBalls.map((ball, index) => (
             <span className="raffle27-orbit-ball" key={`${ball}-${index}`} style={{ "--ball-index": index } as CSSProperties}>
@@ -164,6 +166,7 @@ export function Raffle27Experience({
           <Typography className="raffle27-stage-number">{formattedLuckyNumber}</Typography>
           <Typography className="raffle27-stage-message">{message}</Typography>
         </Box>
+        <Box className="raffle27-machine-base" aria-hidden="true" />
       </Box>
 
       <Box className="raffle27-countdown">
