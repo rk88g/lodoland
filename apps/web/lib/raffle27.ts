@@ -382,11 +382,13 @@ async function assignFreshLuckyNumber({
 export async function syncRaffle27VisitorExperience({
   deviceId,
   userAgent,
-  ipAddress
+  ipAddress,
+  assignIfMissing = true
 }: {
   deviceId: string;
   userAgent?: string | null;
   ipAddress?: string | null;
+  assignIfMissing?: boolean;
 }) {
   const supabase = createClient();
   await cleanupExpiredRaffle27Holds(supabase);
@@ -400,6 +402,19 @@ export async function syncRaffle27VisitorExperience({
   const visitor = (visitorRaw || null) as Raffle27VisitorRow | null;
 
   if (!visitor || !visitor.lucky_number) {
+    if (!assignIfMissing) {
+      return {
+        deviceId,
+        luckyNumber: null,
+        holdExpiresAt: null,
+        lockedUntil: visitor?.locked_until ?? null,
+        status: null,
+        message: "Activa la tombola y descubre el numero que te toca.",
+        wasShifted: false,
+        soldToMe: false
+      } satisfies Raffle27VisitorExperience;
+    }
+
     const assigned = await assignFreshLuckyNumber({ supabase, deviceId, userAgent, ipAddress });
     return assigned
       ? ({
@@ -518,7 +533,7 @@ export async function getRaffle27PublicData(deviceId?: string | null) {
   const [settings, countsResponse, experience] = await Promise.all([
     getRaffle27Settings(supabase),
     getRaffle27Stats(supabase),
-    deviceId ? syncRaffle27VisitorExperience({ deviceId }) : Promise.resolve(null)
+    deviceId ? syncRaffle27VisitorExperience({ deviceId, assignIfMissing: false }) : Promise.resolve(null)
   ]);
 
   return {
@@ -673,17 +688,15 @@ export async function markRaffle27NumberSold({
     throw new Error(updateError.message);
   }
 
-  if (soldToDeviceId) {
-    await supabase
-      .from("raffle27_visitors")
-      .update({
-        lucky_number: null,
-        last_shifted_from: numberValue,
-        last_seen_at: nowIso(),
-        updated_at: nowIso()
-      })
-      .eq("device_id", soldToDeviceId);
-  }
+  await supabase
+    .from("raffle27_visitors")
+    .update({
+      lucky_number: null,
+      last_shifted_from: numberValue,
+      last_seen_at: nowIso(),
+      updated_at: nowIso()
+    })
+    .eq("lucky_number", numberValue);
 
   const { error: financeError } = await supabase.from("financial_entries").insert({
     kind: "income",

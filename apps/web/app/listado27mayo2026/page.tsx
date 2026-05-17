@@ -19,16 +19,20 @@ export default async function Listado27Mayo2026Page() {
   const deviceId = cookies().get(DEVICE_COOKIE)?.value || null;
   const publicData = await getRaffle27PublicData(deviceId);
   const luckyNumber = publicData.experience?.luckyNumber ?? null;
-  const whatsappHref = buildRaffle27WhatsAppHref({
-    whatsappNumber: publicData.settings.whatsapp_number,
-    luckyNumber,
-    prefix: "pay"
-  });
-  const receiptHref = buildRaffle27WhatsAppHref({
-    whatsappNumber: publicData.settings.whatsapp_number,
-    luckyNumber,
-    prefix: "receipt"
-  });
+  const whatsappHref = luckyNumber
+    ? buildRaffle27WhatsAppHref({
+        whatsappNumber: publicData.settings.whatsapp_number,
+        luckyNumber,
+        prefix: "pay"
+      })
+    : null;
+  const receiptHref = luckyNumber
+    ? buildRaffle27WhatsAppHref({
+        whatsappNumber: publicData.settings.whatsapp_number,
+        luckyNumber,
+        prefix: "receipt"
+      })
+    : null;
 
   return (
     <main className="raffle27-page">

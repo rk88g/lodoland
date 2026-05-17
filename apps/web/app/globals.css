@@ -454,7 +454,7 @@ main {
     repeating-linear-gradient(115deg, rgba(0, 0, 0, 0.74) 0 2.2rem, transparent 2.3rem 4.4rem),
     linear-gradient(90deg, #e8ff00, #fff06a, #d8ff00);
   transform: translateX(-50%) rotate(-11deg);
-  animation: raffle27-warning-tape-yellow 24s linear infinite;
+  animation: none;
 }
 
 .raffle27-warning-tape--red {
@@ -464,7 +464,7 @@ main {
     repeating-linear-gradient(115deg, rgba(0, 0, 0, 0.55) 0 2.2rem, transparent 2.3rem 4.4rem),
     linear-gradient(90deg, #ff2b16, #b90000, #ff4b1f);
   transform: translateX(-50%) rotate(10deg);
-  animation: raffle27-warning-tape-red 26s linear infinite;
+  animation: none;
 }
 
 .raffle27-title {
@@ -1298,13 +1298,13 @@ main {
   .raffle27-warning-tape--yellow {
     top: 24vh;
     transform: translateX(-50%) rotate(-9deg);
-    animation-duration: 42s;
+    animation: none;
   }
 
   .raffle27-warning-tape--red {
     top: 38vh;
     transform: translateX(-50%) rotate(9deg);
-    animation-duration: 46s;
+    animation: none;
   }
 
   .raffle27-date-badge {
