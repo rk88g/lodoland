@@ -69,12 +69,12 @@ export async function sellRaffle27NumberAction(formData: FormData) {
   const numberValue = Number(String(formData.get("numberValue") ?? "0").trim() || 0);
   const buyerName = String(formData.get("buyerName") ?? "").trim();
   const buyerPhone = String(formData.get("buyerPhone") ?? "").trim();
-  const amount = Number(String(formData.get("amount") ?? "0").trim() || 0);
+  const amount = numberValue;
   const paymentDate = String(formData.get("paymentDate") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
 
-  if (!numberValue || !buyerName || !buyerPhone || !amount) {
-    redirectWithMessage("error", "Debes indicar numero, comprador, telefono y monto.");
+  if (!numberValue || !buyerName || !buyerPhone) {
+    redirectWithMessage("error", "Debes indicar numero, comprador y telefono.");
   }
 
   try {

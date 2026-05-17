@@ -391,7 +391,7 @@ main {
 .raffle27-poster-copy {
   position: relative;
   z-index: 3;
-  width: min(48rem, 55vw);
+  width: min(44rem, 52vw);
   padding-top: 0.2rem;
   text-transform: uppercase;
 }
@@ -450,7 +450,7 @@ main {
 .raffle27-luck-line {
   position: absolute;
   left: clamp(1rem, 5vw, 5rem);
-  top: clamp(23rem, 48vh, 31rem);
+  top: clamp(21rem, 43vh, 27rem);
   z-index: 5;
   color: #fff;
   font-size: clamp(1.15rem, 3vw, 2.4rem);
@@ -491,12 +491,12 @@ main {
 
 .raffle27-machine {
   position: absolute;
-  right: clamp(1.4rem, 5vw, 5.4rem);
-  top: clamp(9.6rem, 19vh, 12.5rem);
+  right: clamp(1.6rem, 5vw, 5.2rem);
+  top: clamp(12.4rem, 25vh, 16rem);
   z-index: 4;
   display: grid;
   place-items: center;
-  width: min(33rem, 36vw);
+  width: min(28rem, 31vw);
   aspect-ratio: 1;
   filter: drop-shadow(0 1.5rem 2.5rem rgba(0, 0, 0, 0.7));
 }
@@ -559,7 +559,7 @@ main {
   inset: 13%;
   z-index: 2;
   border-radius: 50%;
-  animation: raffle27-tumble 2.8s linear infinite;
+  animation: raffle27-tumble 12s linear infinite;
 }
 
 .raffle27-orbit-ball {
@@ -584,12 +584,14 @@ main {
     translateY(calc((var(--ball-index) - 5) * 0.12rem))
     rotate(calc(var(--ball-index) * -36deg));
   box-shadow: 0 0.3rem 0 #111, 0 0 1.1rem rgba(216, 255, 0, 0.35);
+  animation: raffle27-ball-bounce 1.25s ease-in-out infinite alternate;
+  animation-delay: calc(var(--ball-index) * -0.17s);
 }
 
 .raffle27-orbit-ball b {
   display: block;
   transform-origin: center;
-  animation: raffle27-text-upright 2.8s linear infinite;
+  animation: raffle27-text-upright 12s linear infinite;
 }
 
 .raffle27-orbit-ball:nth-child(2n) {
@@ -659,7 +661,7 @@ main {
 .raffle27-countdown {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
-  top: clamp(20rem, 41vh, 26rem);
+  top: clamp(18.4rem, 36vh, 23rem);
   z-index: 5;
   display: grid;
   gap: 0.3rem;
@@ -745,7 +747,8 @@ main {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
   right: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(9.8rem, 15vw, 11rem);
+  bottom: clamp(9.3rem, 14vw, 10.4rem);
+  max-width: min(64rem, calc(100% - 8rem));
   z-index: 5;
   display: flex;
   gap: 1rem;
@@ -777,7 +780,7 @@ main {
 .raffle27-action-row {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(2.6rem, 4.5vw, 3.35rem);
+  bottom: clamp(2.35rem, 4.1vw, 3rem);
   z-index: 7;
   display: flex;
   gap: 0.65rem;
@@ -830,8 +833,8 @@ main {
 .raffle27-howto-line {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
-  right: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(6.4rem, 10vw, 7.3rem);
+  right: clamp(8rem, 25vw, 28rem);
+  bottom: clamp(5.95rem, 9vw, 6.85rem);
   z-index: 5;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -924,6 +927,21 @@ main {
 @keyframes raffle27-text-upright {
   to {
     transform: rotate(-360deg);
+  }
+}
+
+@keyframes raffle27-ball-bounce {
+  0% {
+    translate: -0.2rem 0.15rem;
+    scale: 0.96;
+  }
+  45% {
+    translate: 0.35rem -0.85rem;
+    scale: 1.04;
+  }
+  100% {
+    translate: -0.1rem 0.62rem;
+    scale: 0.98;
   }
 }
 

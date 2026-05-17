@@ -99,7 +99,12 @@ export default async function AdminRaffle27May2026Page() {
               <TextField label="Telefono" name="buyerPhone" required />
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 3" } }}>
-              <TextField defaultValue={data.settings.ticket_price} inputProps={{ min: 1, step: "0.01" }} label="Monto" name="amount" required type="number" />
+              <TextField
+                disabled
+                helperText="Automatico: el monto cobrado sera igual al numero vendido."
+                label="Monto"
+                placeholder="Igual al numero"
+              />
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 4" } }}>
               <TextField InputLabelProps={{ shrink: true }} label="Fecha de pago" name="paymentDate" type="datetime-local" />
