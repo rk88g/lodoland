@@ -128,9 +128,10 @@ export function Raffle27Experience({
       <Box className="raffle27-sparks" aria-hidden="true" />
       <Box className="raffle27-poster-copy">
         <Typography className="raffle27-brand">Lodo Land GDL</Typography>
-        <Typography className="raffle27-kicker" aria-hidden="true">
-          Rifa entre lodonautas
-        </Typography>
+        <Box className="raffle27-warning-tapes" aria-hidden="true">
+          <span className="raffle27-warning-tape raffle27-warning-tape--yellow">Rifa entre</span>
+          <span className="raffle27-warning-tape raffle27-warning-tape--red">Lodonautas</span>
+        </Box>
         <Typography className="raffle27-title" variant="h1">
           Gran Rifa
         </Typography>
