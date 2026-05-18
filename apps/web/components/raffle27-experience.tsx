@@ -1,8 +1,8 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Box, Button, Collapse, Typography } from "@mui/material";
+import { Raffle27TombolaCanvas } from "./raffle27-tombola-canvas";
 
 type Raffle27ExperienceProps = {
   countdownEndsAt: string;
@@ -61,14 +61,9 @@ export function Raffle27Experience({
   receiptHref,
   transferInstructions
 }: Raffle27ExperienceProps) {
-  const [displayedNumber, setDisplayedNumber] = useState<number | null>(luckyNumber);
   const [countdown, setCountdown] = useState(() => buildCountdown(countdownEndsAt));
   const [holdCountdown, setHoldCountdown] = useState(() => buildRemainingHold(holdExpiresAt));
   const [showTransferInfo, setShowTransferInfo] = useState(false);
-  const orbitBalls = useMemo(
-    () => ["0047", "0123", "0188", "0264", "0319", "0406", "0521", "0641", "0887", "1022"],
-    []
-  );
 
   useEffect(() => {
     setCountdown(buildCountdown(countdownEndsAt));
@@ -92,36 +87,13 @@ export function Raffle27Experience({
     return () => window.clearInterval(intervalId);
   }, [holdExpiresAt]);
 
-  useEffect(() => {
-    if (!luckyNumber) {
-      setDisplayedNumber(null);
-      return;
-    }
-
-    let frame = 0;
-    const maxFrames = 30;
-    const intervalId = window.setInterval(() => {
-      frame += 1;
-      if (frame >= maxFrames) {
-        setDisplayedNumber(luckyNumber);
-        window.clearInterval(intervalId);
-        return;
-      }
-
-      const lowBiasedPreview = Math.floor(1 + Math.pow(Math.random(), 1.85) * 1500);
-      setDisplayedNumber(Math.min(1500, lowBiasedPreview));
-    }, 58);
-
-    return () => window.clearInterval(intervalId);
-  }, [luckyNumber]);
-
   const formattedLuckyNumber = useMemo(() => {
-    if (!displayedNumber) {
+    if (!luckyNumber) {
       return "----";
     }
 
-    return displayedNumber.toString().padStart(4, "0");
-  }, [displayedNumber]);
+    return luckyNumber.toString().padStart(4, "0");
+  }, [luckyNumber]);
 
   return (
     <Box className={luckyNumber ? "raffle27-shell raffle27-shell--winner" : "raffle27-shell"}>
@@ -154,24 +126,7 @@ export function Raffle27Experience({
       </Box>
 
       <Box className="raffle27-machine" aria-label={`Numero asignado ${formattedLuckyNumber}`}>
-        <Box className="raffle27-machine-handle" aria-hidden="true" />
-        <Box className="raffle27-machine-ring" />
-        <Box className="raffle27-machine-glass" aria-hidden="true" />
-        <Box className="raffle27-ball-track" aria-hidden="true">
-          {orbitBalls.map((ball, index) => (
-            <span className="raffle27-orbit-ball" key={`${ball}-${index}`} style={{ "--ball-index": index } as CSSProperties}>
-              <b>{ball}</b>
-            </span>
-          ))}
-        </Box>
-        <Box className="raffle27-winning-ball">
-          {luckyNumber ? <Box className="raffle27-celebration-burst" aria-hidden="true" /> : null}
-          <Typography className="raffle27-stage-label">
-            {luckyNumber ? "Tu bola ganadora" : "Tombola lista"}
-          </Typography>
-          <Typography className="raffle27-stage-number">{formattedLuckyNumber}</Typography>
-        </Box>
-        <Box className="raffle27-machine-base" aria-hidden="true" />
+        <Raffle27TombolaCanvas luckyNumber={luckyNumber} />
       </Box>
 
       <Box className="raffle27-countdown">
