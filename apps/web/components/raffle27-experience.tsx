@@ -232,8 +232,16 @@ export function Raffle27Experience({
       </Box>
 
       <Box className="raffle27-contact-strip">
-        <span>www.lodoland.mx/listado27mayo2026</span>
-        <strong>WhatsApp +52 331 545 7641</strong>
+        <a href="https://www.lodoland.mx" rel="noreferrer" target="_blank">
+          lodoland.mx
+        </a>
+        <span>Derechos reservados 2026</span>
+        <a href="/legal/derechosreservados27mayo2026.pdf" rel="noreferrer" target="_blank">
+          Derechos reservados
+        </a>
+        <a href="/legal/avisodeprivacidad.pdf" rel="noreferrer" target="_blank">
+          Aviso de privacidad
+        </a>
       </Box>
     </Box>
   );

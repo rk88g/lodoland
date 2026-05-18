@@ -937,14 +937,26 @@ main {
   z-index: 6;
   display: flex;
   justify-content: center;
-  gap: clamp(0.8rem, 2vw, 2rem);
-  padding: 0.55rem 1rem;
+  align-items: center;
+  gap: clamp(0.55rem, 1.5vw, 1.35rem);
+  padding: 0.28rem 0.9rem;
   color: #070806;
-  background: #f8f5e8;
-  font-size: clamp(0.86rem, 1.8vw, 1.35rem);
-  font-weight: 1000;
-  text-transform: uppercase;
+  background: rgba(248, 245, 232, 0.94);
+  font-size: clamp(0.58rem, 1vw, 0.8rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
   transform: skewY(-1deg);
+}
+
+.raffle27-contact-strip a {
+  color: inherit;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.raffle27-contact-strip a:hover {
+  text-decoration: underline;
 }
 
 .raffle27-number-board {
@@ -1353,10 +1365,16 @@ main {
     height: clamp(7rem, 38vw, 9.5rem);
   }
 
-  .raffle27-hold-ribbon,
-  .raffle27-contact-strip {
+  .raffle27-hold-ribbon {
     display: grid;
     gap: 0.35rem;
+  }
+
+  .raffle27-contact-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.65rem;
+    padding: 0.24rem 0.75rem;
   }
 
   .raffle27-howto-line {
