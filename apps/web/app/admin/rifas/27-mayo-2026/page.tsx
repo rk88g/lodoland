@@ -39,7 +39,14 @@ export default async function AdminRaffle27May2026Page() {
   await requireAdmin();
   const flash = readFlashMessage(FLASH_COOKIE);
   const data = await getRaffle27AdminData();
-  const heldNumberValues = new Set(data.heldRows.map((row) => row.number_value));
+  const soldNumberValues = new Set(data.soldRows.map((row) => row.number_value));
+  const visibleLogs = data.recentLogs.filter((log) => {
+    if (log.action === "sold") {
+      return false;
+    }
+
+    return typeof log.lucky_number !== "number" || !soldNumberValues.has(log.lucky_number);
+  });
 
   return (
     <DashboardShell navItems={controlNavItems} subtitle="Operacion y ventas de la landing especial" title="Rifa 27 Mayo 2026">
@@ -163,9 +170,9 @@ export default async function AdminRaffle27May2026Page() {
       </Box>
 
       <AdminSectionCard description="Visitas, asignaciones y corrimientos de suerte registrados por la landing." title="Log Rifa">
-        {data.recentLogs.length ? (
+        {visibleLogs.length ? (
           <Stack spacing={1.25}>
-            {data.recentLogs.map((log) => (
+            {visibleLogs.map((log) => (
               <Box key={log.id} sx={{ border: 1, borderColor: "divider", bgcolor: "background.default", p: 1.5 }}>
                 <Typography sx={{ fontWeight: 800 }}>
                   {log.action} {typeof log.lucky_number === "number" ? `· #${formatNumberLabel(log.lucky_number)}` : ""}
@@ -176,7 +183,7 @@ export default async function AdminRaffle27May2026Page() {
                 <Typography color="text.secondary" variant="body2">
                   {formatDate(log.created_at)} · {log.device_id || "Sin dispositivo"}
                 </Typography>
-                {typeof log.lucky_number === "number" && heldNumberValues.has(log.lucky_number) ? (
+                {typeof log.lucky_number === "number" ? (
                   <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
                     <form action={quickPayRaffle27LogNumberAction} method="post">
                       <input name="numberValue" type="hidden" value={log.lucky_number} />
