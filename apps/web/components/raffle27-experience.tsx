@@ -66,7 +66,7 @@ export function Raffle27Experience({
   const [holdCountdown, setHoldCountdown] = useState(() => buildRemainingHold(holdExpiresAt));
   const [showTransferInfo, setShowTransferInfo] = useState(false);
   const orbitBalls = useMemo(
-    () => ["1428", "0887", "1264", "0519", "1399", "1176", "0641", "1500", "1022", "1335"],
+    () => ["0047", "0123", "0188", "0264", "0319", "0406", "0521", "0641", "0887", "1022"],
     []
   );
 
@@ -108,8 +108,8 @@ export function Raffle27Experience({
         return;
       }
 
-      const highBiasedRoll = Math.floor(1 + Math.pow(Math.random(), 0.42) * 1500);
-      setDisplayedNumber(Math.min(1500, highBiasedRoll));
+      const lowBiasedPreview = Math.floor(1 + Math.pow(Math.random(), 1.85) * 1500);
+      setDisplayedNumber(Math.min(1500, lowBiasedPreview));
     }, 58);
 
     return () => window.clearInterval(intervalId);

@@ -1259,13 +1259,12 @@ main {
   .raffle27-page::after,
   .raffle27-shell::before,
   .raffle27-sparks {
-    animation-duration: 36s;
-    opacity: 0.34;
+    animation: none;
+    opacity: 0.18;
   }
 
   .raffle27-shell::after {
-    opacity: 0.34;
-    filter: blur(1.8rem);
+    display: none;
   }
 
   .raffle27-page {
@@ -1317,12 +1316,36 @@ main {
     filter: none;
   }
 
+  .raffle27-machine-ring {
+    animation: none;
+    box-shadow:
+      inset 0 0 0.5rem rgba(255, 255, 255, 0.3),
+      0 0 1.2rem rgba(216, 255, 0, 0.12);
+  }
+
+  .raffle27-machine-ring::after {
+    backdrop-filter: none;
+  }
+
   .raffle27-orbit-ball {
     transform:
       rotate(calc(var(--ball-index) * 45deg))
       translateX(clamp(5.5rem, 30vw, 9rem))
       rotate(calc(var(--ball-index) * -45deg));
-    animation-duration: 2.2s;
+    animation: none;
+  }
+
+  .raffle27-orbit-ball:nth-child(n + 7) {
+    display: none;
+  }
+
+  .raffle27-celebration-burst {
+    display: none;
+  }
+
+  .raffle27-shell--winner .raffle27-winning-ball,
+  .raffle27-shell--winner .raffle27-stage-number {
+    animation-duration: 0.65s;
   }
 
   .raffle27-winning-ball {
