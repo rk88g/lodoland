@@ -174,7 +174,7 @@ export function Raffle27Experience({
           <Typography variant="h3">Transferencia / deposito</Typography>
           <Typography color="text.secondary">{transferInstructions}</Typography>
           <Typography className="raffle27-transfer-note">
-            En cuanto realices tu pago, usa el boton <strong>Ya pague</strong> y manda tu comprobante por WhatsApp.
+            En cuanto realices tu pago, usa el boton <strong>Ya pague</strong> y manda tu comprobante por WhatsApp. No habrá reembolsos por numeros no asignados y pagados.
           </Typography>
         </Box>
       </Collapse>
