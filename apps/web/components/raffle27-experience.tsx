@@ -52,6 +52,10 @@ function buildRemainingHold(targetDate: string | null) {
   return `${padUnit(minutes)}:${padUnit(seconds)}`;
 }
 
+function formatTransferInstructions(value: string) {
+  return value.replace(/\\n/g, "\n");
+}
+
 export function Raffle27Experience({
   countdownEndsAt,
   holdExpiresAt,
@@ -64,6 +68,10 @@ export function Raffle27Experience({
   const [countdown, setCountdown] = useState(() => buildCountdown(countdownEndsAt));
   const [holdCountdown, setHoldCountdown] = useState(() => buildRemainingHold(holdExpiresAt));
   const [showTransferInfo, setShowTransferInfo] = useState(false);
+  const formattedTransferInstructions = useMemo(
+    () => formatTransferInstructions(transferInstructions),
+    [transferInstructions]
+  );
 
   useEffect(() => {
     setCountdown(buildCountdown(countdownEndsAt));
@@ -172,8 +180,8 @@ export function Raffle27Experience({
       <Collapse className="raffle27-transfer-collapse" in={showTransferInfo}>
         <Box className="raffle27-transfer-box">
           <Typography variant="h3">Transferencia / deposito</Typography>
-          <Typography className="raffle27-transfer-instructions" color="text.secondary">
-            {transferInstructions}
+          <Typography className="raffle27-transfer-instructions" color="text.secondary" component="div" sx={{ whiteSpace: "pre-line" }}>
+            {formattedTransferInstructions}
           </Typography>
           <Typography className="raffle27-transfer-note">
             En cuanto realices tu pago, usa el boton <strong>Ya pague</strong> y manda tu comprobante por WhatsApp. No habrá reembolsos por numeros no asignados y pagados.
