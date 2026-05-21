@@ -121,8 +121,8 @@ export function Raffle27Experience({
       </Box>
 
       <Box className="raffle27-date-badge">
-        <strong>27</strong>
-        <span>de mayo<br />2026</span>
+        <strong>14</strong>
+        <span>de junio<br />2026</span>
       </Box>
 
       <Box className="raffle27-machine" aria-label={`Numero asignado ${formattedLuckyNumber}`}>

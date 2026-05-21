@@ -3,6 +3,8 @@ import { createClient } from "./supabase/server";
 const HOLD_MINUTES = 30;
 const LOCK_HOURS = 72;
 const TOTAL_RAFFLE_NUMBERS = 1500;
+const SPECIAL_RAFFLE_LABEL = "Rifa 14 Junio 2026";
+const SPECIAL_RAFFLE_COUNTDOWN_ENDS_AT = "2026-06-14T12:00:00-06:00";
 
 type SupabaseLike = ReturnType<typeof createClient>;
 
@@ -153,7 +155,10 @@ export async function getRaffle27Settings(supabase = createClient()) {
     .eq("slug", "listado27mayo2026")
     .maybeSingle();
 
-  return data as Raffle27Settings;
+  return {
+    ...(data as Raffle27Settings),
+    countdown_ends_at: SPECIAL_RAFFLE_COUNTDOWN_ENDS_AT
+  };
 }
 
 export async function cleanupExpiredRaffle27Holds(supabase = createClient()) {
@@ -745,7 +750,7 @@ export async function markRaffle27NumberSold({
     kind: "income",
     amount,
     currency: "MXN",
-    reference_label: `Rifa 27 Mayo 2026 #${numberValue.toString().padStart(4, "0")}`,
+    reference_label: `${SPECIAL_RAFFLE_LABEL} #${numberValue.toString().padStart(4, "0")}`,
     note: `Comprador: ${buyerName}. Telefono: ${buyerPhone}.${notes ? ` ${notes}` : ""}`,
     occurred_at: soldAt,
     actor_user_id: actorUserId,
@@ -798,8 +803,8 @@ export function buildRaffle27WhatsAppHref({
   const normalizedPhone = whatsappNumber.replace(/[^\d]/g, "");
   const baseText =
     prefix === "receipt"
-      ? "Este es mi comprobante de pago para la RIFA 27 MAYO 2026."
-      : "Quiero pagar mi boleto de la RIFA 27 MAYO 2026.";
+      ? "Este es mi comprobante de pago para la RIFA 14 JUNIO 2026."
+      : "Quiero pagar mi boleto de la RIFA 14 JUNIO 2026.";
   const luckyLabel = luckyNumber ? ` Mi numero es ${luckyNumber}.` : "";
   return `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(`${baseText}${luckyLabel}`)}`;
 }
