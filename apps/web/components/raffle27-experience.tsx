@@ -164,7 +164,7 @@ export function Raffle27Experience({
             Ya pague
           </Button>
         ) : null}
-        <Button className="raffle27-secondary-action" component="a" href="/listado27mayo2026/boletos-vendidos" variant="outlined">
+        <Button className="raffle27-secondary-action" component="a" href="/Lodonautas14Junio/boletos-vendidos" variant="outlined">
           Boletos vendidos
         </Button>
       </Box>

@@ -31,14 +31,14 @@ export default async function AdminRafflesPage() {
       <FlashAlert cookieName="admin-raffles-flash" payload={flash} />
 
       <AdminSectionCard
-        description="Landing especial independiente para la dinamica del 27 de mayo de 2026, con tombola publica, apartados temporales y reflejo directo en finanzas."
-        title="Rifa especial 27 Mayo 2026"
+        description="Landing especial independiente para la dinamica del 14 de junio de 2026, con tombola publica, apartados temporales y reflejo directo en finanzas."
+        title="Rifa especial Lodonautas 14 Junio 2026"
       >
         <Stack direction={{ xs: "column", md: "row" }} spacing={1.25} useFlexGap flexWrap="wrap">
           <Button component={Link} href="/admin/rifas/27-mayo-2026" variant="contained">
             Abrir consola especial
           </Button>
-          <Button component={Link} href="/listado27mayo2026" target="_blank" variant="outlined">
+          <Button component={Link} href="/Lodonautas14Junio" target="_blank" variant="outlined">
             Ver landing publica
           </Button>
         </Stack>

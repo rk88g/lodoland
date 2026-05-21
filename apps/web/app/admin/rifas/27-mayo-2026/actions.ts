@@ -44,7 +44,7 @@ export async function saveRaffle27SettingsAction(formData: FormData) {
       actorUserId: session.profile?.id,
       entityType: "special_raffle_27_settings",
       action: "update",
-      summary: "Actualizacion de configuracion de la rifa 27 mayo 2026",
+      summary: "Actualizacion de configuracion de la rifa Lodonautas 14 Junio 2026",
       payload: {
         title,
         whatsappNumber,
@@ -57,6 +57,8 @@ export async function saveRaffle27SettingsAction(formData: FormData) {
   }
 
   revalidatePath(ADMIN_PATH);
+  revalidatePath("/Lodonautas14Junio");
+  revalidatePath("/Lodonautas14Junio/boletos-vendidos");
   revalidatePath("/listado27mayo2026");
   revalidatePath("/listado27mayo2026/boletos-vendidos");
   redirectWithMessage("success", "Configuracion de la rifa actualizada.");
@@ -93,7 +95,7 @@ export async function sellRaffle27NumberAction(formData: FormData) {
       actorUserId: session.profile?.id,
       entityType: "special_raffle_27_sale",
       action: "create",
-      summary: "Venta manual en la landing de la rifa 27 mayo 2026",
+      summary: "Venta manual en la landing de la rifa Lodonautas 14 Junio 2026",
       payload: {
         numberValue,
         buyerName,
@@ -108,6 +110,8 @@ export async function sellRaffle27NumberAction(formData: FormData) {
 
   revalidatePath(ADMIN_PATH);
   revalidatePath("/admin/finanzas");
+  revalidatePath("/Lodonautas14Junio");
+  revalidatePath("/Lodonautas14Junio/boletos-vendidos");
   revalidatePath("/listado27mayo2026");
   revalidatePath("/listado27mayo2026/boletos-vendidos");
   redirectWithMessage("success", "Numero vendido y reflejado en finanzas correctamente.");
@@ -141,7 +145,7 @@ export async function quickPayRaffle27LogNumberAction(formData: FormData) {
       actorUserId: session.profile?.id,
       entityType: "special_raffle_27_sale",
       action: "quick_pay",
-      summary: "Pago rapido desde log de la rifa 27 mayo 2026",
+      summary: "Pago rapido desde log de la rifa Lodonautas 14 Junio 2026",
       payload: {
         numberValue,
         amount,
@@ -154,6 +158,8 @@ export async function quickPayRaffle27LogNumberAction(formData: FormData) {
 
   revalidatePath(ADMIN_PATH);
   revalidatePath("/admin/finanzas");
+  revalidatePath("/Lodonautas14Junio");
+  revalidatePath("/Lodonautas14Junio/boletos-vendidos");
   revalidatePath("/listado27mayo2026");
   revalidatePath("/listado27mayo2026/boletos-vendidos");
   redirectWithMessage("success", "Numero pagado desde log y reflejado en finanzas.");

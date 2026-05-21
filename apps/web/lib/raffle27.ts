@@ -755,7 +755,7 @@ export async function markRaffle27NumberSold({
     occurred_at: soldAt,
     actor_user_id: actorUserId,
     metadata: {
-      specialRaffle: "listado27mayo2026",
+      specialRaffle: "Lodonautas14Junio",
       buyerName,
       buyerPhone,
       numberValue

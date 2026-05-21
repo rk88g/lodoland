@@ -49,14 +49,14 @@ export default async function AdminRaffle27May2026Page() {
   });
 
   return (
-    <DashboardShell navItems={controlNavItems} subtitle="Operacion y ventas de la landing especial" title="Rifa 27 Mayo 2026">
+    <DashboardShell navItems={controlNavItems} subtitle="Operacion y ventas de la landing especial" title="Rifa Lodonautas 14 Junio 2026">
       <FlashAlert cookieName={FLASH_COOKIE} payload={flash} />
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} useFlexGap flexWrap="wrap">
         <Button component={Link} href="/admin/rifas" variant="outlined">
           Volver a Rifas
         </Button>
-        <Button component={Link} href="/listado27mayo2026" target="_blank" variant="contained">
+        <Button component={Link} href="/Lodonautas14Junio" target="_blank" variant="contained">
           Abrir landing publica
         </Button>
       </Stack>
