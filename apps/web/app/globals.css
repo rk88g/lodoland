@@ -911,6 +911,10 @@ main {
   color: #ffd3c9;
 }
 
+.raffle27-transfer-instructions {
+  white-space: pre-line;
+}
+
 .raffle27-howto-line {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
