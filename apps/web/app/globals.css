@@ -2744,7 +2744,9 @@ main {
 
 .scrap-photo-frame {
   position: absolute;
-  padding: 12px 12px 46px;
+  padding: 7px 7px 24px;
+  border: 0;
+  cursor: zoom-in;
   background: #f4efe8;
   box-shadow:
     0 22px 48px rgba(0, 0, 0, 0.22),
@@ -2752,6 +2754,15 @@ main {
   will-change: transform;
   animation: scrapbook-float var(--float-duration, 18s) ease-in-out infinite;
   animation-delay: var(--float-delay, 0s);
+}
+
+.scrap-photo-frame:disabled {
+  cursor: default;
+}
+
+.scrap-photo-frame:focus-visible {
+  outline: 3px solid rgba(133, 216, 255, 0.9);
+  outline-offset: 4px;
 }
 
 .scrap-photo-frame::before {
@@ -2763,6 +2774,7 @@ main {
 }
 
 .scrap-photo-inner {
+  display: block;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -2770,6 +2782,7 @@ main {
 }
 
 .scrap-photo-shot {
+  display: block;
   width: 100%;
   height: 100%;
   transform: scale(1.03);
@@ -2777,6 +2790,26 @@ main {
 
 .scrap-photo-frame.is-mobile {
   transition: opacity 420ms ease, transform 420ms ease;
+  padding: 6px 6px 18px;
+}
+
+.influencer-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 3vw, 3rem);
+  background: rgba(3, 5, 12, 0.86);
+  backdrop-filter: blur(12px);
+}
+
+.influencer-lightbox-image {
+  max-width: min(94vw, 88rem);
+  max-height: 88vh;
+  object-fit: contain;
+  border-radius: clamp(1rem, 2vw, 2rem);
+  box-shadow: 0 2rem 7rem rgba(0, 0, 0, 0.62);
 }
 
 .tone-gold .scrap-photo-shot {

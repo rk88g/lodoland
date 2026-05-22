@@ -124,6 +124,7 @@ export function InfluencerCollage({ images }: InfluencerCollageProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [desktopAssets, setDesktopAssets] = useState(() => buildSelection(DESKTOP_SLOTS.length, assetPool));
   const [mobileAssets, setMobileAssets] = useState(() => buildSelection(MOBILE_SLOTS.length, assetPool));
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
   const activeSlots = useMemo(() => (isMobile ? MOBILE_SLOTS : DESKTOP_SLOTS), [isMobile]);
   const activeAssets = isMobile ? mobileAssets : desktopAssets;
@@ -160,47 +161,93 @@ export function InfluencerCollage({ images }: InfluencerCollageProps) {
     };
   }, [assetPool, isMobile]);
 
-  return (
-    <div className="collage-bg collage-scrapbook">
-      {activeSlots.map((slot, index) => {
-        const asset = activeAssets[index];
+  useEffect(() => {
+    if (!selectedAsset) {
+      return;
+    }
 
-        return (
-          <div
-            className={`scrap-photo-frame ${asset?.tone || "tone-gold"} ${isMobile ? "is-mobile" : ""}`}
-            key={`${slot.id}-${asset?.id || "empty"}`}
-            style={
-              {
-                left: slot.left,
-                top: slot.top,
-                width: slot.width,
-                height: slot.height,
-                rotate: slot.rotation,
-                zIndex: slot.zIndex,
-                "--float-duration": slot.duration,
-                "--float-delay": slot.delay
-              } as CSSProperties
-            }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedAsset(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedAsset]);
+
+  return (
+    <>
+      <div className="collage-bg collage-scrapbook">
+        {activeSlots.map((slot, index) => {
+          const asset = activeAssets[index];
+
+          return (
+            <button
+              aria-label={`Abrir ${asset?.altText || "imagen del collage"}`}
+              className={`scrap-photo-frame ${asset?.tone || "tone-gold"} ${isMobile ? "is-mobile" : ""}`}
+              disabled={!asset?.url}
+              key={`${slot.id}-${asset?.id || "empty"}`}
+              onClick={() => asset?.url && setSelectedAsset(asset)}
+              style={
+                {
+                  left: slot.left,
+                  top: slot.top,
+                  width: slot.width,
+                  height: slot.height,
+                  rotate: slot.rotation,
+                  zIndex: slot.zIndex,
+                  "--float-duration": slot.duration,
+                  "--float-delay": slot.delay
+                } as CSSProperties
+              }
+              type="button"
+            >
+              <span className="scrap-photo-inner">
+                <span
+                  aria-label={asset?.altText || "Imagen collage"}
+                  className="scrap-photo-shot"
+                  role="img"
+                  style={
+                    asset?.url
+                      ? {
+                          backgroundImage: `url(${asset.url})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center"
+                        }
+                      : undefined
+                  }
+                />
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {selectedAsset?.url ? (
+        <div
+          aria-label={selectedAsset.altText || "Imagen influencer ampliada"}
+          aria-modal="true"
+          className="influencer-lightbox"
+          onClick={() => setSelectedAsset(null)}
+          role="dialog"
+        >
+          <button
+            aria-label="Cerrar imagen"
+            className="modal-close"
+            onClick={() => setSelectedAsset(null)}
+            type="button"
           >
-            <div className="scrap-photo-inner">
-              <div
-                aria-label={asset?.altText || "Imagen collage"}
-                className="scrap-photo-shot"
-                role="img"
-                style={
-                  asset?.url
-                    ? {
-                        backgroundImage: `url(${asset.url})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center"
-                      }
-                    : undefined
-                }
-              />
-            </div>
-          </div>
-        );
-      })}
-    </div>
+            x
+          </button>
+          <img
+            alt={selectedAsset.altText || "Imagen influencer ampliada"}
+            className="influencer-lightbox-image"
+            onClick={(event) => event.stopPropagation()}
+            src={selectedAsset.url}
+          />
+        </div>
+      ) : null}
+    </>
   );
 }
