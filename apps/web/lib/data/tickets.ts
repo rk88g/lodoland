@@ -164,6 +164,10 @@ export type AdminIssuedTicketSummary = {
   checkedInAt: string | null;
 };
 
+function nowIso() {
+  return new Date().toISOString();
+}
+
 async function getEventMapByIds(eventIds: string[]) {
   if (!eventIds.length) {
     return new Map<string, EventRef>();
@@ -187,6 +191,8 @@ export async function getTicketConfigEvents() {
   const { data } = await supabase
     .from("events")
     .select("id, title, starts_at, city, status")
+    .neq("status", "archived")
+    .or(`starts_at.is.null,starts_at.gte.${nowIso()}`)
     .order("starts_at", { ascending: true });
 
   return ((data || []) as EventRef[]).map((event) => ({
@@ -198,19 +204,25 @@ export async function getTicketConfigEvents() {
   }));
 }
 
-export async function getAdminTicketTypes(limit = 36) {
+export async function getAdminTicketTypes(limit = 36, eventId?: string | null) {
   if (isBuildPhase()) {
     return [] as AdminTicketTypeSummary[];
   }
 
   const supabase = createClient();
-  const { data } = await supabase
+  let query = supabase
     .from("ticket_types")
     .select(
       "id, event_id, name, description, sku, price, currency, quantity_total, quantity_sold, sale_starts_at, sale_ends_at, is_active"
     )
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  if (eventId) {
+    query = query.eq("event_id", eventId);
+  }
+
+  const { data } = await query;
 
   if (!data?.length) {
     return [] as AdminTicketTypeSummary[];
@@ -235,8 +247,8 @@ export async function getAdminTicketTypes(limit = 36) {
   }));
 }
 
-export async function getTicketTypeOptions(limit = 80) {
-  const ticketTypes = await getAdminTicketTypes(limit);
+export async function getTicketTypeOptions(limit = 80, eventId?: string | null) {
+  const ticketTypes = await getAdminTicketTypes(limit, eventId);
 
   return ticketTypes.map((ticketType) => ({
     id: ticketType.id,
@@ -246,19 +258,40 @@ export async function getTicketTypeOptions(limit = 80) {
   })) satisfies TicketConfigTypeOption[];
 }
 
-export async function getAdminTicketLots(limit = 48) {
+export async function getAdminTicketLots(limit = 48, eventId?: string | null) {
   if (isBuildPhase()) {
     return [] as AdminTicketLotSummary[];
   }
 
   const supabase = createClient();
-  const { data } = await supabase
+  let allowedTicketTypeIds: string[] | null = null;
+
+  if (eventId) {
+    const { data: typeRows } = await supabase
+      .from("ticket_types")
+      .select("id")
+      .eq("event_id", eventId);
+
+    allowedTicketTypeIds = ((typeRows || []) as Array<{ id: string }>).map((row) => row.id);
+
+    if (!allowedTicketTypeIds.length) {
+      return [] as AdminTicketLotSummary[];
+    }
+  }
+
+  let query = supabase
     .from("ticket_lots")
     .select(
       "id, ticket_type_id, label, description, inventory_total, courtesy_total, sold_count, reserved_count, courtesy_count, sequence_prefix, sale_starts_at, sale_ends_at, is_active"
     )
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  if (allowedTicketTypeIds) {
+    query = query.in("ticket_type_id", allowedTicketTypeIds);
+  }
+
+  const { data } = await query;
 
   if (!data?.length) {
     return [] as AdminTicketLotSummary[];
@@ -299,7 +332,7 @@ export async function getAdminTicketLots(limit = 48) {
   });
 }
 
-export async function getTicketOperationSummary() {
+export async function getTicketOperationSummary(eventId?: string | null) {
   if (isBuildPhase()) {
     return {
       ticketTypes: 0,
@@ -310,13 +343,43 @@ export async function getTicketOperationSummary() {
   }
 
   const supabase = createClient();
+  let ticketTypeIds: string[] | null = null;
+
+  if (eventId) {
+    const { data: typeRows } = await supabase
+      .from("ticket_types")
+      .select("id")
+      .eq("event_id", eventId);
+
+    ticketTypeIds = ((typeRows || []) as Array<{ id: string }>).map((row) => row.id);
+
+    if (!ticketTypeIds.length) {
+      return {
+        ticketTypes: 0,
+        ticketLots: 0,
+        issuedTickets: 0,
+        courtesyCapacity: 0
+      };
+    }
+  }
+
+  const ticketTypesQuery = supabase.from("ticket_types").select("*", { count: "exact", head: true });
+  const ticketLotsQuery = supabase.from("ticket_lots").select("*", { count: "exact", head: true });
+  const issuedTicketsQuery = supabase.from("issued_tickets").select("*", { count: "exact", head: true });
+  const lotDataQuery = supabase.from("ticket_lots").select("courtesy_total");
+
+  if (eventId) {
+    ticketTypesQuery.eq("event_id", eventId);
+  }
+
+  if (ticketTypeIds) {
+    ticketLotsQuery.in("ticket_type_id", ticketTypeIds);
+    issuedTicketsQuery.in("ticket_type_id", ticketTypeIds);
+    lotDataQuery.in("ticket_type_id", ticketTypeIds);
+  }
+
   const [{ count: ticketTypes }, { count: ticketLots }, { count: issuedTickets }, { data: lotData }] =
-    await Promise.all([
-      supabase.from("ticket_types").select("*", { count: "exact", head: true }),
-      supabase.from("ticket_lots").select("*", { count: "exact", head: true }),
-      supabase.from("issued_tickets").select("*", { count: "exact", head: true }),
-      supabase.from("ticket_lots").select("courtesy_total")
-    ]);
+    await Promise.all([ticketTypesQuery, ticketLotsQuery, issuedTicketsQuery, lotDataQuery]);
 
   const courtesyCapacity = (lotData || []).reduce((total, lot) => total + (lot.courtesy_total || 0), 0);
 
@@ -467,12 +530,27 @@ export async function getCustomerEventTicketOptions() {
     });
 }
 
-export async function getRecentIssuedTickets(limit = 40, searchTerm?: string | null) {
+export async function getRecentIssuedTickets(limit = 40, searchTerm?: string | null, eventId?: string | null) {
   if (isBuildPhase()) {
     return [] as AdminIssuedTicketSummary[];
   }
 
   const supabase = createClient();
+  let ticketTypeIdsForEvent: string[] | null = null;
+
+  if (eventId) {
+    const { data: typeRows } = await supabase
+      .from("ticket_types")
+      .select("id")
+      .eq("event_id", eventId);
+
+    ticketTypeIdsForEvent = ((typeRows || []) as Array<{ id: string }>).map((row) => row.id);
+
+    if (!ticketTypeIdsForEvent.length) {
+      return [] as AdminIssuedTicketSummary[];
+    }
+  }
+
   let query = supabase
     .from("issued_tickets")
     .select(
@@ -480,6 +558,10 @@ export async function getRecentIssuedTickets(limit = 40, searchTerm?: string | n
     )
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  if (ticketTypeIdsForEvent) {
+    query = query.in("ticket_type_id", ticketTypeIdsForEvent);
+  }
 
   const normalizedSearch = String(searchTerm || "").trim();
 

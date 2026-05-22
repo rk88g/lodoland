@@ -41,20 +41,30 @@ function formatDate(dateValue: string | null) {
   return formatEventDateTimeWallClock(dateValue) || "Sin fecha";
 }
 
-export default async function AdminTicketsPage() {
+type AdminTicketsPageProps = {
+  searchParams?: {
+    eventId?: string;
+  };
+};
+
+export default async function AdminTicketsPage({ searchParams }: AdminTicketsPageProps) {
   await requireAdmin();
 
   const flash = readFlashMessage("admin-tickets-flash");
-  const [summary, events, ticketTypes, ticketTypeOptions, ticketLots, mercadoPagoSettings, customers, issuedTickets] =
+  const events = await getTicketConfigEvents();
+  const requestedEventId = String(searchParams?.eventId || "").trim();
+  const selectedEvent = events.find((event) => event.id === requestedEventId) || events[0] || null;
+  const selectedEventId = selectedEvent?.id || null;
+  const selectedEventPath = selectedEventId ? `/admin/tickets?eventId=${selectedEventId}` : "/admin/tickets";
+  const [summary, ticketTypes, ticketTypeOptions, ticketLots, mercadoPagoSettings, customers, issuedTickets] =
     await Promise.all([
-      getTicketOperationSummary(),
-      getTicketConfigEvents(),
-      getAdminTicketTypes(40),
-      getTicketTypeOptions(80),
-      getAdminTicketLots(48),
+      getTicketOperationSummary(selectedEventId),
+      getAdminTicketTypes(80, selectedEventId),
+      getTicketTypeOptions(120, selectedEventId),
+      getAdminTicketLots(120, selectedEventId),
       getMercadoPagoSettings(),
       getCustomerAccountOptions(120),
-      getRecentIssuedTickets(80)
+      getRecentIssuedTickets(120, null, selectedEventId)
     ]);
 
   const ticketDetailsEntries = await Promise.all(
@@ -78,8 +88,40 @@ export default async function AdminTicketsPage() {
     <DashboardShell navItems={controlNavItems} subtitle="Drops, emision, QR y validacion" title="Tickets">
       <FlashAlert cookieName="admin-tickets-flash" payload={flash} />
 
+      <AdminSectionCard
+        description="Selecciona el evento que vas a operar. Los tipos, drops, ventas y tickets emitidos se separan por evento."
+        title="Evento en operacion"
+      >
+        {events.length ? (
+          <form autoComplete="off" method="get">
+            <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) 180px" } }}>
+              <TextField
+                defaultValue={selectedEventId || ""}
+                helperText="Solo aparecen eventos activos o proximos. Los concluidos/cancelados y pasados quedan fuera."
+                label="Evento"
+                name="eventId"
+                select
+              >
+                {events.map((event) => (
+                  <MenuItem key={event.id} value={event.id}>
+                    {event.title} - {formatDate(event.startsAt)}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <Button sx={{ minHeight: 56 }} type="submit" variant="contained">
+                Cambiar evento
+              </Button>
+            </Box>
+          </form>
+        ) : (
+          <Typography color="text.secondary">
+            No hay eventos activos o proximos para configurar tickets. Crea o reactiva un evento en CONTROL &gt; Eventos.
+          </Typography>
+        )}
+      </AdminSectionCard>
+
       <Stack spacing={1.5}>
-        <Typography variant="h2">Operacion general</Typography>
+        <Typography variant="h2">Operacion general{selectedEvent ? ` - ${selectedEvent.title}` : ""}</Typography>
         <Box sx={{ display: "grid", gap: 1.25, gridTemplateColumns: "repeat(4, minmax(160px, 1fr))", overflowX: "auto" }}>
           <SummaryCard label="Tipos activos" value={summary.ticketTypes} />
           <SummaryCard label="Drops activos" value={summary.ticketLots} />
@@ -90,7 +132,7 @@ export default async function AdminTicketsPage() {
 
       <AdminSectionCard description="Escanea el QR o pega el codigo visible del ticket para validar acceso y quemarlo." title="Validar acceso">
         <form action={validateIssuedTicketAction} autoComplete="off" id="ticket-scan-form" method="post">
-          <input name="redirectTo" type="hidden" value="/admin/tickets" />
+          <input name="redirectTo" type="hidden" value={selectedEventPath} />
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) 220px" } }}>
             <TextField id="ticket-scan-input" label="QR o codigo del ticket" name="scanValue" required />
             <Button sx={{ minHeight: 56 }} type="submit" variant="contained">
@@ -103,14 +145,15 @@ export default async function AdminTicketsPage() {
 
       <AdminSectionCard description="Define la categoria comercial del boleto: General, VIP, Preventa o la fase que quieras vender." title="Crear tipo de ticket">
         <form action={createTicketTypeAction} autoComplete="off" method="post">
+          <input name="redirectTo" type="hidden" value={selectedEventPath} />
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
-              <TextField helperText="Evento al que pertenece esta categoria o fase." label="Evento" name="eventId" required select>
-                {events.map((event) => (
-                  <MenuItem key={event.id} value={event.id}>
-                    {event.title}
-                  </MenuItem>
-                ))}
+              <TextField defaultValue={selectedEventId || ""} helperText="Evento al que pertenece esta categoria o fase." label="Evento" name="eventId" required select>
+                {selectedEvent ? (
+                  <MenuItem value={selectedEvent.id}>{selectedEvent.title}</MenuItem>
+                ) : (
+                  <MenuItem value="">Sin evento disponible</MenuItem>
+                )}
               </TextField>
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
@@ -154,6 +197,7 @@ export default async function AdminTicketsPage() {
 
       <AdminSectionCard description="El drop es la bolsa operativa de stock que decides abrir para una etapa, taquilla o canal." title="Crear lote o drop">
         <form action={createTicketLotAction} autoComplete="off" method="post">
+          <input name="redirectTo" type="hidden" value={selectedEventPath} />
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
               <TextField helperText="Tipo comercial o fase a la que pertenece." label="Tipo de ticket" name="ticketTypeId" required select>
@@ -202,7 +246,7 @@ export default async function AdminTicketsPage() {
 
       <AdminSectionCard description="Crea la orden pagada y emite al instante los tickets unicos para el cliente." title="Autorizar venta manual">
         <form action={sellTicketsAsAdminAction} autoComplete="off" method="post">
-          <input name="redirectTo" type="hidden" value="/admin/tickets" />
+          <input name="redirectTo" type="hidden" value={selectedEventPath} />
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
               <TextField helperText="Cuenta del cliente donde quedaran los tickets." label="Cliente" name="ownerUserId" required select>
@@ -298,7 +342,7 @@ export default async function AdminTicketsPage() {
         </form>
       </AdminSectionCard>
 
-      <AdminSectionCard description="Consulta rapida de categorias comerciales y lotes disponibles." title="Configuracion actual">
+      <AdminSectionCard description="Consulta rapida de categorias comerciales y lotes disponibles para el evento seleccionado." title="Configuracion actual">
         <Stack spacing={2.5}>
           <Stack spacing={1.5}>
             <Typography variant="h3">Tipos configurados</Typography>
@@ -331,7 +375,7 @@ export default async function AdminTicketsPage() {
                 ))}
               </Box>
             ) : (
-              <Typography color="text.secondary">Todavia no hay tipos de ticket registrados.</Typography>
+              <Typography color="text.secondary">Todavia no hay tipos de ticket registrados para este evento.</Typography>
             )}
           </Stack>
 
@@ -361,14 +405,14 @@ export default async function AdminTicketsPage() {
                 ))}
               </Box>
             ) : (
-              <Typography color="text.secondary">Todavia no hay drops o lotes registrados.</Typography>
+              <Typography color="text.secondary">Todavia no hay drops o lotes registrados para este evento.</Typography>
             )}
           </Stack>
         </Stack>
       </AdminSectionCard>
 
-      <AdminSectionCard description="Busca, abre en modal y valida tickets emitidos sin salir del flujo." title="Tickets emitidos">
-        <AdminIssuedTicketsPanel items={issuedTickets} ticketDetails={ticketDetails} />
+      <AdminSectionCard description="Busca, abre en modal y valida tickets emitidos del evento seleccionado sin salir del flujo." title="Tickets emitidos">
+        <AdminIssuedTicketsPanel items={issuedTickets} redirectTo={selectedEventPath} ticketDetails={ticketDetails} />
       </AdminSectionCard>
     </DashboardShell>
   );

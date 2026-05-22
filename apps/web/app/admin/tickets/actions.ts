@@ -139,6 +139,7 @@ function redirectWithSuccess(message: string, targetPath = "/admin/tickets"): ne
 export async function createTicketTypeAction(formData: FormData) {
   const session = await requireAdmin();
   const supabase = createClient();
+  const redirectTarget = resolveRedirectTarget(formData, "/admin/tickets");
 
   const eventId = String(formData.get("eventId") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
@@ -152,7 +153,7 @@ export async function createTicketTypeAction(formData: FormData) {
   const isActive = String(formData.get("isActive") ?? "true") === "true";
 
   if (!eventId || !name || !price) {
-    redirectWithError("Debes indicar evento, nombre y precio del tipo de ticket.");
+    redirectWithError("Debes indicar evento, nombre y precio del tipo de ticket.", redirectTarget);
   }
 
   const sku = skuInput || `${toSlugFragment(name)}-${Date.now().toString().slice(-6)}`;
@@ -175,7 +176,7 @@ export async function createTicketTypeAction(formData: FormData) {
     .maybeSingle();
 
   if (error) {
-    redirectWithError(error.message);
+    redirectWithError(error.message, redirectTarget);
   }
 
   await logAdminAction({
@@ -200,12 +201,13 @@ export async function createTicketTypeAction(formData: FormData) {
 
   revalidatePath("/admin/tickets");
   revalidatePath("/eventos");
-  redirectWithSuccess("Tipo de ticket creado correctamente.");
+  redirectWithSuccess("Tipo de ticket creado correctamente.", redirectTarget);
 }
 
 export async function createTicketLotAction(formData: FormData) {
   const session = await requireAdmin();
   const supabase = createClient();
+  const redirectTarget = resolveRedirectTarget(formData, "/admin/tickets");
 
   const ticketTypeId = String(formData.get("ticketTypeId") ?? "").trim();
   const label = String(formData.get("label") ?? "").trim();
@@ -218,7 +220,7 @@ export async function createTicketLotAction(formData: FormData) {
   const isActive = String(formData.get("isActive") ?? "true") === "true";
 
   if (!ticketTypeId || !label || !inventoryTotal) {
-    redirectWithError("Debes indicar tipo de ticket, nombre del lote y stock.");
+    redirectWithError("Debes indicar tipo de ticket, nombre del lote y stock.", redirectTarget);
   }
 
   const { data, error } = await supabase
@@ -238,7 +240,7 @@ export async function createTicketLotAction(formData: FormData) {
     .maybeSingle();
 
   if (error) {
-    redirectWithError(error.message);
+    redirectWithError(error.message, redirectTarget);
   }
 
   await logAdminAction({
@@ -262,7 +264,7 @@ export async function createTicketLotAction(formData: FormData) {
 
   revalidatePath("/admin/tickets");
   revalidatePath("/eventos");
-  redirectWithSuccess("Lote de tickets creado correctamente.");
+  redirectWithSuccess("Lote de tickets creado correctamente.", redirectTarget);
 }
 
 export async function saveMercadoPagoSettingsAction(formData: FormData) {
