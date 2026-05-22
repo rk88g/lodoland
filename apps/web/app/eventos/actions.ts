@@ -27,13 +27,13 @@ export async function buyCustomerTicketAction(formData: FormData) {
   const quantity = Math.max(1, Math.min(Number(String(formData.get("quantity") ?? "1").trim() || 1), 6));
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
 
-  if (!ticketTypeId || !ticketLotId) {
-    redirectWithMessage("error", "Selecciona un ticket y un drop disponible.");
+  if (!ticketTypeId) {
+    redirectWithMessage("error", "Selecciona un ticket disponible.");
   }
 
   const { data, error } = await supabase.rpc("purchase_customer_ticket_from_lot", {
     p_ticket_type_id: ticketTypeId,
-    p_ticket_lot_id: ticketLotId,
+    p_ticket_lot_id: ticketLotId || null,
     p_quantity: quantity,
     p_site_url: siteUrl
   });

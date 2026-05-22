@@ -130,7 +130,35 @@ export default async function EventsPage() {
                                           );
                                         })}
                                       </Box>
-                                    ) : null}
+                                    ) : (
+                                      <Box
+                                        sx={{
+                                          alignItems: { xs: "stretch", md: "center" },
+                                          border: 1,
+                                          borderColor: "divider",
+                                          display: "grid",
+                                          gap: 1,
+                                          gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) auto" },
+                                          p: 1
+                                        }}
+                                      >
+                                        <Typography color="text.secondary" variant="body2">
+                                          Compra disponible. El sistema usara automaticamente el primer drop activo con stock.
+                                        </Typography>
+                                        <form action={buyCustomerTicketAction} method="post">
+                                          <input name="ticketTypeId" type="hidden" value={ticketOption.id} />
+                                          <input name="quantity" type="hidden" value="1" />
+                                          <Button
+                                            disabled={ticketOption.availableUnits !== null && ticketOption.availableUnits < 1}
+                                            size="small"
+                                            type="submit"
+                                            variant="contained"
+                                          >
+                                            Comprar 1
+                                          </Button>
+                                        </form>
+                                      </Box>
+                                    )}
                                   </Stack>
                                 </Box>
                               ))}

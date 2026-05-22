@@ -1,3 +1,20 @@
+drop policy if exists "ticket_lots_public_read" on public.ticket_lots;
+create policy "ticket_lots_public_read"
+on public.ticket_lots
+for select
+to anon, authenticated
+using (
+  is_active = true
+  and exists (
+    select 1
+    from public.ticket_types
+    join public.events on public.events.id = public.ticket_types.event_id
+    where public.ticket_types.id = ticket_lots.ticket_type_id
+      and public.ticket_types.is_active = true
+      and public.events.status = 'published'::public.publish_status
+  )
+);
+
 create or replace function public.purchase_customer_ticket_from_lot(
   p_ticket_type_id uuid,
   p_ticket_lot_id uuid,
@@ -60,12 +77,24 @@ begin
     raise exception 'El evento no esta disponible para venta de tickets.';
   end if;
 
-  select *
-  into v_lot
-  from public.ticket_lots
-  where id = p_ticket_lot_id
-    and ticket_type_id = p_ticket_type_id
-  for update;
+  if p_ticket_lot_id is not null then
+    select *
+    into v_lot
+    from public.ticket_lots
+    where id = p_ticket_lot_id
+      and ticket_type_id = p_ticket_type_id
+    for update;
+  else
+    select *
+    into v_lot
+    from public.ticket_lots
+    where ticket_type_id = p_ticket_type_id
+      and coalesce(is_active, false) is true
+      and greatest(coalesce(inventory_total, 0) - coalesce(sold_count, 0) - coalesce(reserved_count, 0), 0) >= v_quantity
+    order by sale_starts_at nulls first, created_at asc
+    limit 1
+    for update;
+  end if;
 
   if not found or coalesce(v_lot.is_active, false) is false then
     raise exception 'Ese drop no esta disponible.';
@@ -113,7 +142,7 @@ begin
     jsonb_build_object(
       'saleOrigin', 'customer_intranet',
       'ticketTypeId', p_ticket_type_id,
-      'ticketLotId', p_ticket_lot_id,
+      'ticketLotId', v_lot.id,
       'quantity', v_quantity
     )
   );
@@ -138,7 +167,7 @@ begin
     v_ticket_type.price,
     v_quantity,
     v_subtotal,
-    jsonb_build_object('ticketLotId', p_ticket_lot_id)
+    jsonb_build_object('ticketLotId', v_lot.id)
   );
 
   insert into public.payment_transactions (
@@ -160,7 +189,7 @@ begin
     'paid',
     jsonb_build_object(
       'ticketTypeId', p_ticket_type_id,
-      'ticketLotId', p_ticket_lot_id,
+      'ticketLotId', v_lot.id,
       'quantity', v_quantity
     ),
     timezone('utc', now())
@@ -177,7 +206,7 @@ begin
       '-',
       upper(left(replace(v_ticket_id::text, '-', ''), 8))
     );
-    v_hash := encode(digest(concat(v_ticket_id::text, ':', v_code, ':', v_ticket_type.event_id::text, ':', p_ticket_lot_id::text), 'sha256'), 'hex');
+    v_hash := encode(digest(concat(v_ticket_id::text, ':', v_code, ':', v_ticket_type.event_id::text, ':', v_lot.id::text), 'sha256'), 'hex');
 
     insert into public.issued_tickets (
       id,
@@ -198,7 +227,7 @@ begin
     values (
       v_ticket_id,
       p_ticket_type_id,
-      p_ticket_lot_id,
+      v_lot.id,
       v_order_id,
       v_order_item_id,
       v_user_id,
@@ -222,7 +251,7 @@ begin
 
   update public.ticket_lots
   set sold_count = coalesce(sold_count, 0) + v_quantity
-  where id = p_ticket_lot_id;
+  where id = v_lot.id;
 
   update public.ticket_types
   set quantity_sold = coalesce(quantity_sold, 0) + v_quantity
@@ -237,7 +266,7 @@ begin
     actor_user_id
   )
   values (
-    p_ticket_lot_id,
+    v_lot.id,
     v_order_item_id,
     'sale',
     -v_quantity,
