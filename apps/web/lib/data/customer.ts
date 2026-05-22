@@ -197,7 +197,10 @@ export async function getCustomerTickets(userId: string, userEmail?: string | nu
     const ticketType = ticketTypeMap.get(ticket.ticket_type_id);
     const event = ticketType ? eventMap.get(ticketType.event_id) : null;
 
-    if (event?.status === "archived") {
+    const eventTime = event?.starts_at ? new Date(event.starts_at).getTime() : null;
+    const isPastEvent = eventTime !== null && eventTime < Date.now();
+
+    if (!event || event.status !== "published" || isPastEvent) {
       return [];
     }
 

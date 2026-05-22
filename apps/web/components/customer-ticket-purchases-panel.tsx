@@ -70,7 +70,7 @@ export function CustomerTicketPurchasesPanel({
           ))}
         </Box>
       ) : (
-        <Typography color="text.secondary">Todavia no hay tickets emitidos en tu cuenta.</Typography>
+        <Typography color="text.secondary">Todavia no hay tickets registrados en tu cuenta.</Typography>
       )}
 
       <Dialog

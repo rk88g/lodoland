@@ -333,6 +333,21 @@ export default async function AdminTicketsPage({ searchParams }: AdminTicketsPag
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
               <TextField autoComplete="off" defaultValue={mercadoPagoSettings.pendingUrl} label="URL pending" name="pendingUrl" />
             </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
+              <TextField autoComplete="off" defaultValue={mercadoPagoSettings.ticketPaymentWhatsapp} label="WhatsApp pagos tickets" name="ticketPaymentWhatsapp" placeholder="+523315457641" />
+            </Box>
+            <Box sx={{ gridColumn: "1 / -1" }}>
+              <TextField
+                autoComplete="off"
+                defaultValue={mercadoPagoSettings.ticketPaymentInstructions}
+                fullWidth
+                label="Metodos de pago y referencias para clientes"
+                multiline
+                minRows={4}
+                name="ticketPaymentInstructions"
+                placeholder="Banco, cuenta, CLABE, concepto y pasos para notificar pago."
+              />
+            </Box>
             <Box sx={{ gridColumn: "1 / -1", display: "flex", justifyContent: "flex-end" }}>
               <Button type="submit" variant="contained">
                 Guardar Mercado Pago

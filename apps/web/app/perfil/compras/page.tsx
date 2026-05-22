@@ -3,6 +3,7 @@ import { CustomerTicketPurchasesPanel } from "../../../components/customer-ticke
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { isEmailConfirmed, requireUser } from "../../../lib/auth/session";
 import { getCustomerPools, getCustomerRaffles, getCustomerTickets } from "../../../lib/data/customer";
+import { getMercadoPagoSettings } from "../../../lib/data/tickets";
 import { getTicketPassDetail } from "../../../lib/data/ticket-pass";
 import { formatEventDateTimeWallClock } from "../../../lib/date-format";
 import { customerNavItems } from "../../../lib/navigation";
@@ -21,10 +22,11 @@ export default async function CustomerPurchasesPage() {
     redirect("/perfil?message=Confirma tu correo para usar tus compras y modulos.");
   }
 
-  const [tickets, raffles, pools] = await Promise.all([
+  const [tickets, raffles, pools, paymentSettings] = await Promise.all([
     getCustomerTickets(user.id, user.email),
     getCustomerRaffles(user.id),
-    getCustomerPools(user.id)
+    getCustomerPools(user.id),
+    getMercadoPagoSettings()
   ]);
 
   const ticketDetailsEntries = await Promise.all(
@@ -54,7 +56,7 @@ export default async function CustomerPurchasesPage() {
         items={tickets.map((ticket) => ({
           id: ticket.id,
           title: ticket.eventTitle,
-          chips: [ticket.ticketTypeName, ticket.priceLabel, ticket.status],
+          chips: [ticket.ticketTypeName, ticket.priceLabel, formatTicketStatus(ticket.status)],
           detailLines: [
             `Codigo: ${ticket.ticketCode}`,
             `Fecha del evento: ${formatDate(ticket.eventStartsAt)}`,
@@ -62,6 +64,11 @@ export default async function CustomerPurchasesPage() {
           ]
         }))}
         ticketDetails={ticketDetails}
+      />
+
+      <PaymentInstructionsCard
+        instructions={paymentSettings.ticketPaymentInstructions}
+        whatsapp={paymentSettings.ticketPaymentWhatsapp}
       />
 
       <PurchaseSection
@@ -93,6 +100,61 @@ export default async function CustomerPurchasesPage() {
         title="Quinielas"
       />
     </DashboardShell>
+  );
+}
+
+function formatTicketStatus(status: string) {
+  switch (status) {
+    case "reserved":
+      return "Pendiente de pago";
+    case "issued":
+      return "Emitido";
+    case "checked_in":
+      return "Usado";
+    case "cancelled":
+      return "Cancelado";
+    case "refunded":
+      return "Reintegro";
+    default:
+      return status;
+  }
+}
+
+function buildWhatsAppHref(whatsapp: string) {
+  const phone = whatsapp.replace(/[^\d]/g, "");
+
+  if (!phone) {
+    return null;
+  }
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent("Hola, ya realice el pago de mi boleto LODO LAND. Te comparto mi comprobante.")}`;
+}
+
+function PaymentInstructionsCard({ instructions, whatsapp }: { instructions: string; whatsapp: string }) {
+  const whatsappHref = buildWhatsAppHref(whatsapp);
+
+  return (
+    <Box sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5 }}>
+      <Stack spacing={1.25}>
+        <Typography variant="h2">Metodos de pago</Typography>
+        {instructions ? (
+          <Typography color="text.secondary" sx={{ whiteSpace: "pre-line" }}>
+            {instructions}
+          </Typography>
+        ) : (
+          <Typography color="text.secondary">
+            Solicita los datos de pago por WhatsApp y envia tu comprobante para que CONTROL autorice tu boleto.
+          </Typography>
+        )}
+        {whatsappHref ? (
+          <Box>
+            <a href={whatsappHref} rel="noreferrer" style={{ textDecoration: "none" }} target="_blank">
+              <Chip color="primary" clickable label="Notificar pago por WhatsApp" />
+            </a>
+          </Box>
+        ) : null}
+      </Stack>
+    </Box>
   );
 }
 

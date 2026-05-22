@@ -279,6 +279,8 @@ export async function saveMercadoPagoSettingsAction(formData: FormData) {
   const successUrl = String(formData.get("successUrl") ?? "").trim();
   const failureUrl = String(formData.get("failureUrl") ?? "").trim();
   const pendingUrl = String(formData.get("pendingUrl") ?? "").trim();
+  const ticketPaymentInstructions = String(formData.get("ticketPaymentInstructions") ?? "").trim();
+  const ticketPaymentWhatsapp = String(formData.get("ticketPaymentWhatsapp") ?? "").trim();
   const sandboxMode = String(formData.get("sandboxMode") ?? "true") === "true";
 
   const settingsPayload = [
@@ -344,6 +346,22 @@ export async function saveMercadoPagoSettingsAction(formData: FormData) {
       kind: "boolean",
       boolean_value: sandboxMode,
       updated_by: session.profile?.id || null
+    },
+    {
+      setting_key: "ticket_payment_instructions",
+      label: "Instrucciones de pago de tickets",
+      kind: "textarea",
+      text_value: ticketPaymentInstructions || null,
+      updated_by: session.profile?.id || null,
+      is_public: true
+    },
+    {
+      setting_key: "ticket_payment_whatsapp",
+      label: "WhatsApp para notificar pago de tickets",
+      kind: "text",
+      text_value: ticketPaymentWhatsapp || null,
+      updated_by: session.profile?.id || null,
+      is_public: true
     }
   ];
 
@@ -367,11 +385,14 @@ export async function saveMercadoPagoSettingsAction(formData: FormData) {
       sandboxMode,
       successUrl: successUrl || null,
       failureUrl: failureUrl || null,
-      pendingUrl: pendingUrl || null
+      pendingUrl: pendingUrl || null,
+      hasTicketPaymentInstructions: Boolean(ticketPaymentInstructions),
+      ticketPaymentWhatsapp: ticketPaymentWhatsapp || null
     }
   });
 
   revalidatePath("/admin/tickets");
+  revalidatePath("/perfil/compras");
   redirectWithSuccess("Configuracion de Mercado Pago guardada correctamente.");
 }
 
@@ -586,6 +607,7 @@ export async function updateIssuedTicketStatusAction(formData: FormData) {
   const ticketId = String(formData.get("ticketId") ?? "").trim();
   const nextStatus = String(formData.get("status") ?? "").trim();
   const allowedStatuses = new Set([
+    "reserved",
     "issued",
     "checked_in",
     "cancelled",
@@ -598,7 +620,7 @@ export async function updateIssuedTicketStatusAction(formData: FormData) {
 
   const { data: ticket, error } = await supabase
     .from("issued_tickets")
-    .select("id, ticket_code, status")
+    .select("id, ticket_code, status, ticket_type_id, ticket_lot_id, order_id")
     .eq("id", ticketId)
     .maybeSingle();
 
@@ -606,17 +628,116 @@ export async function updateIssuedTicketStatusAction(formData: FormData) {
     redirectWithError(error?.message || "No encontramos ese ticket.", redirectTarget);
   }
 
-  const checkedInAt = nextStatus === "checked_in" ? new Date().toISOString() : null;
+  const now = new Date().toISOString();
+  const checkedInAt = nextStatus === "checked_in" ? now : null;
+  const issuedAt = ticket.status === "reserved" && nextStatus === "issued" ? now : undefined;
   const { error: updateError } = await supabase
     .from("issued_tickets")
     .update({
       status: nextStatus,
-      checked_in_at: checkedInAt
+      checked_in_at: checkedInAt,
+      ...(issuedAt ? { issued_at: issuedAt } : {})
     })
     .eq("id", ticketId);
 
   if (updateError) {
     redirectWithError(updateError.message, redirectTarget);
+  }
+
+  if (ticket.status === "reserved" && nextStatus === "issued") {
+    if (ticket.ticket_lot_id) {
+      const { data: lot } = await supabase
+        .from("ticket_lots")
+        .select("sold_count, reserved_count")
+        .eq("id", ticket.ticket_lot_id)
+        .maybeSingle();
+
+      await supabase
+        .from("ticket_lots")
+        .update({
+          sold_count: Number(lot?.sold_count || 0) + 1,
+          reserved_count: Math.max(Number(lot?.reserved_count || 0) - 1, 0)
+        })
+        .eq("id", ticket.ticket_lot_id);
+    }
+
+    const { data: ticketType } = await supabase
+      .from("ticket_types")
+      .select("quantity_sold")
+      .eq("id", ticket.ticket_type_id)
+      .maybeSingle();
+
+    await supabase
+      .from("ticket_types")
+      .update({
+        quantity_sold: Number(ticketType?.quantity_sold || 0) + 1
+      })
+      .eq("id", ticket.ticket_type_id);
+
+    if (ticket.order_id) {
+      await supabase
+        .from("orders")
+        .update({
+          status: "paid"
+        })
+        .eq("id", ticket.order_id);
+
+      await supabase
+        .from("payment_transactions")
+        .update({
+          status: "paid",
+          processed_at: now
+        })
+        .eq("order_id", ticket.order_id);
+    }
+  }
+
+  if (ticket.status === "issued" && nextStatus === "reserved") {
+    if (ticket.ticket_lot_id) {
+      const { data: lot } = await supabase
+        .from("ticket_lots")
+        .select("sold_count, reserved_count")
+        .eq("id", ticket.ticket_lot_id)
+        .maybeSingle();
+
+      await supabase
+        .from("ticket_lots")
+        .update({
+          sold_count: Math.max(Number(lot?.sold_count || 0) - 1, 0),
+          reserved_count: Number(lot?.reserved_count || 0) + 1
+        })
+        .eq("id", ticket.ticket_lot_id);
+    }
+
+    const { data: ticketType } = await supabase
+      .from("ticket_types")
+      .select("quantity_sold")
+      .eq("id", ticket.ticket_type_id)
+      .maybeSingle();
+
+    await supabase
+      .from("ticket_types")
+      .update({
+        quantity_sold: Math.max(Number(ticketType?.quantity_sold || 0) - 1, 0)
+      })
+      .eq("id", ticket.ticket_type_id);
+
+    if (ticket.order_id) {
+      await supabase
+        .from("orders")
+        .update({
+          status: "pending_payment"
+        })
+        .eq("id", ticket.order_id);
+
+      await supabase
+        .from("payment_transactions")
+        .update({
+          status: "pending",
+          processed_at: null
+        })
+        .eq("order_id", ticket.order_id);
+    }
   }
 
   await logAdminAction({

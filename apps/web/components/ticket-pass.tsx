@@ -10,6 +10,8 @@ function formatTicketStatus(status: string) {
   switch (status) {
     case "checked_in":
       return "Utilizado";
+    case "reserved":
+      return "Pendiente de pago";
     case "issued":
       return "Emitido";
     case "cancelled":
@@ -32,6 +34,10 @@ function formatAccessStatus(status: string, checkedInAt: string | null) {
 
   if (status === "refunded") {
     return "Reintegro";
+  }
+
+  if (status === "reserved") {
+    return "Pendiente de pago";
   }
 
   return "Disponible";
@@ -74,6 +80,14 @@ function maskPhone(phone: string | null) {
 }
 
 function getTicketStatusSx(status: string) {
+  if (status === "reserved") {
+    return {
+      bgcolor: "rgba(245, 124, 0, 0.16)",
+      color: "#e65100",
+      borderColor: "rgba(245, 124, 0, 0.35)"
+    };
+  }
+
   if (status === "issued") {
     return {
       bgcolor: "rgba(46, 125, 50, 0.18)",
@@ -264,18 +278,26 @@ export function TicketPass({ ticket }: { ticket: TicketPassDetail }) {
                   gridTemplateColumns: { xs: "1fr", lg: "minmax(250px, 280px) minmax(0, 1fr)" }
                 }}
               >
-                <Box sx={{ display: "grid", placeItems: "center", bgcolor: "#fff", p: 2.25, borderRadius: 3 }}>
-                  <Box
-                    alt={`QR ${ticket.ticketCode}`}
-                    component="img"
-                    src={ticket.qrImageUrl}
-                    sx={{ width: "100%", maxWidth: 240, aspectRatio: "1 / 1", objectFit: "contain", display: "block" }}
-                  />
+                <Box sx={{ display: "grid", placeItems: "center", bgcolor: "#fff", p: 2.25, borderRadius: 3, minHeight: 260 }}>
+                  {ticket.status === "reserved" ? (
+                    <Typography sx={{ color: "#e65100", fontWeight: 900, textAlign: "center" }}>
+                      PENDIENTE DE PAGO
+                      <br />
+                      El QR se activa cuando CONTROL autorice tu pago.
+                    </Typography>
+                  ) : (
+                    <Box
+                      alt={`QR ${ticket.ticketCode}`}
+                      component="img"
+                      src={ticket.qrImageUrl}
+                      sx={{ width: "100%", maxWidth: 240, aspectRatio: "1 / 1", objectFit: "contain", display: "block" }}
+                    />
+                  )}
                 </Box>
 
                 <Stack spacing={1.2}>
                   <Typography sx={{ fontSize: 15, fontWeight: 800, color: "#0f172a", letterSpacing: "0.04em" }}>
-                    PRESENTA ESTE QR EN EL ACCESO
+                    {ticket.status === "reserved" ? "TU BOLETO ESTA APARTADO" : "PRESENTA ESTE QR EN EL ACCESO"}
                   </Typography>
                   <TicketMetric label="Cuenta" value={ticket.ownerLabel || ticket.purchaserEmail || "Cliente"} />
                   <TicketMetric label="Comprador" value={ticket.purchaserName || "Sin nombre registrado"} />

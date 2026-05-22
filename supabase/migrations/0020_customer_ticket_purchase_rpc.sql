@@ -131,7 +131,7 @@ begin
   values (
     v_order_id,
     v_user_id,
-    'paid',
+    'pending_payment',
     v_ticket_type.currency,
     v_subtotal,
     v_subtotal,
@@ -186,13 +186,13 @@ begin
     concat('CLIENT-', extract(epoch from clock_timestamp())::bigint),
     v_subtotal,
     v_ticket_type.currency,
-    'paid',
+    'pending',
     jsonb_build_object(
       'ticketTypeId', p_ticket_type_id,
       'ticketLotId', v_lot.id,
       'quantity', v_quantity
     ),
-    timezone('utc', now())
+    null
   );
 
   for v_index in 1..v_quantity loop
@@ -236,8 +236,8 @@ begin
       v_profile.phone,
       v_code,
       concat(v_site_url, '/staff/tickets/', v_ticket_id::text, '?token=', v_hash),
-      'issued',
-      timezone('utc', now()),
+      'reserved',
+      null,
       jsonb_build_object(
         'hash', v_hash,
         'saleOrigin', 'customer_intranet'
@@ -250,12 +250,8 @@ begin
   end loop;
 
   update public.ticket_lots
-  set sold_count = coalesce(sold_count, 0) + v_quantity
+  set reserved_count = coalesce(reserved_count, 0) + v_quantity
   where id = v_lot.id;
-
-  update public.ticket_types
-  set quantity_sold = coalesce(quantity_sold, 0) + v_quantity
-  where id = p_ticket_type_id;
 
   insert into public.ticket_inventory_movements (
     ticket_lot_id,
@@ -270,7 +266,7 @@ begin
     v_order_item_id,
     'sale',
     -v_quantity,
-    'Compra directa desde intranet de cliente',
+    'Apartado pendiente de pago desde intranet de cliente',
     v_user_id
   );
 end;

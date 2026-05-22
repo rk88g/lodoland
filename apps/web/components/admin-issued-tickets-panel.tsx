@@ -35,6 +35,8 @@ function formatDate(dateValue: string | null) {
 
 function formatTicketStatus(status: string) {
   switch (status) {
+    case "reserved":
+      return "Pendiente de pago";
     case "checked_in":
       return "Utilizado";
     case "issued":
@@ -48,9 +50,17 @@ function formatTicketStatus(status: string) {
   }
 }
 
-const ticketStatuses = ["issued", "checked_in", "cancelled", "refunded"];
+const ticketStatuses = ["reserved", "issued", "checked_in", "cancelled", "refunded"];
 
 function getTicketStatusSx(status: string) {
+  if (status === "reserved") {
+    return {
+      bgcolor: "rgba(245, 124, 0, 0.2)",
+      color: "#ffd180",
+      borderColor: "rgba(245, 124, 0, 0.45)"
+    };
+  }
+
   if (status === "issued") {
     return {
       bgcolor: "rgba(46, 125, 50, 0.22)",
@@ -183,7 +193,7 @@ export function AdminIssuedTicketsPanel({
                       <Button onClick={() => setSelectedTicket(ticket)} size="small" variant="outlined">
                         Ver ticket
                       </Button>
-                      {ticket.status !== "checked_in" && ticket.status !== "cancelled" && ticket.status !== "refunded" ? (
+                      {ticket.status === "issued" ? (
                         <form action={validateIssuedTicketAction} method="post">
                           <input name="redirectTo" type="hidden" value={redirectTo || "/admin/tickets"} />
                           <input name="scanValue" type="hidden" value={ticket.qrPayload || ticket.ticketCode} />
@@ -272,7 +282,7 @@ export function AdminIssuedTicketsPanel({
                     </Stack>
                   </form>
 
-                  {selectedTicket.status !== "checked_in" && selectedTicket.status !== "cancelled" && selectedTicket.status !== "refunded" ? (
+                  {selectedTicket.status === "issued" ? (
                     <form action={validateIssuedTicketAction} method="post">
                       <input name="redirectTo" type="hidden" value={redirectTo || "/admin/tickets"} />
                       <input name="scanValue" type="hidden" value={selectedTicket.qrPayload || selectedTicket.ticketCode} />

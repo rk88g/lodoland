@@ -121,6 +121,8 @@ export type MercadoPagoSettings = {
   successUrl: string;
   failureUrl: string;
   pendingUrl: string;
+  ticketPaymentInstructions: string;
+  ticketPaymentWhatsapp: string;
   sandboxMode: boolean;
 };
 
@@ -402,6 +404,8 @@ export async function getMercadoPagoSettings() {
       successUrl: "",
       failureUrl: "",
       pendingUrl: "",
+      ticketPaymentInstructions: "",
+      ticketPaymentWhatsapp: "",
       sandboxMode: true
     } satisfies MercadoPagoSettings;
   }
@@ -416,6 +420,8 @@ export async function getMercadoPagoSettings() {
     "mercadopago_success_url",
     "mercadopago_failure_url",
     "mercadopago_pending_url",
+    "ticket_payment_instructions",
+    "ticket_payment_whatsapp",
     "mercadopago_sandbox_mode"
   ];
 
@@ -435,6 +441,8 @@ export async function getMercadoPagoSettings() {
     successUrl: settingMap.get("mercadopago_success_url")?.text_value || "",
     failureUrl: settingMap.get("mercadopago_failure_url")?.text_value || "",
     pendingUrl: settingMap.get("mercadopago_pending_url")?.text_value || "",
+    ticketPaymentInstructions: settingMap.get("ticket_payment_instructions")?.text_value || "",
+    ticketPaymentWhatsapp: settingMap.get("ticket_payment_whatsapp")?.text_value || "",
     sandboxMode: settingMap.get("mercadopago_sandbox_mode")?.boolean_value ?? true
   } satisfies MercadoPagoSettings;
 }
