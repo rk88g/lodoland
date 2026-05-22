@@ -1,7 +1,7 @@
 import { buildStoragePublicUrl } from "../media";
 import { formatEventDateWallClock } from "../date-format";
 import { createClient } from "../supabase/server";
-import { getCmsPageConfig, type CmsItem, type CmsMediaAsset } from "./cms";
+import { getCmsPageConfig, type CmsItem, type CmsMediaAsset, type CmsSection } from "./cms";
 import { getNextEvent, getUpcomingEvents, type EventCard } from "./portal";
 
 type SocialLink = {
@@ -202,12 +202,16 @@ type MediaAssetLookupRow = {
   alt_text: string | null;
 };
 
-function textFromItem(item: CmsItem, fieldKey: string, fallback = "") {
-  return item.fields[fieldKey]?.textValue || fallback;
+function textFromItem(item: CmsItem | null | undefined, fieldKey: string, fallback = "") {
+  return item?.fields[fieldKey]?.textValue || fallback;
 }
 
-function linkFromItem(item: CmsItem, fieldKey: string, fallback = "#") {
-  return item.fields[fieldKey]?.linkUrl || fallback;
+function linkFromItem(item: CmsItem | null | undefined, fieldKey: string, fallback = "#") {
+  return item?.fields[fieldKey]?.linkUrl || fallback;
+}
+
+function firstGroupItem(section: CmsSection | undefined, groupKey: string) {
+  return section?.groups[groupKey]?.items[0] || null;
 }
 
 function normalizeIntentLink(intent: "tickets" | "merch") {
@@ -326,6 +330,9 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
   const collageItems = influencerSection?.groups.influencer_collage?.items || [];
   const salesItems = salesSection?.groups.sales_panels?.items || [];
   const merchItems = merchSection?.groups.merch_gallery?.items || [];
+  const officialSponsorItem = firstGroupItem(eventSection, "official_sponsor_modal");
+  const eventSideBannerItem = firstGroupItem(eventSection, "event_side_banner");
+  const sponsorMainBannerItem = firstGroupItem(sponsorSection, "sponsor_main_banner");
   const [
     { data: featuredEventRowRaw },
     { data: sponsorRowsRaw },
@@ -467,6 +474,62 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
     }
   );
 
+  const featuredSideBannerImage = optimizeMedia(
+    featuredEventRow?.side_banner_asset_id ? mediaMap.get(featuredEventRow.side_banner_asset_id) || null : null,
+    {
+      width: 760,
+      height: 1600,
+      quality: 80,
+      resize: "cover"
+    }
+  );
+
+  const cmsSideBannerImage = optimizeMedia(eventSideBannerItem?.fields.media?.media || null, {
+    width: 760,
+    height: 1600,
+    quality: 80,
+    resize: "cover"
+  });
+
+  const eventSideBannerImage = resolveMostRecentMedia(
+    {
+      asset: featuredSideBannerImage,
+      updatedAt: featuredEventRow?.updated_at || null
+    },
+    {
+      asset: cmsSideBannerImage,
+      updatedAt: eventSideBannerItem?.fields.media?.updatedAt || null
+    }
+  );
+
+  const featuredSponsorImage = optimizeMedia(
+    featuredEventRow?.sponsor_media_asset_id ? mediaMap.get(featuredEventRow.sponsor_media_asset_id) || null : null,
+    {
+      width: 1280,
+      height: 1280,
+      quality: 80,
+      resize: "cover"
+    }
+  );
+
+  const cmsSponsorImage = optimizeMedia(officialSponsorItem?.fields.media?.media || null, {
+    width: 1280,
+    height: 1280,
+    quality: 80,
+    resize: "cover"
+  });
+
+  const officialSponsorImage = resolveMostRecentMedia(
+    {
+      asset: featuredSponsorImage,
+      updatedAt: featuredEventRow?.updated_at || null
+    },
+    {
+      asset: cmsSponsorImage,
+      updatedAt: officialSponsorItem?.fields.media?.updatedAt || null
+    }
+  );
+
   const meta = [
     formatEventDateWallClock(nextEvent?.startsAt),
     nextEvent?.city || null,
@@ -475,46 +538,40 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
 
   return {
     officialSponsor: {
-      name: featuredEventRow?.sponsor_name || "Sponsor principal",
+      name: textFromItem(officialSponsorItem, "title", featuredEventRow?.sponsor_name || "Sponsor principal"),
       description:
-        featuredEventRow?.sponsor_description || "Patrocinador oficial destacado al abrir la pagina.",
-      websiteLabel: featuredEventRow?.sponsor_website_label || "Ir al sitio",
-      websiteUrl: featuredEventRow?.sponsor_website_url || "https://example.com",
-      socialLabel: featuredEventRow?.sponsor_social_label || "Ver red social",
-      socialUrl: featuredEventRow?.sponsor_social_url || "https://instagram.com",
-      image: optimizeMedia(featuredEventRow?.sponsor_media_asset_id ? mediaMap.get(featuredEventRow.sponsor_media_asset_id) || null : null, {
-        width: 1280,
-        height: 1280,
-        quality: 80,
-        resize: "cover"
-      })
+        textFromItem(
+          officialSponsorItem,
+          "description",
+          featuredEventRow?.sponsor_description || "Patrocinador oficial destacado al abrir la pagina."
+        ),
+      websiteLabel: textFromItem(officialSponsorItem, "website_label", featuredEventRow?.sponsor_website_label || "Ir al sitio"),
+      websiteUrl: linkFromItem(officialSponsorItem, "website_url", featuredEventRow?.sponsor_website_url || "https://example.com"),
+      socialLabel: textFromItem(officialSponsorItem, "social_label", featuredEventRow?.sponsor_social_label || "Ver red social"),
+      socialUrl: linkFromItem(officialSponsorItem, "social_url", featuredEventRow?.sponsor_social_url || "https://instagram.com"),
+      image: officialSponsorImage
     },
     menuLinks,
     menuSponsorPanels,
     event: {
-      title: featuredEventRow?.title || eventSection?.fields.title?.textValue || nextEvent?.title || "Proximo evento",
+      title: eventSection?.fields.title?.textValue || featuredEventRow?.title || nextEvent?.title || "Proximo evento",
       description:
-        featuredEventRow?.description ||
         eventSection?.fields.description?.textValue ||
+        featuredEventRow?.description ||
         nextEvent?.shortDescription ||
         "La seccion principal presenta el evento mas reciente con acceso rapido a boletos.",
       meta: meta.length ? meta : ["Fecha pendiente", "Ciudad pendiente"],
       startsAt: nextEvent?.startsAt || null,
-      primaryLabel: featuredEventRow?.primary_cta_label || eventSection?.fields.primary_cta_label?.textValue || "Ver evento",
-      secondaryLabel: featuredEventRow?.secondary_cta_label || eventSection?.fields.secondary_cta_label?.textValue || "Comprar boletos",
+      primaryLabel: eventSection?.fields.primary_cta_label?.textValue || featuredEventRow?.primary_cta_label || "Ver evento",
+      secondaryLabel: eventSection?.fields.secondary_cta_label?.textValue || featuredEventRow?.secondary_cta_label || "Comprar boletos",
       heroImage: eventHeroImage || nextEvent?.cover || null,
       heroAlt:
         eventSection?.fields.hero_image_alt?.textValue ||
         nextEvent?.cover?.altText ||
         "Imagen principal del evento",
-      sideBannerImage: optimizeMedia(featuredEventRow?.side_banner_asset_id ? mediaMap.get(featuredEventRow.side_banner_asset_id) || null : null, {
-        width: 760,
-        height: 1600,
-        quality: 80,
-        resize: "cover"
-      }),
+      sideBannerImage: eventSideBannerImage,
       sideBannerAlt: featuredEventRow?.side_banner_alt || eventSection?.fields.side_banner_alt?.textValue || "Banner vertical del evento",
-      sideBannerUrl: featuredEventRow?.side_banner_url || "https://example.com",
+      sideBannerUrl: linkFromItem(eventSideBannerItem, "target_url", featuredEventRow?.side_banner_url || "https://example.com"),
       latest: nextEvent,
       upcoming: upcomingEvents.filter((eventItem) => eventItem.id !== nextEvent?.id).slice(0, 5)
     },
@@ -552,15 +609,13 @@ export async function getHomePageViewModel(): Promise<HomePageViewModel> {
       showcaseTitle: sponsorSection?.fields.title?.textValue || "Marcas aliadas",
       showcaseSubtitle: sponsorSection?.fields.description?.textValue || "Zona de exhibicion principal",
       items: sponsorItems,
-      bannerImage: optimizeMedia(sponsorSection?.groups.sponsor_main_banner?.items[0]?.fields.media?.media || null, {
+      bannerImage: optimizeMedia(sponsorMainBannerItem?.fields.media?.media || null, {
         width: 1680,
         height: 360,
         quality: 78,
         resize: "cover"
       }),
-      bannerUrl: sponsorSection?.groups.sponsor_main_banner?.items[0]
-        ? linkFromItem(sponsorSection.groups.sponsor_main_banner.items[0], "target_url", "https://example.com")
-        : "https://example.com",
+      bannerUrl: sponsorMainBannerItem ? linkFromItem(sponsorMainBannerItem, "target_url", "https://example.com") : "https://example.com",
       bannerAlt: sponsorSection?.fields.banner_alt?.textValue || "Banner patrocinadores"
     },
     influencers: {

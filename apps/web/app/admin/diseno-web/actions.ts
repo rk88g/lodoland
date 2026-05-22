@@ -345,6 +345,147 @@ function buildCmsFieldPayload(kind: string, value: string) {
   return payload;
 }
 
+function valueFromFields(
+  fields: Map<string, { text_value: string | null; link_url: string | null; media_asset_id: string | null }>,
+  key: string,
+  column: "text_value" | "link_url" | "media_asset_id"
+) {
+  return fields.get(key)?.[column] || null;
+}
+
+async function syncFeaturedEventFromCms(supabase: ReturnType<typeof createClient>) {
+  const { data: sectionRow, error: sectionError } = await supabase
+    .from("cms_sections")
+    .select("id")
+    .eq("section_key", "evento_reciente")
+    .maybeSingle();
+
+  if (sectionError) {
+    return sectionError.message;
+  }
+
+  if (!sectionRow?.id) {
+    return null;
+  }
+
+  const [{ data: sectionFields, error: fieldsError }, { data: groups, error: groupsError }] = await Promise.all([
+    supabase
+      .from("cms_section_fields")
+      .select("field_key, text_value, link_url, media_asset_id")
+      .eq("section_id", sectionRow.id),
+    supabase
+      .from("cms_item_groups")
+      .select("id, group_key")
+      .eq("section_id", sectionRow.id)
+      .in("group_key", ["official_sponsor_modal", "event_side_banner"])
+  ]);
+
+  if (fieldsError) {
+    return fieldsError.message;
+  }
+
+  if (groupsError) {
+    return groupsError.message;
+  }
+
+  const sectionFieldMap = new Map(
+    ((sectionFields || []) as Array<{
+      field_key: string;
+      text_value: string | null;
+      link_url: string | null;
+      media_asset_id: string | null;
+    }>).map((field) => [field.field_key, field])
+  );
+  const groupRows = (groups || []) as Array<{ id: string; group_key: string }>;
+  const groupIds = groupRows.map((group) => group.id);
+
+  let officialSponsorFields = new Map<string, { text_value: string | null; link_url: string | null; media_asset_id: string | null }>();
+  let eventSideBannerFields = new Map<string, { text_value: string | null; link_url: string | null; media_asset_id: string | null }>();
+
+  if (groupIds.length) {
+    const { data: items, error: itemsError } = await supabase
+      .from("cms_group_items")
+      .select("id, group_id, sort_order")
+      .in("group_id", groupIds)
+      .order("sort_order", { ascending: true });
+
+    if (itemsError) {
+      return itemsError.message;
+    }
+
+    const itemRows = (items || []) as Array<{ id: string; group_id: string; sort_order: number }>;
+    const firstItemByGroup = new Map<string, string>();
+
+    for (const item of itemRows) {
+      if (!firstItemByGroup.has(item.group_id)) {
+        firstItemByGroup.set(item.group_id, item.id);
+      }
+    }
+
+    const officialGroupId = groupRows.find((group) => group.group_key === "official_sponsor_modal")?.id || "";
+    const sideBannerGroupId = groupRows.find((group) => group.group_key === "event_side_banner")?.id || "";
+    const officialItemId = firstItemByGroup.get(officialGroupId) || "";
+    const sideBannerItemId = firstItemByGroup.get(sideBannerGroupId) || "";
+    const itemIds = [officialItemId, sideBannerItemId].filter(Boolean);
+
+    if (itemIds.length) {
+      const { data: itemFields, error: itemFieldsError } = await supabase
+        .from("cms_group_item_fields")
+        .select("item_id, field_key, text_value, link_url, media_asset_id")
+        .in("item_id", itemIds);
+
+      if (itemFieldsError) {
+        return itemFieldsError.message;
+      }
+
+      const fieldsByItem = new Map<
+        string,
+        Map<string, { text_value: string | null; link_url: string | null; media_asset_id: string | null }>
+      >();
+
+      for (const field of (itemFields || []) as Array<{
+        item_id: string;
+        field_key: string;
+        text_value: string | null;
+        link_url: string | null;
+        media_asset_id: string | null;
+      }>) {
+        const existing = fieldsByItem.get(field.item_id) || new Map();
+        existing.set(field.field_key, field);
+        fieldsByItem.set(field.item_id, existing);
+      }
+
+      officialSponsorFields = fieldsByItem.get(officialItemId) || officialSponsorFields;
+      eventSideBannerFields = fieldsByItem.get(sideBannerItemId) || eventSideBannerFields;
+    }
+  }
+
+  const { error: upsertError } = await supabase.from("home_featured_event").upsert(
+    {
+      section_id: sectionRow.id,
+      is_active: true,
+      title: valueFromFields(sectionFieldMap, "title", "text_value"),
+      description: valueFromFields(sectionFieldMap, "description", "text_value"),
+      primary_cta_label: valueFromFields(sectionFieldMap, "primary_cta_label", "text_value"),
+      secondary_cta_label: valueFromFields(sectionFieldMap, "secondary_cta_label", "text_value"),
+      hero_media_asset_id: valueFromFields(sectionFieldMap, "hero_media", "media_asset_id"),
+      side_banner_asset_id: valueFromFields(eventSideBannerFields, "media", "media_asset_id"),
+      side_banner_url: valueFromFields(eventSideBannerFields, "target_url", "link_url"),
+      sponsor_name: valueFromFields(officialSponsorFields, "title", "text_value"),
+      sponsor_description: valueFromFields(officialSponsorFields, "description", "text_value"),
+      sponsor_website_label: valueFromFields(officialSponsorFields, "website_label", "text_value"),
+      sponsor_website_url: valueFromFields(officialSponsorFields, "website_url", "link_url"),
+      sponsor_social_label: valueFromFields(officialSponsorFields, "social_label", "text_value"),
+      sponsor_social_url: valueFromFields(officialSponsorFields, "social_url", "link_url"),
+      sponsor_media_asset_id: valueFromFields(officialSponsorFields, "media", "media_asset_id"),
+      updated_at: new Date().toISOString()
+    },
+    { onConflict: "section_id" }
+  );
+
+  return upsertError?.message || null;
+}
+
 export async function saveHomeSectionAction(formData: FormData) {
   const session = await requireAdmin();
   const supabase = createClient();
@@ -409,6 +550,14 @@ export async function saveHomeSectionAction(formData: FormData) {
 
     if (mediaError) {
       redirect(`/admin/diseno-web?error=${encodeURIComponent(mediaError.message)}`);
+    }
+  }
+
+  if (sectionKey === "evento_reciente") {
+    const syncError = await syncFeaturedEventFromCms(supabase);
+
+    if (syncError) {
+      redirect(`/admin/diseno-web?error=${encodeURIComponent(syncError)}`);
     }
   }
 
