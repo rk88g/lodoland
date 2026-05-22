@@ -308,18 +308,32 @@ export async function getCustomerPools(userId: string) {
   });
 }
 
-export async function getAvailableRaffles(limit = 12) {
+type GetAvailableRafflesOptions = {
+  audience?: "customer" | "admin";
+  raffleId?: string | null;
+};
+
+export async function getAvailableRaffles(limit = 12, options?: GetAvailableRafflesOptions) {
   if (isBuildPhase()) {
     return [];
   }
 
   const supabase = createClient();
-  const { data } = await supabase
+  let query = supabase
     .from("raffles")
     .select("id, title, description, ends_at, draw_at, entry_price, currency, status, total_numbers, numbers_start, numbers_end, number_digits, allow_manual_pick, price_mode")
-    .in("status", ["published", "draft"])
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  if (options?.raffleId) {
+    query = query.eq("id", options.raffleId);
+  } else if (options?.audience !== "admin") {
+    query = query
+      .eq("status", "published")
+      .or(`ends_at.is.null,ends_at.gte.${new Date().toISOString()}`);
+  }
+
+  const { data } = await query;
 
   const raffleRows = (data || []) as RaffleRow[];
   if (!raffleRows.length) {

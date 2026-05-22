@@ -9,7 +9,7 @@ import { getCustomerAccountOptions } from "../../../lib/data/admin-sales";
 import { getAvailableRaffles } from "../../../lib/data/customer";
 import { formatEventDateTimeWallClock } from "../../../lib/date-format";
 import { controlNavItems } from "../../../lib/navigation";
-import { createRaffleAction, sellRaffleNumbersAsAdminAction } from "./actions";
+import { createRaffleAction, sellRaffleNumbersAsAdminAction, updateRaffleStatusAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +21,37 @@ function formatNumberLabel(numberValue: number, digits: number) {
   return numberValue.toString().padStart(digits, "0");
 }
 
-export default async function AdminRafflesPage() {
+type AdminRafflesPageProps = {
+  searchParams?: {
+    raffleId?: string;
+  };
+};
+
+function formatRaffleStatus(status: string) {
+  switch (status) {
+    case "published":
+      return "Activa";
+    case "draft":
+      return "Pausada";
+    case "archived":
+      return "Concluida";
+    default:
+      return status;
+  }
+}
+
+export default async function AdminRafflesPage({ searchParams }: AdminRafflesPageProps) {
   await requireAdmin();
   const flash = readFlashMessage("admin-raffles-flash");
-  const [raffles, customers] = await Promise.all([getAvailableRaffles(24), getCustomerAccountOptions(120)]);
+  const [raffles, customers] = await Promise.all([
+    getAvailableRaffles(120, { audience: "admin" }),
+    getCustomerAccountOptions(120)
+  ]);
+  const requestedRaffleId = String(searchParams?.raffleId || "").trim();
+  const selectedRaffle = raffles.find((raffle) => raffle.id === requestedRaffleId) || raffles[0] || null;
+  const selectedRafflePath = selectedRaffle ? `/admin/rifas?raffleId=${selectedRaffle.id}` : "/admin/rifas";
+  const visibleRaffles = selectedRaffle ? [selectedRaffle] : [];
+  const sellableRaffles = selectedRaffle && selectedRaffle.status === "published" ? [selectedRaffle] : [];
 
   return (
     <DashboardShell navItems={controlNavItems} subtitle="Configuracion y operacion" title="Rifas">
@@ -42,6 +69,53 @@ export default async function AdminRafflesPage() {
             Ver landing publica
           </Button>
         </Stack>
+      </AdminSectionCard>
+
+      <AdminSectionCard
+        description="Selecciona una rifa normal para operar sus ventas, apartados, numeros vendidos y estatus. La rifa especial se administra en su consola propia."
+        title="Rifa en operacion"
+      >
+        {raffles.length ? (
+          <Stack spacing={2}>
+            <form autoComplete="off" method="get">
+              <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) 180px" } }}>
+                <TextField defaultValue={selectedRaffle?.id || ""} label="Rifa" name="raffleId" select>
+                  {raffles.map((raffle) => (
+                    <MenuItem key={raffle.id} value={raffle.id}>
+                      {raffle.title} - {formatRaffleStatus(raffle.status)}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <Button sx={{ minHeight: 56 }} type="submit" variant="contained">
+                  Cambiar rifa
+                </Button>
+              </Box>
+            </form>
+
+            {selectedRaffle ? (
+              <Box
+                component="form"
+                action={updateRaffleStatusAction}
+                autoComplete="off"
+                method="post"
+                sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) 180px" } }}
+              >
+                <input name="raffleId" type="hidden" value={selectedRaffle.id} />
+                <input name="redirectTo" type="hidden" value={selectedRafflePath} />
+                <TextField defaultValue={selectedRaffle.status} helperText="Activa aparece para clientes. Pausada o concluida ya no aparece." label="Estatus" name="status" select>
+                  <MenuItem value="published">Activa</MenuItem>
+                  <MenuItem value="draft">Pausada</MenuItem>
+                  <MenuItem value="archived">Concluida</MenuItem>
+                </TextField>
+                <Button sx={{ minHeight: 56 }} type="submit" variant="outlined">
+                  Guardar estatus
+                </Button>
+              </Box>
+            ) : null}
+          </Stack>
+        ) : (
+          <Typography color="text.secondary">Todavia no hay rifas normales registradas.</Typography>
+        )}
       </AdminSectionCard>
 
       <AdminSectionCard
@@ -122,7 +196,7 @@ export default async function AdminRafflesPage() {
         title="Venta manual de numeros"
       >
         <form action={sellRaffleNumbersAsAdminAction} autoComplete="off" method="post">
-          <input name="redirectTo" type="hidden" value="/admin/rifas" />
+          <input name="redirectTo" type="hidden" value={selectedRafflePath} />
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" } }}>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
               <TextField label="Cliente" name="ownerUserId" required select>
@@ -135,7 +209,7 @@ export default async function AdminRafflesPage() {
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
               <TextField label="Rifa" name="raffleId" required select>
-                {raffles.map((raffle) => (
+                {sellableRaffles.map((raffle) => (
                   <MenuItem key={raffle.id} value={raffle.id}>
                     {raffle.title}
                   </MenuItem>
@@ -176,15 +250,15 @@ export default async function AdminRafflesPage() {
       </AdminSectionCard>
 
       <AdminSectionCard description="Consulta premios, configuracion y numeros ya vendidos." title="Rifas configuradas">
-        {raffles.length ? (
+        {visibleRaffles.length ? (
           <Box sx={{ display: "grid", gap: 2 }}>
-            {raffles.map((raffle) => (
+            {visibleRaffles.map((raffle) => (
               <Box key={raffle.id} sx={{ border: 1, borderColor: "divider", bgcolor: "background.default", p: 2.5 }}>
                 <Stack spacing={1.25}>
                   <Typography variant="h3">{raffle.title}</Typography>
                   <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                     <Chip label={`${raffle.currency} ${raffle.entryPrice}`} size="small" />
-                    <Chip label={raffle.status} size="small" />
+                    <Chip label={formatRaffleStatus(raffle.status)} size="small" />
                     {raffle.totalNumbers ? <Chip label={`${raffle.totalNumbers} numeros`} size="small" /> : null}
                     <Chip label={raffle.priceMode === "random_number" ? "Aleatoria" : "Manual o aleatoria"} size="small" />
                     <Chip label={`${raffle.availableCount} disponibles`} size="small" />

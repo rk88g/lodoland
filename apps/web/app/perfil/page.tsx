@@ -12,10 +12,11 @@ import {
 import { DashboardShell } from "../../components/dashboard-shell";
 import { SensitiveRevealText } from "../../components/sensitive-reveal-text";
 import { isEmailConfirmed, requireUser } from "../../lib/auth/session";
-import { getCustomerPools, getCustomerRaffles, getCustomerTickets } from "../../lib/data/customer";
+import { getAvailableRaffles, getCustomerPools, getCustomerRaffles, getCustomerTickets } from "../../lib/data/customer";
 import { getAvatarPresets, getNextEvent } from "../../lib/data/portal";
 import { formatEventDateTimeWallClock } from "../../lib/date-format";
 import { customerNavItems } from "../../lib/navigation";
+import { getRaffle27PublicData } from "../../lib/raffle27";
 import { updateCustomerAvatarAction, updateCustomerProfileAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -34,12 +35,14 @@ function formatDate(dateValue: string | null) {
 
 export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const { user, profile } = await requireUser();
-  const [nextEvent, avatarPresets, tickets, raffles, pools] = await Promise.all([
+  const [nextEvent, avatarPresets, tickets, raffles, pools, activeRaffles, specialRaffle] = await Promise.all([
     getNextEvent(),
     getAvatarPresets(),
     getCustomerTickets(user.id, user.email),
     getCustomerRaffles(user.id),
-    getCustomerPools(user.id)
+    getCustomerPools(user.id),
+    getAvailableRaffles(3),
+    getRaffle27PublicData(null)
   ]);
 
   const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ");
@@ -48,6 +51,9 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const successMessage = searchParams?.success ? decodeURIComponent(searchParams.success) : null;
   const infoMessage = searchParams?.message ? decodeURIComponent(searchParams.message) : null;
   const emailConfirmed = isEmailConfirmed(user);
+  const showSpecialRaffle =
+    specialRaffle.stats.available > 0 &&
+    new Date(specialRaffle.settings.countdown_ends_at).getTime() > Date.now();
 
   return (
     <DashboardShell navItems={customerNavItems} subtitle="Intranet de clientes" title="Mi perfil">
@@ -306,6 +312,50 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             title="Quinielas"
           />
         </Box>
+      </Stack>
+
+      <Stack spacing={1.5}>
+        <Typography variant="h2">Rifas activas</Typography>
+        {showSpecialRaffle || activeRaffles.length ? (
+          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", xl: "repeat(2, minmax(0, 1fr))" } }}>
+            {showSpecialRaffle ? (
+              <Box sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5, display: "grid", gap: 1.25 }}>
+                <Typography variant="h3">{specialRaffle.settings.title}</Typography>
+                <Typography color="text.secondary">
+                  Tombola especial Lodonautas. Entra al micrositio para girar tu suerte y apartar tu numero.
+                </Typography>
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                  <Chip label={`${specialRaffle.stats.available} disponibles`} size="small" />
+                  <Chip label="Micrositio especial" size="small" />
+                </Stack>
+                <Link href="/Lodonautas14Junio" style={{ textDecoration: "none" }}>
+                  <Button disabled={!emailConfirmed} variant="contained">
+                    Ir a la tombola
+                  </Button>
+                </Link>
+              </Box>
+            ) : null}
+
+            {activeRaffles.map((raffle) => (
+              <Box key={raffle.id} sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5, display: "grid", gap: 1.25 }}>
+                <Typography variant="h3">{raffle.title}</Typography>
+                {raffle.description ? <Typography color="text.secondary">{raffle.description}</Typography> : null}
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                  <Chip label={`${raffle.currency} ${raffle.entryPrice}`} size="small" />
+                  <Chip label={`${raffle.availableCount} disponibles`} size="small" />
+                  <Chip label={`Cierre: ${formatDate(raffle.endsAt)}`} size="small" />
+                </Stack>
+                <Link href="/rifas" style={{ textDecoration: "none" }}>
+                  <Button disabled={!emailConfirmed} variant="outlined">
+                    Ver rifa
+                  </Button>
+                </Link>
+              </Box>
+            ))}
+          </Box>
+        ) : (
+          <Typography color="text.secondary">No hay rifas activas para clientes en este momento.</Typography>
+        )}
       </Stack>
     </DashboardShell>
   );

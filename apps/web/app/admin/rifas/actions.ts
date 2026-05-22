@@ -37,6 +37,14 @@ function redirectWithSuccess(message: string): never {
   redirect("/admin/rifas");
 }
 
+function redirectWithAdminMessage(type: "success" | "error", message: string, targetPath = "/admin/rifas"): never {
+  setFlashMessage(FLASH_COOKIE, {
+    type,
+    message
+  });
+  redirect(targetPath);
+}
+
 function resolveRedirectTarget(formData: FormData, fallbackPath: string) {
   const redirectTo = String(formData.get("redirectTo") ?? "").trim();
 
@@ -155,6 +163,61 @@ export async function createRaffleAction(formData: FormData) {
   revalidatePath("/admin/rifas");
   revalidatePath("/rifas");
   redirectWithSuccess("Rifa creada correctamente.");
+}
+
+export async function updateRaffleStatusAction(formData: FormData) {
+  const session = await requireAdmin();
+  const supabase = createClient();
+  const raffleId = String(formData.get("raffleId") ?? "").trim();
+  const status = String(formData.get("status") ?? "").trim();
+  const redirectTarget = resolveRedirectTarget(formData, "/admin/rifas");
+  const allowedStatuses = new Set(["draft", "published", "archived"]);
+
+  if (!raffleId || !allowedStatuses.has(status)) {
+    redirectWithAdminMessage("error", "Debes indicar rifa y estatus valido.", redirectTarget);
+  }
+
+  const { data: currentRaffle } = await supabase
+    .from("raffles")
+    .select("id, title, status")
+    .eq("id", raffleId)
+    .maybeSingle();
+
+  if (!currentRaffle) {
+    redirectWithAdminMessage("error", "No encontramos la rifa seleccionada.", redirectTarget);
+  }
+
+  const { error } = await supabase
+    .from("raffles")
+    .update({
+      status,
+      updated_by: session.profile?.id || null,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", raffleId);
+
+  if (error) {
+    redirectWithAdminMessage("error", error.message, redirectTarget);
+  }
+
+  await logAdminAction({
+    supabase,
+    actorUserId: session.profile?.id,
+    entityType: "raffle",
+    entityId: raffleId,
+    action: "update_status",
+    summary: "Cambio de estatus de rifa desde control",
+    payload: {
+      title: currentRaffle.title,
+      previousStatus: currentRaffle.status,
+      nextStatus: status
+    }
+  });
+
+  revalidatePath("/admin/rifas");
+  revalidatePath("/rifas");
+  revalidatePath("/perfil");
+  redirectWithAdminMessage("success", "Estatus de rifa actualizado correctamente.", redirectTarget);
 }
 
 export async function sellRaffleNumbersAsAdminAction(formData: FormData) {
