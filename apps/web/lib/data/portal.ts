@@ -27,6 +27,12 @@ export type EventCard = {
   } | null;
 };
 
+export type AdminEventCard = EventCard & {
+  status: string;
+  operationalStatus: string | null;
+  coverAssetId: string | null;
+};
+
 export type AvatarPreset = {
   id: string;
   slug: string;
@@ -185,6 +191,65 @@ export async function getUpcomingEvents(limit = 5) {
         cover: event.cover_asset_id ? coverMap.get(event.cover_asset_id) || null : null
       }) satisfies EventCard
   );
+}
+
+export async function getAdminEvents(limit = 40) {
+  if (isBuildPhase()) {
+    return [];
+  }
+
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("events")
+    .select("id, slug, title, short_description, description, venue_name, city, starts_at, cover_asset_id, status, metadata")
+    .order("starts_at", { ascending: false, nullsFirst: false })
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+
+  if (!data?.length) {
+    return [];
+  }
+
+  const coverIds = Array.from(new Set(data.map((event) => event.cover_asset_id).filter(Boolean)));
+  const coverMap = new Map<string, EventCard["cover"] | null>();
+
+  if (coverIds.length) {
+    const { data: coverAssets } = await supabase
+      .from("media_assets")
+      .select("id, bucket, path, title, alt_text")
+      .in("id", coverIds);
+
+    ((coverAssets || []) as MediaAssetRow[]).forEach((asset) => {
+      coverMap.set(asset.id, {
+        url: buildStorageImageUrl(asset.path, asset.bucket, {
+          width: 900,
+          quality: 72,
+          resize: "cover"
+        }),
+        title: asset.title,
+        altText: asset.alt_text
+      });
+    });
+  }
+
+  return data.map((event) => {
+    const metadata = (event.metadata || {}) as { operational_status?: string | null };
+
+    return {
+      id: event.id,
+      slug: event.slug,
+      title: event.title,
+      shortDescription: event.short_description,
+      description: event.description,
+      venueName: event.venue_name,
+      city: event.city,
+      startsAt: event.starts_at,
+      coverAssetId: event.cover_asset_id,
+      cover: event.cover_asset_id ? coverMap.get(event.cover_asset_id) || null : null,
+      status: event.status,
+      operationalStatus: metadata.operational_status || null
+    } satisfies AdminEventCard;
+  });
 }
 
 export async function getAvatarPresets() {
