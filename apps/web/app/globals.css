@@ -944,7 +944,7 @@ main {
 .raffle27-limited-copy {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(5.05rem, 7.8vw, 5.85rem);
+  top: clamp(13.1rem, 27vh, 16.9rem);
   z-index: 6;
   width: fit-content;
   padding: 0.28rem 0.7rem;
@@ -1415,6 +1415,7 @@ main {
     width: 100%;
     text-align: center;
     transform: none;
+    order: -1;
   }
 
   .raffle27-action-row {
