@@ -941,6 +941,23 @@ main {
   transform: skew(-5deg);
 }
 
+.raffle27-limited-copy {
+  position: absolute;
+  left: clamp(1.2rem, 4vw, 4rem);
+  bottom: clamp(5.05rem, 7.8vw, 5.85rem);
+  z-index: 6;
+  width: fit-content;
+  padding: 0.28rem 0.7rem;
+  color: #070806;
+  background: #d8ff00;
+  font-size: clamp(0.72rem, 1.35vw, 0.98rem);
+  font-weight: 1000;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: skew(-8deg);
+  box-shadow: 0.22rem 0.28rem 0 rgba(0, 0, 0, 0.72);
+}
+
 .raffle27-contact-strip {
   position: absolute;
   left: 0;
@@ -1257,6 +1274,7 @@ main {
   .raffle27-countdown,
   .raffle27-hold-ribbon,
   .raffle27-howto-line,
+  .raffle27-limited-copy,
   .raffle27-action-row,
   .raffle27-transfer-collapse {
     position: relative;
@@ -1391,6 +1409,12 @@ main {
 
   .raffle27-howto-line {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .raffle27-limited-copy {
+    width: 100%;
+    text-align: center;
+    transform: none;
   }
 
   .raffle27-action-row {

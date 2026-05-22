@@ -196,6 +196,10 @@ export function Raffle27Experience({
         <span>4. Pagas la cantidad que te toco</span>
       </Box>
 
+      <Typography className="raffle27-limited-copy">
+        Rifa limitada a solo 1,500 numeros.
+      </Typography>
+
       <Box className="raffle27-contact-strip">
         <a href="https://www.lodoland.mx" rel="noreferrer" target="_blank">
           lodoland.mx
