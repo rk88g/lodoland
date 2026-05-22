@@ -14,6 +14,7 @@ type EventRow = {
   title: string;
   starts_at: string | null;
   city: string | null;
+  status: string;
 };
 
 type RaffleRow = {
@@ -187,16 +188,20 @@ export async function getCustomerTickets(userId: string, userEmail?: string | nu
   const eventIds = Array.from(new Set((ticketTypes || []).map((ticketType) => ticketType.event_id)));
   const { data: events } = await supabase
     .from("events")
-    .select("id, title, starts_at, city")
+    .select("id, title, starts_at, city, status")
     .in("id", eventIds);
 
   const eventMap = new Map(((events || []) as EventRow[]).map((event) => [event.id, event]));
 
-  return issuedTickets.map((ticket) => {
+  return issuedTickets.flatMap((ticket) => {
     const ticketType = ticketTypeMap.get(ticket.ticket_type_id);
     const event = ticketType ? eventMap.get(ticketType.event_id) : null;
 
-    return {
+    if (event?.status === "archived") {
+      return [];
+    }
+
+    return [{
       id: ticket.id,
       ticketCode: ticket.ticket_code,
       status: ticket.status,
@@ -206,7 +211,7 @@ export async function getCustomerTickets(userId: string, userEmail?: string | nu
       eventCity: event?.city || null,
       ticketTypeName: ticketType?.name || "Tipo pendiente",
       priceLabel: formatMoney(ticketType?.price, ticketType?.currency || "MXN")
-    } satisfies CustomerTicketSummary;
+    } satisfies CustomerTicketSummary];
   });
 }
 

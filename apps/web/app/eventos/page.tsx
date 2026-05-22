@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { Box, Button, Chip, Stack, Typography } from "@mui/material";
 import { DashboardShell } from "../../components/dashboard-shell";
+import { FlashAlert } from "../../components/flash-alert";
 import { isEmailConfirmed, requireUser } from "../../lib/auth/session";
 import { getUpcomingEvents } from "../../lib/data/portal";
 import { getCustomerEventTicketOptions } from "../../lib/data/tickets";
 import { formatEventDateTimeWallClock } from "../../lib/date-format";
+import { readFlashMessage } from "../../lib/flash";
 import { customerNavItems } from "../../lib/navigation";
 import { redirect } from "next/navigation";
+import { buyCustomerTicketAction } from "./actions";
 
 export const dynamic = "force-dynamic";
+const FLASH_COOKIE = "customer-events-flash";
 
 function formatDate(dateValue: string | null) {
   return formatEventDateTimeWallClock(dateValue) || "Sin fecha";
@@ -21,10 +25,12 @@ export default async function EventsPage() {
     redirect("/perfil?message=Confirma tu correo para usar el modulo de eventos.");
   }
 
+  const flash = readFlashMessage(FLASH_COOKIE);
   const [upcomingEvents, ticketOptions] = await Promise.all([getUpcomingEvents(5), getCustomerEventTicketOptions()]);
 
   return (
     <DashboardShell navItems={customerNavItems} subtitle="Calendario visible y tickets activos" title="Eventos">
+      <FlashAlert cookieName={FLASH_COOKIE} payload={flash} />
       <Stack spacing={1.5}>
         <Typography variant="h2">Proximos eventos</Typography>
         {upcomingEvents.length ? (
@@ -92,12 +98,37 @@ export default async function EventsPage() {
                                     ) : null}
                                     {ticketOption.drops.length ? (
                                       <Box sx={{ display: "grid", gap: 1 }}>
-                                        {ticketOption.drops.map((drop) => (
-                                          <Typography color="text.secondary" key={drop.id} variant="body2">
-                                            {drop.label}: {drop.availableUnits} disponibles
-                                            {drop.sequencePrefix ? ` - ${drop.sequencePrefix}` : ""}
-                                          </Typography>
-                                        ))}
+                                        {ticketOption.drops.map((drop) => {
+                                          const canBuy = drop.availableUnits > 0;
+
+                                          return (
+                                            <Box
+                                              key={drop.id}
+                                              sx={{
+                                                alignItems: { xs: "stretch", md: "center" },
+                                                border: 1,
+                                                borderColor: "divider",
+                                                display: "grid",
+                                                gap: 1,
+                                                gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) auto" },
+                                                p: 1
+                                              }}
+                                            >
+                                              <Typography color="text.secondary" variant="body2">
+                                                {drop.label}: {drop.availableUnits} disponibles
+                                                {drop.sequencePrefix ? ` - ${drop.sequencePrefix}` : ""}
+                                              </Typography>
+                                              <form action={buyCustomerTicketAction} method="post">
+                                                <input name="ticketTypeId" type="hidden" value={ticketOption.id} />
+                                                <input name="ticketLotId" type="hidden" value={drop.id} />
+                                                <input name="quantity" type="hidden" value="1" />
+                                                <Button disabled={!canBuy} size="small" type="submit" variant="contained">
+                                                  Comprar 1
+                                                </Button>
+                                              </form>
+                                            </Box>
+                                          );
+                                        })}
                                       </Box>
                                     ) : null}
                                   </Stack>

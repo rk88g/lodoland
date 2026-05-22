@@ -52,6 +52,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const infoMessage = searchParams?.message ? decodeURIComponent(searchParams.message) : null;
   const emailConfirmed = isEmailConfirmed(user);
   const showSpecialRaffle =
+    specialRaffle.settings.status === "published" &&
     specialRaffle.stats.available > 0 &&
     new Date(specialRaffle.settings.countdown_ends_at).getTime() > Date.now();
 

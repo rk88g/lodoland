@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Box, Button, Chip, Stack, TextField, Typography } from "@mui/material";
 import { DashboardShell } from "../../components/dashboard-shell";
 import { FlashAlert } from "../../components/flash-alert";
@@ -10,6 +11,7 @@ import {
 import { formatEventDateTimeWallClock } from "../../lib/date-format";
 import { readFlashMessage } from "../../lib/flash";
 import { customerNavItems } from "../../lib/navigation";
+import { getRaffle27PublicData } from "../../lib/raffle27";
 import { redirect } from "next/navigation";
 import {
   confirmCustomerRaffleReservationAction,
@@ -35,11 +37,16 @@ export default async function RafflesPage() {
   }
 
   const flash = readFlashMessage(FLASH_COOKIE);
-  const [myEntries, raffles, reservations] = await Promise.all([
+  const [myEntries, raffles, reservations, specialRaffle] = await Promise.all([
     getCustomerRaffles(user.id),
     getAvailableRaffles(12),
-    getCustomerRaffleReservations(user.id)
+    getCustomerRaffleReservations(user.id),
+    getRaffle27PublicData(null)
   ]);
+  const showSpecialRaffle =
+    specialRaffle.settings.status === "published" &&
+    specialRaffle.stats.available > 0 &&
+    new Date(specialRaffle.settings.countdown_ends_at).getTime() > Date.now();
 
   return (
     <DashboardShell navItems={customerNavItems} subtitle="Mis numeros y rifas activas" title="Rifas">
@@ -139,8 +146,26 @@ export default async function RafflesPage() {
 
       <Stack spacing={1.5}>
         <Typography variant="h2">Rifas disponibles</Typography>
-        {raffles.length ? (
+        {showSpecialRaffle || raffles.length ? (
           <Box sx={{ display: "grid", gap: 2 }}>
+            {showSpecialRaffle ? (
+              <Box sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5 }}>
+                <Stack spacing={1.25}>
+                  <Typography variant="h3">{specialRaffle.settings.title}</Typography>
+                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                    <Chip label="Disponible" size="small" />
+                    <Chip label="Especial" size="small" />
+                    <Chip label={`${specialRaffle.stats.available} disponibles`} size="small" />
+                  </Stack>
+                  <Typography color="text.secondary">
+                    Rifa especial de Lodonautas. Entra al micrositio para girar la tombola, apartar tu numero y pagar por WhatsApp.
+                  </Typography>
+                  <Button component={Link} href="/Lodonautas14Junio" variant="contained">
+                    Ir al micrositio
+                  </Button>
+                </Stack>
+              </Box>
+            ) : null}
             {raffles.map((raffle) => (
               <Box key={raffle.id} sx={{ border: 1, borderColor: "divider", bgcolor: "background.paper", p: 2.5 }}>
                 <Stack spacing={1.25}>

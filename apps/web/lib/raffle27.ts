@@ -12,6 +12,7 @@ export type Raffle27Settings = {
   id: string;
   slug: string;
   title: string;
+  status: "draft" | "published" | "archived";
   whatsapp_number: string;
   ticket_price: number;
   transfer_instructions: string;
@@ -149,14 +150,26 @@ async function logRaffle27Event({
 }
 
 export async function getRaffle27Settings(supabase = createClient()) {
-  const { data } = await supabase
+  const [{ data }, { data: statusSetting }] = await Promise.all([
+    supabase
     .from("raffle27_settings")
     .select("id, slug, title, whatsapp_number, ticket_price, transfer_instructions, countdown_ends_at, created_at, updated_at")
     .eq("slug", "listado27mayo2026")
-    .maybeSingle();
+      .maybeSingle(),
+    supabase
+      .from("site_settings")
+      .select("text_value")
+      .eq("setting_key", "raffle27_status")
+      .maybeSingle()
+  ]);
+
+  const status = String(statusSetting?.text_value || "published");
+  const normalizedStatus: Raffle27Settings["status"] =
+    status === "draft" || status === "archived" ? status : "published";
 
   return {
     ...(data as Raffle27Settings),
+    status: normalizedStatus,
     countdown_ends_at: SPECIAL_RAFFLE_COUNTDOWN_ENDS_AT
   };
 }
@@ -653,12 +666,14 @@ export async function getRaffle27AdminData() {
 
 export async function saveRaffle27Settings({
   title,
+  status,
   whatsappNumber,
   ticketPrice,
   transferInstructions,
   countdownEndsAt
 }: {
   title: string;
+  status: "draft" | "published" | "archived";
   whatsappNumber: string;
   ticketPrice: number;
   transferInstructions: string;
@@ -679,6 +694,22 @@ export async function saveRaffle27Settings({
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  const { error: statusError } = await supabase.from("site_settings").upsert(
+    {
+      setting_key: "raffle27_status",
+      label: "Estatus rifa Lodonautas 14 Junio 2026",
+      kind: "text",
+      text_value: status,
+      is_public: true,
+      updated_at: nowIso()
+    },
+    { onConflict: "setting_key" }
+  );
+
+  if (statusError) {
+    throw new Error(statusError.message);
   }
 }
 

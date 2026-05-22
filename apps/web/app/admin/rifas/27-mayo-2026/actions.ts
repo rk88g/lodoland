@@ -21,10 +21,12 @@ export async function saveRaffle27SettingsAction(formData: FormData) {
   const supabase = createClient();
 
   const title = String(formData.get("title") ?? "").trim();
+  const statusInput = String(formData.get("status") ?? "published").trim();
   const whatsappNumber = String(formData.get("whatsappNumber") ?? "").trim();
   const ticketPrice = Number(String(formData.get("ticketPrice") ?? "0").trim() || 0);
   const transferInstructions = String(formData.get("transferInstructions") ?? "").trim();
   const countdownEndsAt = String(formData.get("countdownEndsAt") ?? "").trim();
+  const status = statusInput === "draft" || statusInput === "archived" ? statusInput : "published";
 
   if (!title || !whatsappNumber || !ticketPrice || !transferInstructions || !countdownEndsAt) {
     redirectWithMessage("error", "Completa todos los campos de configuracion.");
@@ -33,6 +35,7 @@ export async function saveRaffle27SettingsAction(formData: FormData) {
   try {
     await saveRaffle27Settings({
       title,
+      status,
       whatsappNumber,
       ticketPrice,
       transferInstructions,
@@ -48,6 +51,7 @@ export async function saveRaffle27SettingsAction(formData: FormData) {
       payload: {
         title,
         whatsappNumber,
+        status,
         ticketPrice,
         countdownEndsAt
       }
@@ -59,6 +63,8 @@ export async function saveRaffle27SettingsAction(formData: FormData) {
   revalidatePath(ADMIN_PATH);
   revalidatePath("/Lodonautas14Junio");
   revalidatePath("/Lodonautas14Junio/boletos-vendidos");
+  revalidatePath("/rifas");
+  revalidatePath("/perfil");
   revalidatePath("/listado27mayo2026");
   revalidatePath("/listado27mayo2026/boletos-vendidos");
   redirectWithMessage("success", "Configuracion de la rifa actualizada.");

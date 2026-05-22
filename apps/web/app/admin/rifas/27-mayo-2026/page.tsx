@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Box, Button, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { AdminSectionCard } from "../../../../components/admin-section-card";
 import { DashboardShell } from "../../../../components/dashboard-shell";
 import { FlashAlert } from "../../../../components/flash-alert";
@@ -72,8 +72,15 @@ export default async function AdminRaffle27May2026Page() {
       <AdminSectionCard description="Controla WhatsApp, precio, instrucciones de pago y la fecha oficial del contador." title="Configuracion publica">
         <form action={saveRaffle27SettingsAction} autoComplete="off" method="post">
           <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", xl: "repeat(12, minmax(0, 1fr))" } }}>
-            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 4" } }}>
+            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 3" } }}>
               <TextField defaultValue={data.settings.title} label="Titulo" name="title" required />
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 2" } }}>
+              <TextField defaultValue={data.settings.status} label="Estatus" name="status" required select>
+                <MenuItem value="published">Disponible</MenuItem>
+                <MenuItem value="draft">Pausada</MenuItem>
+                <MenuItem value="archived">Concluida</MenuItem>
+              </TextField>
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 3" } }}>
               <TextField defaultValue={data.settings.whatsapp_number} label="WhatsApp" name="whatsappNumber" required />
@@ -81,7 +88,7 @@ export default async function AdminRaffle27May2026Page() {
             <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 2" } }}>
               <TextField defaultValue={data.settings.ticket_price} inputProps={{ min: 1, step: "0.01" }} label="Precio boleto" name="ticketPrice" required type="number" />
             </Box>
-            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 3" } }}>
+            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 2" } }}>
               <TextField InputLabelProps={{ shrink: true }} defaultValue={data.settings.countdown_ends_at.slice(0, 16)} label="Cierre contador" name="countdownEndsAt" required type="datetime-local" />
             </Box>
             <Box sx={{ gridColumn: "1 / -1" }}>
