@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
+import Script from "next/script";
 import { MaterialThemeProvider } from "../components/material-theme-provider";
 import "./globals.css";
 
@@ -31,6 +32,7 @@ export default function RootLayout({
     <html lang="es">
       <body className={bodyFont.variable}>
         <MaterialThemeProvider>{children}</MaterialThemeProvider>
+        <Script async src="//platform.instagram.com/en_US/embeds.js" strategy="afterInteractive" />
       </body>
     </html>
   );
