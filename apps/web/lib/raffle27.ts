@@ -30,6 +30,7 @@ export type Raffle27NumberRow = {
   sold_to_device_id: string | null;
   sold_to_name: string | null;
   sold_to_phone: string | null;
+  sold_to_email: string | null;
   sold_amount: number | null;
   sold_at: string | null;
   payment_date: string | null;
@@ -192,7 +193,7 @@ async function fetchRaffle27Number(supabase: SupabaseLike, numberValue: number) 
   const { data } = await supabase
     .from("raffle27_numbers")
     .select(
-      "number_value, status, held_by_device_id, held_at, hold_expires_at, sold_to_device_id, sold_to_name, sold_to_phone, sold_amount, sold_at, payment_date, created_by_user_id, notes, created_at, updated_at"
+      "number_value, status, held_by_device_id, held_at, hold_expires_at, sold_to_device_id, sold_to_name, sold_to_phone, sold_to_email, sold_amount, sold_at, payment_date, created_by_user_id, notes, created_at, updated_at"
     )
     .eq("number_value", numberValue)
     .maybeSingle();
@@ -318,7 +319,7 @@ async function holdAvailableNumber(supabase: SupabaseLike, numberValue: number, 
     .eq("number_value", numberValue)
     .eq("status", "available")
     .select(
-      "number_value, status, held_by_device_id, held_at, hold_expires_at, sold_to_device_id, sold_to_name, sold_to_phone, sold_amount, sold_at, payment_date, created_by_user_id, notes, created_at, updated_at"
+      "number_value, status, held_by_device_id, held_at, hold_expires_at, sold_to_device_id, sold_to_name, sold_to_phone, sold_to_email, sold_amount, sold_at, payment_date, created_by_user_id, notes, created_at, updated_at"
     )
     .maybeSingle();
 
@@ -615,7 +616,7 @@ export async function getRaffle27NumbersBoard() {
     const { data } = await supabase
       .from("raffle27_numbers")
       .select(
-        "number_value, status, held_by_device_id, held_at, hold_expires_at, sold_to_device_id, sold_to_name, sold_to_phone, sold_amount, sold_at, payment_date, created_by_user_id, notes, created_at, updated_at"
+        "number_value, status, held_by_device_id, held_at, hold_expires_at, sold_to_device_id, sold_to_name, sold_to_phone, sold_to_email, sold_amount, sold_at, payment_date, created_by_user_id, notes, created_at, updated_at"
       )
       .order("number_value", { ascending: true })
       .range(from, Math.min(from + pageSize - 1, TOTAL_RAFFLE_NUMBERS - 1));
@@ -717,6 +718,7 @@ export async function markRaffle27NumberSold({
   numberValue,
   buyerName,
   buyerPhone,
+  buyerEmail,
   amount,
   paymentDate,
   notes,
@@ -725,6 +727,7 @@ export async function markRaffle27NumberSold({
   numberValue: number;
   buyerName: string;
   buyerPhone: string;
+  buyerEmail?: string | null;
   amount: number;
   paymentDate?: string | null;
   notes?: string | null;
@@ -751,6 +754,7 @@ export async function markRaffle27NumberSold({
       sold_to_device_id: soldToDeviceId,
       sold_to_name: buyerName,
       sold_to_phone: buyerPhone,
+      sold_to_email: buyerEmail || null,
       sold_amount: amount,
       sold_at: soldAt,
       payment_date: soldAt,
@@ -782,13 +786,14 @@ export async function markRaffle27NumberSold({
     amount,
     currency: "MXN",
     reference_label: `${SPECIAL_RAFFLE_LABEL} #${numberValue.toString().padStart(4, "0")}`,
-    note: `Comprador: ${buyerName}. Telefono: ${buyerPhone}.${notes ? ` ${notes}` : ""}`,
+    note: `Comprador: ${buyerName}. Telefono: ${buyerPhone}. Correo: ${buyerEmail || "Sin correo"}.${notes ? ` ${notes}` : ""}`,
     occurred_at: soldAt,
     actor_user_id: actorUserId,
     metadata: {
       specialRaffle: "Lodonautas14Junio",
       buyerName,
       buyerPhone,
+      buyerEmail: buyerEmail || null,
       numberValue
     }
   });
@@ -813,7 +818,7 @@ export async function getRaffle27HeldNumberByDevice(deviceId: string) {
   const { data } = await supabase
     .from("raffle27_numbers")
     .select(
-      "number_value, status, held_by_device_id, held_at, hold_expires_at, sold_to_device_id, sold_to_name, sold_to_phone, sold_amount, sold_at, payment_date, created_by_user_id, notes, created_at, updated_at"
+      "number_value, status, held_by_device_id, held_at, hold_expires_at, sold_to_device_id, sold_to_name, sold_to_phone, sold_to_email, sold_amount, sold_at, payment_date, created_by_user_id, notes, created_at, updated_at"
     )
     .eq("held_by_device_id", deviceId)
     .eq("status", "held")

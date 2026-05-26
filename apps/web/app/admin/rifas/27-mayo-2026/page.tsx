@@ -114,6 +114,9 @@ export default async function AdminRaffle27May2026Page() {
               <TextField label="Telefono" name="buyerPhone" required />
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 3" } }}>
+              <TextField label="Correo" name="buyerEmail" required type="email" />
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 3" } }}>
               <TextField
                 disabled
                 helperText="Automatico: el monto cobrado sera igual al numero vendido."
@@ -165,6 +168,9 @@ export default async function AdminRaffle27May2026Page() {
                     Telefono: {row.sold_to_phone || "Sin telefono"}
                   </Typography>
                   <Typography color="text.secondary" variant="body2">
+                    Correo: {row.sold_to_email || "Sin correo"}
+                  </Typography>
+                  <Typography color="text.secondary" variant="body2">
                     Monto: {formatMoney(Number(row.sold_amount || 0))} · Fecha: {formatDate(row.payment_date || row.sold_at)}
                   </Typography>
                 </Box>
@@ -191,13 +197,18 @@ export default async function AdminRaffle27May2026Page() {
                   {formatDate(log.created_at)} · {log.device_id || "Sin dispositivo"}
                 </Typography>
                 {typeof log.lucky_number === "number" ? (
-                  <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+                  <Box sx={{ mt: 1 }}>
                     <form action={quickPayRaffle27LogNumberAction} method="post">
                       <input name="numberValue" type="hidden" value={log.lucky_number} />
                       <input name="deviceId" type="hidden" value={log.device_id || ""} />
-                      <Button size="small" type="submit" variant="contained">
-                        Pagar #{formatNumberLabel(log.lucky_number)}
-                      </Button>
+                      <Box sx={{ display: "grid", gap: 1, gridTemplateColumns: { xs: "1fr", lg: "repeat(4, minmax(0, 1fr))" }, mt: 1 }}>
+                        <TextField label="Nombre" name="buyerName" required size="small" />
+                        <TextField label="Telefono" name="buyerPhone" required size="small" />
+                        <TextField label="Correo" name="buyerEmail" required size="small" type="email" />
+                        <Button size="small" type="submit" variant="contained">
+                          Pagar #{formatNumberLabel(log.lucky_number)}
+                        </Button>
+                      </Box>
                     </form>
                   </Box>
                 ) : null}

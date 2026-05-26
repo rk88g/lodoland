@@ -77,12 +77,13 @@ export async function sellRaffle27NumberAction(formData: FormData) {
   const numberValue = Number(String(formData.get("numberValue") ?? "0").trim() || 0);
   const buyerName = String(formData.get("buyerName") ?? "").trim();
   const buyerPhone = String(formData.get("buyerPhone") ?? "").trim();
+  const buyerEmail = String(formData.get("buyerEmail") ?? "").trim();
   const amount = numberValue;
   const paymentDate = String(formData.get("paymentDate") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
 
-  if (!numberValue || !buyerName || !buyerPhone) {
-    redirectWithMessage("error", "Debes indicar numero, comprador y telefono.");
+  if (!numberValue || !buyerName || !buyerPhone || !buyerEmail) {
+    redirectWithMessage("error", "Debes indicar numero, comprador, telefono y correo.");
   }
 
   try {
@@ -90,6 +91,7 @@ export async function sellRaffle27NumberAction(formData: FormData) {
       numberValue,
       buyerName,
       buyerPhone,
+      buyerEmail,
       amount,
       paymentDate: paymentDate || null,
       notes: notes || null,
@@ -106,6 +108,7 @@ export async function sellRaffle27NumberAction(formData: FormData) {
         numberValue,
         buyerName,
         buyerPhone,
+        buyerEmail,
         amount,
         paymentDate: paymentDate || null
       }
@@ -129,17 +132,21 @@ export async function quickPayRaffle27LogNumberAction(formData: FormData) {
 
   const numberValue = Number(String(formData.get("numberValue") ?? "0").trim() || 0);
   const deviceId = String(formData.get("deviceId") ?? "").trim();
+  const buyerName = String(formData.get("buyerName") ?? "").trim();
+  const buyerPhone = String(formData.get("buyerPhone") ?? "").trim();
+  const buyerEmail = String(formData.get("buyerEmail") ?? "").trim();
   const amount = numberValue;
 
-  if (!numberValue) {
-    redirectWithMessage("error", "No encontramos el numero para marcarlo como pagado.");
+  if (!numberValue || !buyerName || !buyerPhone || !buyerEmail) {
+    redirectWithMessage("error", "Debes indicar numero, comprador, telefono y correo para marcarlo como pagado.");
   }
 
   try {
     await markRaffle27NumberSold({
       numberValue,
-      buyerName: deviceId ? `Cliente micrositio ${deviceId.slice(0, 8)}` : "Cliente micrositio",
-      buyerPhone: "Pendiente",
+      buyerName,
+      buyerPhone,
+      buyerEmail,
       amount,
       paymentDate: null,
       notes: deviceId ? `Pago rapido desde log. Device ID: ${deviceId}` : "Pago rapido desde log.",
@@ -155,7 +162,10 @@ export async function quickPayRaffle27LogNumberAction(formData: FormData) {
       payload: {
         numberValue,
         amount,
-        deviceId: deviceId || null
+        deviceId: deviceId || null,
+        buyerName,
+        buyerPhone,
+        buyerEmail
       }
     });
   } catch (error) {
