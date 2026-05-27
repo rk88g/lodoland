@@ -211,11 +211,10 @@ async function findRandomAvailableNumber(supabase: SupabaseLike) {
   }
 
   const weightedPool = available.map((numberValue) => {
-    const normalized = numberValue / TOTAL_RAFFLE_NUMBERS;
-    const highThirdBoost = numberValue > 1000 ? 8 : numberValue > 500 ? 3.4 : 0.55;
+    const weight = numberValue > 500 && numberValue <= 1000 ? 8 : numberValue > 1000 ? 3 : 1;
     return {
       numberValue,
-      weight: highThirdBoost + Math.pow(normalized, 4) * 9
+      weight
     };
   });
   const totalWeight = weightedPool.reduce((sum, item) => sum + item.weight, 0);

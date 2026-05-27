@@ -134,12 +134,14 @@ function pickWeightedRandomNumbers({
 }) {
   const pool = [...availableNumbers];
   const picks: number[] = [];
-  const lowerThirdLimit = numbersStart + Math.floor((numbersEnd - numbersStart + 1) / 3);
+  const rangeSize = numbersEnd - numbersStart + 1;
+  const firstBreak = numbersStart + Math.floor(rangeSize / 3);
+  const secondBreak = numbersStart + Math.floor((rangeSize * 2) / 3);
 
   while (pool.length && picks.length < quantity) {
     const weightedPool = pool.map((numberValue) => ({
       numberValue,
-      weight: numberValue < lowerThirdLimit ? 1 : 2.75
+      weight: numberValue >= firstBreak && numberValue < secondBreak ? 8 : numberValue >= secondBreak ? 3 : 1
     }));
 
     const totalWeight = weightedPool.reduce((acc, item) => acc + item.weight, 0);
