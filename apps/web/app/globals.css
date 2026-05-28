@@ -3457,6 +3457,30 @@ main {
   padding: 8px 18px 0;
 }
 
+.footer-brand-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lodonauta-counter {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  color: var(--ink);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.lodonauta-counter b {
+  color: #ffd062;
+  font-size: 0.9rem;
+}
+
 .footer-bottom p,
 .footer-links a {
   color: var(--ink-soft);

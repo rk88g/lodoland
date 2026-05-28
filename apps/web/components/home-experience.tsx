@@ -80,6 +80,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
   const [activeMenuPanel, setActiveMenuPanel] = useState(0);
   const [isMobileMenuViewport, setIsMobileMenuViewport] = useState(false);
   const [nowValue, setNowValue] = useState(() => Date.now());
+  const [lodonautaVisitCount, setLodonautaVisitCount] = useState<number | null>(null);
   const isOverlayOpen =
     sponsorModalOpen || eventModalOpen || menuOpen || influencerModalOpen || merchModalOpen || saleModalIndex !== null;
   const currentYear = new Date().getFullYear();
@@ -178,6 +179,33 @@ export function HomeExperience({ data }: HomeExperienceProps) {
       window.clearInterval(intervalId);
     };
   }, [data.event.startsAt]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const visitWindow = window as Window & { __lodonautVisitTracked?: boolean };
+
+    if (visitWindow.__lodonautVisitTracked) {
+      return;
+    }
+
+    visitWindow.__lodonautVisitTracked = true;
+
+    fetch("/api/lodonauta-visits", {
+      method: "POST"
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { count?: number } | null) => {
+        if (payload?.count) {
+          setLodonautaVisitCount(payload.count);
+        }
+      })
+      .catch(() => {
+        setLodonautaVisitCount(null);
+      });
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) {
@@ -906,7 +934,14 @@ export function HomeExperience({ data }: HomeExperienceProps) {
 
         <div className="footer-bottom">
           <div>
-            <strong>{data.footer.brand}</strong>
+            <div className="footer-brand-row">
+              <strong>{data.footer.brand}</strong>
+              <span className="lodonauta-counter">
+                ERES EL LODONAUTA NUMERO:{" "}
+                <b>{lodonautaVisitCount ? lodonautaVisitCount.toLocaleString("es-MX") : "_____"}</b> QUE VISITA LA
+                PAGINA
+              </span>
+            </div>
             <p>
               {currentYear} | {data.footer.description}
             </p>
