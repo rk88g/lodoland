@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Box, Button, Collapse, Typography } from "@mui/material";
 import { Raffle27TombolaCanvas } from "./raffle27-tombola-canvas";
 
@@ -63,6 +63,9 @@ export function Raffle27Experience({
   receiptHref,
   transferInstructions
 }: Raffle27ExperienceProps) {
+  const actionRowRef = useRef<HTMLDivElement | null>(null);
+  const transferButtonRef = useRef<HTMLButtonElement | null>(null);
+  const receiptButtonRef = useRef<HTMLAnchorElement | null>(null);
   const [countdown, setCountdown] = useState(() => buildCountdown(countdownEndsAt));
   const [holdCountdown, setHoldCountdown] = useState(() => buildRemainingHold(holdExpiresAt));
   const [showTransferInfo, setShowTransferInfo] = useState(false);
@@ -92,6 +95,33 @@ export function Raffle27Experience({
 
     return () => window.clearInterval(intervalId);
   }, [holdExpiresAt]);
+
+  useEffect(() => {
+    if (!luckyNumber || typeof window === "undefined") {
+      return;
+    }
+
+    const isMobile = window.matchMedia("(max-width: 720px)").matches;
+    if (!isMobile) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      actionRowRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+      const activeButton = showTransferInfo ? receiptButtonRef.current : transferButtonRef.current;
+      window.setTimeout(() => {
+        activeButton?.focus({ preventScroll: true });
+      }, 420);
+    }, 180);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [luckyNumber, showTransferInfo]);
 
   const formattedLuckyNumber = useMemo(() => {
     if (!luckyNumber) {
@@ -161,7 +191,10 @@ export function Raffle27Experience({
       </Box>
 
       {luckyNumber ? (
-        <Box className={showTransferInfo ? "raffle27-action-row raffle27-action-row--paid" : "raffle27-action-row"}>
+        <Box
+          className={showTransferInfo ? "raffle27-action-row raffle27-action-row--paid" : "raffle27-action-row"}
+          ref={actionRowRef}
+        >
           <span className="raffle27-action-guide">
             <span className="raffle27-focus-arrow" aria-hidden="true" />
           </span>
@@ -169,6 +202,7 @@ export function Raffle27Experience({
             <Button
               className="raffle27-primary-action raffle27-flow-action raffle27-action-focus"
               onClick={() => setShowTransferInfo(true)}
+              ref={transferButtonRef}
               variant="contained"
             >
               Transferencia
@@ -176,11 +210,12 @@ export function Raffle27Experience({
           ) : null}
           {showTransferInfo && receiptHref ? (
             <Button
-              className="raffle27-primary-action raffle27-paid-action raffle27-action-focus"
-              component="a"
-              href={receiptHref}
-              rel="noreferrer"
-              target="_blank"
+            className="raffle27-primary-action raffle27-paid-action raffle27-action-focus"
+            component="a"
+            href={receiptHref}
+            ref={receiptButtonRef}
+            rel="noreferrer"
+            target="_blank"
               variant="contained"
             >
               Ya pague

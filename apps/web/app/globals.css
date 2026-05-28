@@ -925,6 +925,7 @@ main {
   grid-template-columns: clamp(5.4rem, 10vw, 8.8rem) minmax(13rem, max-content);
   gap: clamp(0.85rem, 1.7vw, 1.35rem);
   align-items: center;
+  scroll-margin-block: 22vh;
 }
 
 .raffle27-action-guide {
@@ -951,6 +952,11 @@ main {
   background: #d8ff00;
   color: #070806;
   box-shadow: 0 0.35rem 0 #111;
+}
+
+.raffle27-primary-action:focus-visible {
+  outline: 4px solid #f8f5e8;
+  outline-offset: 8px;
 }
 
 .raffle27-flow-action,
