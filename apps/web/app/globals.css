@@ -996,16 +996,17 @@ main {
 
 .raffle27-board-trigger {
   position: absolute;
-  right: clamp(1rem, 3vw, 3rem);
-  bottom: clamp(2.4rem, 4vw, 3.2rem);
-  z-index: 8;
-  min-height: 2.8rem;
+  left: 50%;
+  top: clamp(1rem, 2.3vw, 2rem);
+  z-index: 18;
+  min-height: 3rem;
   border-color: rgba(216, 255, 0, 0.72);
   color: #f8f5e8;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.76);
   font-weight: 1000;
   text-transform: uppercase;
-  transform: skew(-7deg);
+  transform: translateX(-50%) skew(-7deg);
+  box-shadow: 0 0.45rem 0 rgba(0, 0, 0, 0.72);
 }
 
 .raffle27-board-modal {
@@ -1052,32 +1053,36 @@ main {
   text-transform: uppercase;
 }
 
-.raffle27-board-modal-stats {
+.raffle27-board-modal-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
   background: rgba(216, 255, 0, 0.2);
 }
 
-.raffle27-board-modal-stats span {
+.raffle27-board-tab {
   display: grid;
   place-items: center;
-  min-height: 3.2rem;
+  min-height: 3.6rem;
   padding: 0.75rem;
-  color: #070806;
-  background: #d8ff00;
+  border: 0;
+  border-radius: 0;
+  color: #f8f5e8;
+  background: rgba(0, 0, 0, 0.72);
   font-size: clamp(0.8rem, 1.6vw, 1rem);
   font-weight: 1000;
   text-align: center;
   text-transform: uppercase;
 }
 
+.raffle27-board-tab.is-active {
+  color: #070806;
+  background: #d8ff00;
+}
+
 .raffle27-board-modal-content {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(0.75rem, 1.8vw, 1.5rem);
   min-height: 0;
-  padding: clamp(0.75rem, 2vw, 1.5rem);
+  padding: clamp(0.5rem, 1.4vw, 1rem);
   overflow: auto;
 }
 
@@ -1085,7 +1090,7 @@ main {
   min-width: 0;
   display: grid;
   align-content: start;
-  gap: 0.8rem;
+  gap: 0.65rem;
 }
 
 .raffle27-board-modal-section h3 {
@@ -1094,6 +1099,16 @@ main {
   font-family: var(--font-heading), sans-serif;
   font-size: clamp(1.4rem, 3vw, 2.5rem);
   text-transform: uppercase;
+}
+
+.raffle27-board-modal .raffle27-number-board {
+  gap: 5px;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+}
+
+.raffle27-board-modal .raffle27-number-pill {
+  padding: 6px 5px;
+  font-size: 0.75rem;
 }
 
 .raffle27-limited-copy {
@@ -1642,7 +1657,9 @@ main {
 
   .raffle27-board-trigger {
     position: relative;
+    left: auto;
     right: auto;
+    top: auto;
     bottom: auto;
     margin-top: 1rem;
     width: 100%;
@@ -1662,13 +1679,16 @@ main {
     width: 100%;
   }
 
-  .raffle27-board-modal-stats,
-  .raffle27-board-modal-content {
+  .raffle27-board-modal-tabs {
     grid-template-columns: 1fr;
   }
 
   .raffle27-board-modal-content {
-    padding-bottom: 6rem;
+    padding: 0.5rem 0.45rem 6rem;
+  }
+
+  .raffle27-board-modal .raffle27-number-board {
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
   }
 
   .raffle27-number-board {

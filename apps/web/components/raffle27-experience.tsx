@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Box, Button, Collapse, Typography } from "@mui/material";
 import { Raffle27TombolaCanvas } from "./raffle27-tombola-canvas";
 
+type BoardSectionKey = "sold" | "held" | "available";
+
 type Raffle27ExperienceProps = {
   countdownEndsAt: string;
   holdExpiresAt: string | null;
@@ -76,6 +78,7 @@ export function Raffle27Experience({
   const [holdCountdown, setHoldCountdown] = useState(() => buildRemainingHold(holdExpiresAt));
   const [showTransferInfo, setShowTransferInfo] = useState(false);
   const [boardModalOpen, setBoardModalOpen] = useState(false);
+  const [activeBoardSection, setActiveBoardSection] = useState<BoardSectionKey>("sold");
   const formattedTransferInstructions = useMemo(
     () => formatTransferInstructions(transferInstructions),
     [transferInstructions]
@@ -152,6 +155,27 @@ export function Raffle27Experience({
 
     return luckyNumber.toString().padStart(4, "0");
   }, [luckyNumber]);
+  const boardSections = {
+    sold: {
+      className: "raffle27-board-sold",
+      emptyLabel: "Todavia no hay numeros vendidos.",
+      label: "Vendidos",
+      values: numberBoard.sold
+    },
+    held: {
+      className: "raffle27-board-held",
+      emptyLabel: "No hay apartados activos en este momento.",
+      label: "Apartados",
+      values: numberBoard.held
+    },
+    available: {
+      className: "raffle27-board-available",
+      emptyLabel: "Ya no hay numeros disponibles.",
+      label: "Disponibles",
+      values: numberBoard.available
+    }
+  } satisfies Record<BoardSectionKey, { className: string; emptyLabel: string; label: string; values: number[] }>;
+  const activeBoard = boardSections[activeBoardSection];
 
   return (
     <Box className={luckyNumber ? "raffle27-shell raffle27-shell--winner" : "raffle27-shell"}>
@@ -258,7 +282,14 @@ export function Raffle27Experience({
         </Box>
       </Collapse>
 
-      <Button className="raffle27-board-trigger" onClick={() => setBoardModalOpen(true)} variant="outlined">
+      <Button
+        className="raffle27-board-trigger"
+        onClick={() => {
+          setActiveBoardSection("sold");
+          setBoardModalOpen(true);
+        }}
+        variant="outlined"
+      >
         Boletos vendidos
       </Button>
 
@@ -271,30 +302,25 @@ export function Raffle27Experience({
             </Button>
           </Box>
 
-          <Box className="raffle27-board-modal-stats">
-            <span>{numberBoard.sold.length} vendidos</span>
-            <span>{numberBoard.held.length} apartados</span>
-            <span>{numberBoard.available.length} disponibles</span>
+          <Box className="raffle27-board-modal-tabs">
+            {(Object.keys(boardSections) as BoardSectionKey[]).map((sectionKey) => (
+              <Button
+                className={activeBoardSection === sectionKey ? "raffle27-board-tab is-active" : "raffle27-board-tab"}
+                key={sectionKey}
+                onClick={() => setActiveBoardSection(sectionKey)}
+                variant="outlined"
+              >
+                {boardSections[sectionKey].label} {boardSections[sectionKey].values.length}
+              </Button>
+            ))}
           </Box>
 
           <Box className="raffle27-board-modal-content">
             <BoardSection
-              className="raffle27-board-sold"
-              emptyLabel="Todavia no hay numeros vendidos."
-              title="Vendidos"
-              values={numberBoard.sold}
-            />
-            <BoardSection
-              className="raffle27-board-held"
-              emptyLabel="No hay apartados activos en este momento."
-              title="Apartados"
-              values={numberBoard.held}
-            />
-            <BoardSection
-              className="raffle27-board-available"
-              emptyLabel="Ya no hay numeros disponibles."
-              title="Disponibles"
-              values={numberBoard.available}
+              className={activeBoard.className}
+              emptyLabel={activeBoard.emptyLabel}
+              title={activeBoard.label}
+              values={activeBoard.values}
             />
           </Box>
         </Box>
