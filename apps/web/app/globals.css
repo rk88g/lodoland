@@ -315,10 +315,9 @@ main {
   left: clamp(1.1rem, 3vw, 3rem);
   bottom: clamp(7.5rem, 13vw, 9.5rem);
   z-index: 8;
-  display: grid;
-  grid-template-columns: auto auto;
+  display: flex;
   align-items: center;
-  gap: 0.5rem 0.8rem;
+  gap: clamp(0.75rem, 1.6vw, 1.35rem);
 }
 
 .raffle27-claim-dock--pending {
@@ -328,29 +327,15 @@ main {
 .raffle27-focus-arrow {
   display: inline-block;
   color: #d8ff00;
-  font-size: clamp(2.4rem, 5vw, 4.1rem);
+  font-size: clamp(4rem, 9vw, 7.2rem);
   font-weight: 1000;
   line-height: 1;
-  filter: drop-shadow(0 0 1rem rgba(216, 255, 0, 0.85));
+  -webkit-text-stroke: 0.08rem #070806;
+  filter: drop-shadow(0.35rem 0.3rem 0 #111) drop-shadow(0 0 1.25rem rgba(216, 255, 0, 0.9));
   animation: raffle27-point-at-action 0.85s ease-in-out infinite;
 }
 
-.raffle27-focus-callout {
-  display: inline-block;
-  max-width: 18rem;
-  padding: 0.45rem 0.8rem;
-  color: #070806;
-  background: #f8f5e8;
-  font-size: clamp(0.76rem, 1.3vw, 0.92rem);
-  font-weight: 1000;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  transform: skew(-8deg);
-  box-shadow: 0.25rem 0.32rem 0 rgba(0, 0, 0, 0.72);
-}
-
 .raffle27-claim-dock .MuiButton-root {
-  grid-column: 2;
   position: relative;
   min-height: 3.65rem;
   padding-inline: 2rem;
@@ -870,7 +855,7 @@ main {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
   right: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(9.3rem, 14vw, 10.4rem);
+  bottom: clamp(10.8rem, 15.5vw, 12.2rem);
   max-width: min(64rem, calc(100% - 8rem));
   z-index: 5;
   display: flex;
@@ -905,18 +890,19 @@ main {
   left: clamp(1.2rem, 4vw, 4rem);
   bottom: clamp(5.8rem, 8.5vw, 6.8rem);
   z-index: 7;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto auto auto;
   gap: 0.65rem;
   align-items: center;
-  flex-wrap: wrap;
 }
 
 .raffle27-action-guide {
-  display: inline-grid;
-  grid-template-columns: auto minmax(0, 18rem);
+  display: inline-flex;
   align-items: center;
-  gap: 0.65rem;
-  margin-right: 0.35rem;
+  justify-content: center;
+  width: clamp(4.2rem, 8vw, 7.2rem);
+  min-width: clamp(4.2rem, 8vw, 7.2rem);
+  pointer-events: none;
 }
 
 .raffle27-primary-action,
@@ -959,7 +945,7 @@ main {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
   right: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(16rem, 25vw, 17rem);
+  bottom: clamp(18.2rem, 27vw, 20rem);
   z-index: 9;
 }
 
@@ -977,32 +963,6 @@ main {
 
 .raffle27-transfer-instructions {
   white-space: pre-line;
-}
-
-.raffle27-howto-line {
-  position: absolute;
-  left: clamp(1.2rem, 4vw, 4rem);
-  right: clamp(8rem, 25vw, 28rem);
-  bottom: clamp(5.95rem, 9vw, 6.85rem);
-  z-index: 5;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.6rem;
-}
-
-.raffle27-howto-line span {
-  min-height: 3.1rem;
-  display: grid;
-  place-items: center;
-  padding: 0.55rem;
-  color: #d8ff00;
-  background: rgba(0, 0, 0, 0.78);
-  box-shadow: inset 0 0 0 1px rgba(216, 255, 0, 0.28);
-  font-size: 0.78rem;
-  font-weight: 1000;
-  text-align: center;
-  text-transform: uppercase;
-  transform: skew(-5deg);
 }
 
 .raffle27-limited-copy {
@@ -1511,11 +1471,18 @@ main {
 
   .raffle27-action-row {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
   }
 
-  .raffle27-action-guide,
+  .raffle27-action-row .raffle27-secondary-action:last-child {
+    grid-column: 2;
+  }
+
   .raffle27-claim-dock {
+    left: 1rem;
+    right: 1rem;
+    display: grid;
     grid-template-columns: auto minmax(0, 1fr);
   }
 

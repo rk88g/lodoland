@@ -164,9 +164,6 @@ export function Raffle27Experience({
         {luckyNumber ? (
           <span className="raffle27-action-guide">
             <span className="raffle27-focus-arrow" aria-hidden="true">➜</span>
-            <span className="raffle27-focus-callout">
-              {showTransferInfo ? "Ahora manda tu comprobante" : "Abre transferencia y copia los datos"}
-            </span>
           </span>
         ) : null}
         <Button
