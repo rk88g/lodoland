@@ -12,7 +12,6 @@ type Raffle27ExperienceProps = {
   soldCount?: number;
   availableCount?: number;
   totalCount?: number;
-  whatsappHref: string | null;
   receiptHref: string | null;
   transferInstructions: string;
 };
@@ -61,7 +60,6 @@ export function Raffle27Experience({
   holdExpiresAt,
   luckyNumber,
   message,
-  whatsappHref,
   receiptHref,
   transferInstructions
 }: Raffle27ExperienceProps) {
@@ -163,16 +161,27 @@ export function Raffle27Experience({
       </Box>
 
       <Box className="raffle27-action-row">
-        {whatsappHref ? (
-          <Button className="raffle27-primary-action" component="a" href={whatsappHref} rel="noreferrer" target="_blank" variant="contained">
-            Apartar por WhatsApp
-          </Button>
-        ) : null}
-        <Button className="raffle27-secondary-action" onClick={() => setShowTransferInfo((current) => !current)} variant="outlined">
+        <Button
+          className={luckyNumber ? "raffle27-primary-action raffle27-flow-action" : "raffle27-primary-action raffle27-flow-action is-locked"}
+          disabled={!luckyNumber}
+          onClick={() => setShowTransferInfo(true)}
+          variant="contained"
+        >
           Transferencia
         </Button>
         {receiptHref ? (
-          <Button className="raffle27-secondary-action" component="a" href={receiptHref} rel="noreferrer" target="_blank" variant="outlined">
+          <Button
+            className={
+              showTransferInfo
+                ? "raffle27-secondary-action raffle27-paid-action"
+                : "raffle27-secondary-action raffle27-paid-action is-locked"
+            }
+            component="a"
+            href={showTransferInfo ? receiptHref : undefined}
+            rel="noreferrer"
+            target="_blank"
+            variant="outlined"
+          >
             Ya pague
           </Button>
         ) : null}
@@ -192,13 +201,6 @@ export function Raffle27Experience({
           </Typography>
         </Box>
       </Collapse>
-
-      <Box className="raffle27-howto-line" aria-label="Como participar">
-        <span>1. Compra ahora</span>
-        <span>2. Tu numero lo elige la suerte</span>
-        <span>3. Apartalo por WhatsApp</span>
-        <span>4. Pagas la cantidad que te toco</span>
-      </Box>
 
       <Box className="raffle27-contact-strip">
         <a href="https://www.lodoland.mx" rel="noreferrer" target="_blank">

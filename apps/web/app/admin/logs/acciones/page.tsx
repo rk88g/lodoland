@@ -2,6 +2,7 @@ import { Box, Chip, Stack, Typography } from "@mui/material";
 import { DashboardShell } from "../../../../components/dashboard-shell";
 import { requireAdmin } from "../../../../lib/auth/session";
 import { getAdminAuditLogs } from "../../../../lib/data/audit";
+import { MEXICO_TIME_ZONE, formatMexicoDateTime } from "../../../../lib/date-format";
 import { controlNavItems } from "../../../../lib/navigation";
 
 export const dynamic = "force-dynamic";
@@ -9,10 +10,7 @@ export const dynamic = "force-dynamic";
 const LAST_THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
 function formatDate(dateValue: string) {
-  return new Intl.DateTimeFormat("es-MX", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(dateValue));
+  return formatMexicoDateTime(dateValue) || "Sin fecha";
 }
 
 function buildPayloadPreview(payload: Record<string, unknown>) {
@@ -41,7 +39,8 @@ export default async function AdminActionLogsPage() {
       weekday: "long",
       day: "2-digit",
       month: "long",
-      year: "numeric"
+      year: "numeric",
+      timeZone: MEXICO_TIME_ZONE
     }).format(new Date(log.createdAt));
 
     if (!accumulator[dayKey]) {

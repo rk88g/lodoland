@@ -4,6 +4,7 @@ import { AdminSectionCard } from "../../../../components/admin-section-card";
 import { DashboardShell } from "../../../../components/dashboard-shell";
 import { FlashAlert } from "../../../../components/flash-alert";
 import { requireAdmin } from "../../../../lib/auth/session";
+import { formatMexicoDateTime, formatMexicoDateTimeInput } from "../../../../lib/date-format";
 import { readFlashMessage } from "../../../../lib/flash";
 import { getRaffle27AdminData } from "../../../../lib/raffle27";
 import { controlNavItems } from "../../../../lib/navigation";
@@ -14,14 +15,7 @@ export const dynamic = "force-dynamic";
 const FLASH_COOKIE = "admin-raffle27-flash";
 
 function formatDate(dateValue: string | null) {
-  if (!dateValue) {
-    return "Sin fecha";
-  }
-
-  return new Intl.DateTimeFormat("es-MX", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(dateValue));
+  return formatMexicoDateTime(dateValue) || "Sin fecha";
 }
 
 function formatMoney(value: number) {
@@ -89,7 +83,7 @@ export default async function AdminRaffle27May2026Page() {
               <TextField defaultValue={data.settings.ticket_price} inputProps={{ min: 1, step: "0.01" }} label="Precio boleto" name="ticketPrice" required type="number" />
             </Box>
             <Box sx={{ gridColumn: { xs: "1 / -1", xl: "span 2" } }}>
-              <TextField InputLabelProps={{ shrink: true }} defaultValue={data.settings.countdown_ends_at.slice(0, 16)} label="Cierre contador" name="countdownEndsAt" required type="datetime-local" />
+              <TextField InputLabelProps={{ shrink: true }} defaultValue={formatMexicoDateTimeInput(data.settings.countdown_ends_at)} label="Cierre contador" name="countdownEndsAt" required type="datetime-local" />
             </Box>
             <Box sx={{ gridColumn: "1 / -1" }}>
               <TextField defaultValue={data.settings.transfer_instructions} fullWidth label="Instrucciones de transferencia" multiline minRows={3} name="transferInstructions" required />

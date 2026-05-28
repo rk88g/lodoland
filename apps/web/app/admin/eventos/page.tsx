@@ -11,6 +11,7 @@ import {
 import { DashboardShell } from "../../../components/dashboard-shell";
 import { requireAdmin } from "../../../lib/auth/session";
 import { getAdminEvents, getMediaAssets, getUpcomingEvents } from "../../../lib/data/portal";
+import { formatMexicoDateTime, formatMexicoDateTimeInput } from "../../../lib/date-format";
 import { controlNavItems } from "../../../lib/navigation";
 import { createEventAction, updateEventAction } from "./actions";
 
@@ -29,28 +30,7 @@ type EventStatusShape = {
 };
 
 function formatDate(dateValue: string | null) {
-  if (!dateValue) {
-    return "Sin fecha";
-  }
-
-  return new Intl.DateTimeFormat("es-MX", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(dateValue));
-}
-
-function formatDateTimeInput(dateValue: string | null) {
-  if (!dateValue) {
-    return "";
-  }
-
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return offsetDate.toISOString().slice(0, 16);
+  return formatMexicoDateTime(dateValue) || "Sin fecha";
 }
 
 function getDisplayStatus(event: EventStatusShape) {
@@ -288,7 +268,7 @@ export default async function AdminEventsPage({ searchParams }: AdminEventsPageP
                         <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 2" } }}>
                           <TextField
                             InputLabelProps={{ shrink: true }}
-                            defaultValue={formatDateTimeInput(event.startsAt)}
+                            defaultValue={formatMexicoDateTimeInput(event.startsAt)}
                             label="Fecha y hora"
                             name="startsAt"
                             type="datetime-local"

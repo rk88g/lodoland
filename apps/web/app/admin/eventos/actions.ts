@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAdminAction } from "../../../lib/audit";
 import { requireAdmin } from "../../../lib/auth/session";
+import { mexicoLocalDateTimeToIso } from "../../../lib/date-format";
 import { createClient } from "../../../lib/supabase/server";
 
 function toSlug(value: string) {
@@ -24,7 +25,7 @@ export async function createEventAction(formData: FormData) {
   const shortDescription = String(formData.get("shortDescription") ?? "").trim();
   const venueName = String(formData.get("venueName") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
-  const startsAt = String(formData.get("startsAt") ?? "").trim();
+  const startsAt = mexicoLocalDateTimeToIso(String(formData.get("startsAt") ?? "").trim());
   const status = String(formData.get("status") ?? "draft").trim();
   const coverAssetId = String(formData.get("coverAssetId") ?? "").trim();
   const slug = toSlug(String(formData.get("slug") ?? "") || title);
@@ -96,7 +97,7 @@ export async function updateEventAction(formData: FormData) {
   const shortDescription = String(formData.get("shortDescription") ?? "").trim();
   const venueName = String(formData.get("venueName") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
-  const startsAt = String(formData.get("startsAt") ?? "").trim();
+  const startsAt = mexicoLocalDateTimeToIso(String(formData.get("startsAt") ?? "").trim());
   const coverAssetId = String(formData.get("coverAssetId") ?? "").trim();
   const requestedStatus = String(formData.get("status") ?? "draft").trim();
   const slug = toSlug(String(formData.get("slug") ?? "") || title);

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAdminAction } from "../../../lib/audit";
 import { requireAdmin, requireOperator } from "../../../lib/auth/session";
+import { mexicoLocalDateTimeToIso } from "../../../lib/date-format";
 import { setFlashMessage } from "../../../lib/flash";
 import { createClient } from "../../../lib/supabase/server";
 
@@ -148,8 +149,8 @@ export async function createTicketTypeAction(formData: FormData) {
   const price = Number(String(formData.get("price") ?? "0").trim() || 0);
   const currency = String(formData.get("currency") ?? "MXN").trim() || "MXN";
   const quantityTotal = toNullableNumber(formData.get("quantityTotal"));
-  const saleStartsAt = String(formData.get("saleStartsAt") ?? "").trim();
-  const saleEndsAt = String(formData.get("saleEndsAt") ?? "").trim();
+  const saleStartsAt = mexicoLocalDateTimeToIso(String(formData.get("saleStartsAt") ?? "").trim());
+  const saleEndsAt = mexicoLocalDateTimeToIso(String(formData.get("saleEndsAt") ?? "").trim());
   const isActive = String(formData.get("isActive") ?? "true") === "true";
 
   if (!eventId || !name || !price) {
@@ -215,8 +216,8 @@ export async function createTicketLotAction(formData: FormData) {
   const inventoryTotal = Number(String(formData.get("inventoryTotal") ?? "0").trim() || 0);
   const courtesyTotal = Number(String(formData.get("courtesyTotal") ?? "0").trim() || 0);
   const sequencePrefix = String(formData.get("sequencePrefix") ?? "").trim();
-  const saleStartsAt = String(formData.get("saleStartsAt") ?? "").trim();
-  const saleEndsAt = String(formData.get("saleEndsAt") ?? "").trim();
+  const saleStartsAt = mexicoLocalDateTimeToIso(String(formData.get("saleStartsAt") ?? "").trim());
+  const saleEndsAt = mexicoLocalDateTimeToIso(String(formData.get("saleEndsAt") ?? "").trim());
   const isActive = String(formData.get("isActive") ?? "true") === "true";
 
   if (!ticketTypeId || !label || !inventoryTotal) {

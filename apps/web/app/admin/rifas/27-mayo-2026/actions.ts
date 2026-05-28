@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAdminAction } from "../../../../lib/audit";
 import { requireAdmin } from "../../../../lib/auth/session";
+import { mexicoLocalDateTimeToIso } from "../../../../lib/date-format";
 import { setFlashMessage } from "../../../../lib/flash";
 import { markRaffle27NumberSold, saveRaffle27Settings } from "../../../../lib/raffle27";
 import { createClient } from "../../../../lib/supabase/server";
@@ -25,7 +26,7 @@ export async function saveRaffle27SettingsAction(formData: FormData) {
   const whatsappNumber = String(formData.get("whatsappNumber") ?? "").trim();
   const ticketPrice = Number(String(formData.get("ticketPrice") ?? "0").trim() || 0);
   const transferInstructions = String(formData.get("transferInstructions") ?? "").trim();
-  const countdownEndsAt = String(formData.get("countdownEndsAt") ?? "").trim();
+  const countdownEndsAt = mexicoLocalDateTimeToIso(String(formData.get("countdownEndsAt") ?? "").trim());
   const status = statusInput === "draft" || statusInput === "archived" ? statusInput : "published";
 
   if (!title || !whatsappNumber || !ticketPrice || !transferInstructions || !countdownEndsAt) {
@@ -79,7 +80,7 @@ export async function sellRaffle27NumberAction(formData: FormData) {
   const buyerPhone = String(formData.get("buyerPhone") ?? "").trim();
   const buyerEmail = String(formData.get("buyerEmail") ?? "").trim();
   const amount = numberValue;
-  const paymentDate = String(formData.get("paymentDate") ?? "").trim();
+  const paymentDate = mexicoLocalDateTimeToIso(String(formData.get("paymentDate") ?? "").trim());
   const notes = String(formData.get("notes") ?? "").trim();
 
   if (!numberValue || !buyerName || !buyerPhone || !buyerEmail) {

@@ -4,6 +4,7 @@ import { DashboardShell } from "../../../components/dashboard-shell";
 import { FlashAlert } from "../../../components/flash-alert";
 import { requireAdmin } from "../../../lib/auth/session";
 import { getFinanceDashboardData } from "../../../lib/data/finance";
+import { formatMexicoDateTime, getMexicoDateParts } from "../../../lib/date-format";
 import { readFlashMessage } from "../../../lib/flash";
 import { controlNavItems } from "../../../lib/navigation";
 import { createClient } from "../../../lib/supabase/server";
@@ -21,10 +22,7 @@ function formatMoney(value: number, currency = "MXN") {
 }
 
 function formatDate(dateValue: string) {
-  return new Intl.DateTimeFormat("es-MX", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(dateValue));
+  return formatMexicoDateTime(dateValue) || "Sin fecha";
 }
 
 type AdminFinanzasPageProps = {
@@ -76,7 +74,8 @@ export default async function AdminFinanzasPage({ searchParams }: AdminFinanzasP
 
   const events = eventsResponse.data || [];
   const promotions = promotionsResponse.data || [];
-  const yearOptions = Array.from({ length: 6 }, (_, index) => new Date().getFullYear() - index);
+  const currentMexicoYear = getMexicoDateParts().year;
+  const yearOptions = Array.from({ length: 6 }, (_, index) => currentMexicoYear - index);
 
   return (
     <DashboardShell navItems={controlNavItems} subtitle="Ingresos, gastos y analitica operativa" title="Finanzas">

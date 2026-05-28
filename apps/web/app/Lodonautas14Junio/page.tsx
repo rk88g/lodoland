@@ -19,13 +19,6 @@ export default async function Listado27Mayo2026Page() {
   const deviceId = cookies().get(DEVICE_COOKIE)?.value || null;
   const publicData = await getRaffle27PublicData(deviceId);
   const luckyNumber = publicData.experience?.luckyNumber ?? null;
-  const whatsappHref = luckyNumber
-    ? buildRaffle27WhatsAppHref({
-        whatsappNumber: publicData.settings.whatsapp_number,
-        luckyNumber,
-        prefix: "pay"
-      })
-    : null;
   const receiptHref = luckyNumber
     ? buildRaffle27WhatsAppHref({
         whatsappNumber: publicData.settings.whatsapp_number,
@@ -46,6 +39,8 @@ export default async function Listado27Mayo2026Page() {
         <Box className="raffle27-composition">
           {!publicData.experience?.luckyNumber ? (
             <form action={claimRaffle27LuckyNumberAction} className="raffle27-claim-dock raffle27-claim-dock--pending" method="post">
+              <span className="raffle27-claim-pointer" aria-hidden="true">↓</span>
+              <span className="raffle27-claim-callout">Primero gira tu suerte</span>
               <Button size="large" type="submit" variant="contained">
                 Girar mi suerte
               </Button>
@@ -65,7 +60,6 @@ export default async function Listado27Mayo2026Page() {
             soldCount={publicData.stats.sold}
             totalCount={publicData.stats.total}
             transferInstructions={publicData.settings.transfer_instructions}
-            whatsappHref={whatsappHref}
           />
         </Box>
       </Box>

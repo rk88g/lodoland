@@ -2,6 +2,7 @@ import { Box, Chip, Stack, Typography } from "@mui/material";
 import { DashboardShell } from "../../../../components/dashboard-shell";
 import { requireAdmin } from "../../../../lib/auth/session";
 import { getCollaboratorLoginLogs } from "../../../../lib/data/audit";
+import { formatMexicoDateTime } from "../../../../lib/date-format";
 import { controlNavItems } from "../../../../lib/navigation";
 
 export const dynamic = "force-dynamic";
@@ -9,10 +10,7 @@ export const dynamic = "force-dynamic";
 const LAST_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 function formatDate(dateValue: string) {
-  return new Intl.DateTimeFormat("es-MX", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(dateValue));
+  return formatMexicoDateTime(dateValue) || "Sin fecha";
 }
 
 function buildLocation(log: Awaited<ReturnType<typeof getCollaboratorLoginLogs>>[number]) {

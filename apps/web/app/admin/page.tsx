@@ -3,6 +3,7 @@ import { Box, Button, Stack, Typography } from "@mui/material";
 import { DashboardShell } from "../../components/dashboard-shell";
 import { requireAdmin } from "../../lib/auth/session";
 import { getMediaAssets, getUpcomingEvents } from "../../lib/data/portal";
+import { formatMexicoDateTime } from "../../lib/date-format";
 import { controlNavItems } from "../../lib/navigation";
 
 export const dynamic = "force-dynamic";
@@ -75,12 +76,7 @@ export default async function AdminPage() {
               >
                 <Typography>{event.title}</Typography>
                 <Typography color="text.secondary" variant="body2">
-                  {event.startsAt
-                    ? new Intl.DateTimeFormat("es-MX", {
-                        dateStyle: "medium",
-                        timeStyle: "short"
-                      }).format(new Date(event.startsAt))
-                    : "Sin fecha"}
+                  {formatMexicoDateTime(event.startsAt) || "Sin fecha"}
                 </Typography>
               </Stack>
             ))}

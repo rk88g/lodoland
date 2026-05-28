@@ -315,10 +315,37 @@ main {
   left: clamp(1.1rem, 3vw, 3rem);
   bottom: clamp(7.5rem, 13vw, 9.5rem);
   z-index: 8;
+  display: grid;
+  justify-items: start;
+  gap: 0.4rem;
 }
 
 .raffle27-claim-dock--pending {
   z-index: 30;
+}
+
+.raffle27-claim-pointer {
+  display: inline-block;
+  margin-left: 1.8rem;
+  color: #d8ff00;
+  font-size: 2.6rem;
+  font-weight: 1000;
+  line-height: 1;
+  filter: drop-shadow(0 0 0.9rem rgba(216, 255, 0, 0.72));
+  animation: raffle27-point-down 0.9s ease-in-out infinite;
+}
+
+.raffle27-claim-callout {
+  display: inline-block;
+  padding: 0.35rem 0.7rem;
+  color: #070806;
+  background: #f8f5e8;
+  font-size: 0.75rem;
+  font-weight: 1000;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transform: skew(-8deg);
+  box-shadow: 0.25rem 0.32rem 0 rgba(0, 0, 0, 0.72);
 }
 
 .raffle27-claim-dock .MuiButton-root {
@@ -861,7 +888,7 @@ main {
 .raffle27-action-row {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(2.35rem, 4.1vw, 3rem);
+  bottom: clamp(5.8rem, 8.5vw, 6.8rem);
   z-index: 7;
   display: flex;
   gap: 0.65rem;
@@ -885,10 +912,63 @@ main {
   box-shadow: 0 0.35rem 0 #111;
 }
 
+.raffle27-flow-action:not(.is-locked) {
+  position: relative;
+  animation: raffle27-primary-pulse 1.25s ease-in-out infinite;
+}
+
+.raffle27-flow-action:not(.is-locked)::before {
+  content: "2";
+  position: absolute;
+  left: -0.75rem;
+  top: -0.7rem;
+  display: grid;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 50%;
+  background: #d81316;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 1000;
+  transform: skew(7deg);
+  box-shadow: 0 0.25rem 0 #111;
+}
+
 .raffle27-secondary-action {
   color: #f8f5e8;
   border-color: rgba(216, 255, 0, 0.65);
   background: rgba(0, 0, 0, 0.44);
+}
+
+.raffle27-paid-action {
+  position: relative;
+}
+
+.raffle27-paid-action:not(.is-locked)::before {
+  content: "3";
+  position: absolute;
+  left: -0.75rem;
+  top: -0.7rem;
+  display: grid;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 50%;
+  background: #d8ff00;
+  color: #070806;
+  font-size: 0.85rem;
+  font-weight: 1000;
+  transform: skew(7deg);
+  box-shadow: 0 0.25rem 0 #111;
+}
+
+.raffle27-flow-action.is-locked,
+.raffle27-paid-action.is-locked,
+.raffle27-flow-action.Mui-disabled {
+  opacity: 0.48;
+  pointer-events: none;
+  filter: grayscale(0.55);
 }
 
 .raffle27-transfer-collapse {
@@ -1208,6 +1288,26 @@ main {
   }
 }
 
+@keyframes raffle27-point-down {
+  0%,
+  100% {
+    transform: translateY(-0.15rem);
+  }
+  50% {
+    transform: translateY(0.45rem);
+  }
+}
+
+@keyframes raffle27-primary-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0.35rem 0 #111, 0 0 0 rgba(216, 255, 0, 0);
+  }
+  50% {
+    box-shadow: 0 0.35rem 0 #111, 0 0 1.6rem rgba(216, 255, 0, 0.68);
+  }
+}
+
 @keyframes raffle27-warning-tape {
   0% {
     background-position: 0 0, 0 0;
@@ -1273,7 +1373,6 @@ main {
 
   .raffle27-countdown,
   .raffle27-hold-ribbon,
-  .raffle27-howto-line,
   .raffle27-limited-copy,
   .raffle27-action-row,
   .raffle27-transfer-collapse {
@@ -1405,10 +1504,6 @@ main {
     flex-wrap: wrap;
     gap: 0.35rem 0.65rem;
     padding: 0.24rem 0.75rem;
-  }
-
-  .raffle27-howto-line {
-    grid-template-columns: 1fr 1fr;
   }
 
   .raffle27-limited-copy {

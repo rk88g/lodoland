@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAdminAction } from "../../../lib/audit";
 import { requireAdmin } from "../../../lib/auth/session";
+import { mexicoLocalDateTimeToIso } from "../../../lib/date-format";
 import { createClient } from "../../../lib/supabase/server";
 
 function toSlug(value: string) {
@@ -24,9 +25,9 @@ export async function createPoolAction(formData: FormData) {
   const description = String(formData.get("description") ?? "").trim();
   const rules = String(formData.get("rules") ?? "").trim();
   const entryPrice = Number(String(formData.get("entryPrice") ?? "0").trim() || 0);
-  const startsAt = String(formData.get("startsAt") ?? "").trim();
-  const closesAt = String(formData.get("closesAt") ?? "").trim();
-  const resolvesAt = String(formData.get("resolvesAt") ?? "").trim();
+  const startsAt = mexicoLocalDateTimeToIso(String(formData.get("startsAt") ?? "").trim());
+  const closesAt = mexicoLocalDateTimeToIso(String(formData.get("closesAt") ?? "").trim());
+  const resolvesAt = mexicoLocalDateTimeToIso(String(formData.get("resolvesAt") ?? "").trim());
   const status = String(formData.get("status") ?? "draft").trim();
   const slug = toSlug(String(formData.get("slug") ?? "") || title);
 

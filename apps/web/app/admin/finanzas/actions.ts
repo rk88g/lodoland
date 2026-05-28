@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAdminAction } from "../../../lib/audit";
 import { requireAdmin } from "../../../lib/auth/session";
+import { mexicoLocalDateTimeToIso } from "../../../lib/date-format";
 import { setFlashMessage } from "../../../lib/flash";
 import { createClient } from "../../../lib/supabase/server";
 
@@ -24,7 +25,7 @@ export async function createFinancialEntryAction(formData: FormData) {
   const categoryId = String(formData.get("categoryId") ?? "").trim();
   const referenceLabel = String(formData.get("referenceLabel") ?? "").trim();
   const note = String(formData.get("note") ?? "").trim();
-  const occurredAt = String(formData.get("occurredAt") ?? "").trim();
+  const occurredAt = mexicoLocalDateTimeToIso(String(formData.get("occurredAt") ?? "").trim());
   const eventId = String(formData.get("eventId") ?? "").trim();
   const promotionId = String(formData.get("promotionId") ?? "").trim();
 

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { InfluencerCollage } from "./influencer-collage";
 import { buildWallClockDate } from "../lib/date-format";
 import { formatEventDateTimeWallClock } from "../lib/date-format";
+import { getMexicoDateParts } from "../lib/date-format";
 import type { HomePageViewModel } from "../lib/data/home";
 
 type HomeExperienceProps = {
@@ -83,7 +84,7 @@ export function HomeExperience({ data }: HomeExperienceProps) {
   const [lodonautaVisitCount, setLodonautaVisitCount] = useState<number | null>(null);
   const isOverlayOpen =
     sponsorModalOpen || eventModalOpen || menuOpen || influencerModalOpen || merchModalOpen || saleModalIndex !== null;
-  const currentYear = new Date().getFullYear();
+  const currentYear = getMexicoDateParts().year;
   const menuPageCount = data.menuSponsorPanels.length + 1;
   const eventCountdown = getEventCountdown(data.event.startsAt, nowValue);
 

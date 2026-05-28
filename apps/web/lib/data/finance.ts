@@ -1,5 +1,6 @@
 import { isBuildPhase } from "../runtime";
 import { createClient } from "../supabase/server";
+import { getMexicoDateParts, mexicoDayBoundaryIso, mexicoLocalDateTimeToIso } from "../date-format";
 
 type FinancialCategoryRow = {
   id: string;
@@ -169,21 +170,24 @@ export async function getFinanceDashboardData(
       }
 
       if (filters?.year) {
-        query = query.gte("occurred_at", `${filters.year}-01-01T00:00:00.000Z`).lte("occurred_at", `${filters.year}-12-31T23:59:59.999Z`);
+        query = query
+          .gte("occurred_at", mexicoDayBoundaryIso(filters.year, 1, 1) || `${filters.year}-01-01T00:00:00.000Z`)
+          .lte("occurred_at", mexicoDayBoundaryIso(filters.year, 12, 31, true) || `${filters.year}-12-31T23:59:59.999Z`);
       }
 
       if (filters?.month && filters?.year) {
-        const monthStart = new Date(Date.UTC(filters.year, filters.month - 1, 1));
-        const monthEnd = new Date(Date.UTC(filters.year, filters.month, 0, 23, 59, 59, 999));
-        query = query.gte("occurred_at", monthStart.toISOString()).lte("occurred_at", monthEnd.toISOString());
+        const lastDay = new Date(Date.UTC(filters.year, filters.month, 0)).getUTCDate();
+        query = query
+          .gte("occurred_at", mexicoDayBoundaryIso(filters.year, filters.month, 1) || "")
+          .lte("occurred_at", mexicoDayBoundaryIso(filters.year, filters.month, lastDay, true) || "");
       }
 
       if (filters?.from) {
-        query = query.gte("occurred_at", `${filters.from}T00:00:00.000Z`);
+        query = query.gte("occurred_at", mexicoLocalDateTimeToIso(`${filters.from}T00:00:00.000`) || `${filters.from}T00:00:00.000Z`);
       }
 
       if (filters?.to) {
-        query = query.lte("occurred_at", `${filters.to}T23:59:59.999Z`);
+        query = query.lte("occurred_at", mexicoLocalDateTimeToIso(`${filters.to}T23:59:59.999`) || `${filters.to}T23:59:59.999Z`);
       }
 
       return query;
@@ -248,10 +252,10 @@ export async function getFinanceDashboardData(
   const incomeEntries = normalizedEntries.filter((entry) => entry.kind === "income");
   const expenseEntries = normalizedEntries.filter((entry) => entry.kind === "expense");
 
-  const currentDate = new Date();
-  const startOfToday = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-  const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  const startOfYear = new Date(currentDate.getFullYear(), 0, 1);
+  const currentMexicoDate = getMexicoDateParts();
+  const startOfToday = new Date(mexicoDayBoundaryIso(currentMexicoDate.year, currentMexicoDate.month, currentMexicoDate.day) || 0);
+  const startOfMonth = new Date(mexicoDayBoundaryIso(currentMexicoDate.year, currentMexicoDate.month, 1) || 0);
+  const startOfYear = new Date(mexicoDayBoundaryIso(currentMexicoDate.year, 1, 1) || 0);
 
   const todayEntries = allNormalizedEntries.filter((entry) => new Date(entry.occurredAt) >= startOfToday);
   const monthEntries = allNormalizedEntries.filter((entry) => new Date(entry.occurredAt) >= startOfMonth);
