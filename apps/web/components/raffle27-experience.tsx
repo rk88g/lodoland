@@ -160,44 +160,34 @@ export function Raffle27Experience({
         </Typography>
       </Box>
 
-      <Box className="raffle27-action-row">
-        {luckyNumber ? (
+      {luckyNumber ? (
+        <Box className={showTransferInfo ? "raffle27-action-row raffle27-action-row--paid" : "raffle27-action-row"}>
           <span className="raffle27-action-guide">
-            <span className="raffle27-focus-arrow" aria-hidden="true">➜</span>
+            <span className="raffle27-focus-arrow" aria-hidden="true" />
           </span>
-        ) : null}
-        <Button
-          className={
-            luckyNumber
-              ? "raffle27-primary-action raffle27-flow-action raffle27-action-focus"
-              : "raffle27-primary-action raffle27-flow-action is-locked"
-          }
-          disabled={!luckyNumber}
-          onClick={() => setShowTransferInfo(true)}
-          variant="contained"
-        >
-          Transferencia
-        </Button>
-        {receiptHref ? (
-          <Button
-            className={
-              showTransferInfo
-                ? "raffle27-secondary-action raffle27-paid-action raffle27-action-focus"
-                : "raffle27-secondary-action raffle27-paid-action is-locked"
-            }
-            component="a"
-            href={showTransferInfo ? receiptHref : undefined}
-            rel="noreferrer"
-            target="_blank"
-            variant="outlined"
-          >
-            Ya pague
-          </Button>
-        ) : null}
-        <Button className="raffle27-secondary-action" component="a" href="/Lodonautas14Junio/boletos-vendidos" variant="outlined">
-          Boletos vendidos
-        </Button>
-      </Box>
+          {!showTransferInfo ? (
+            <Button
+              className="raffle27-primary-action raffle27-flow-action raffle27-action-focus"
+              onClick={() => setShowTransferInfo(true)}
+              variant="contained"
+            >
+              Transferencia
+            </Button>
+          ) : null}
+          {showTransferInfo && receiptHref ? (
+            <Button
+              className="raffle27-primary-action raffle27-paid-action raffle27-action-focus"
+              component="a"
+              href={receiptHref}
+              rel="noreferrer"
+              target="_blank"
+              variant="contained"
+            >
+              Ya pague
+            </Button>
+          ) : null}
+        </Box>
+      ) : null}
 
       <Collapse className="raffle27-transfer-collapse" in={showTransferInfo}>
         <Box className="raffle27-transfer-box">
