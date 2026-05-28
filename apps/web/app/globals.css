@@ -1013,8 +1013,8 @@ main {
   position: fixed;
   inset: 0;
   z-index: 100;
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 0;
   padding: 0;
   color: #f8f5e8;
@@ -1026,8 +1026,8 @@ main {
 }
 
 .raffle27-board-modal-header {
-  position: sticky;
-  top: 0;
+  flex: 0 0 auto;
+  position: relative;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -1054,33 +1054,92 @@ main {
 }
 
 .raffle27-board-modal-tabs {
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1px;
-  background: rgba(216, 255, 0, 0.2);
+  gap: 2px;
+  padding: 2px;
+  background: #070806;
+  border-bottom: 2px solid rgba(216, 255, 0, 0.42);
 }
 
 .raffle27-board-tab {
+  position: relative;
   display: grid;
   place-items: center;
+  isolation: isolate;
+  overflow: hidden;
   min-height: 3.6rem;
   padding: 0.75rem;
-  border: 0;
+  border: 2px solid rgba(7, 8, 6, 0.48);
   border-radius: 0;
-  color: #f8f5e8;
-  background: rgba(0, 0, 0, 0.72);
+  color: #070806 !important;
+  background: #d8ff00 !important;
   font-size: clamp(0.8rem, 1.6vw, 1rem);
   font-weight: 1000;
   text-align: center;
   text-transform: uppercase;
+  box-shadow: inset 0 0 0 4px rgba(7, 8, 6, 0.12);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
+.raffle27-board-tab::before,
+.raffle27-board-tab::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.raffle27-board-tab::before {
+  inset: 0.34rem;
+  border: 2px solid rgba(7, 8, 6, 0.25);
+}
+
+.raffle27-board-tab::after {
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent, rgba(7, 8, 6, 0.34), transparent) 0 0 / 45% 2px no-repeat,
+    linear-gradient(180deg, transparent, rgba(7, 8, 6, 0.34), transparent) 100% 0 / 2px 45% no-repeat,
+    linear-gradient(90deg, transparent, rgba(7, 8, 6, 0.34), transparent) 100% 100% / 45% 2px no-repeat,
+    linear-gradient(180deg, transparent, rgba(7, 8, 6, 0.34), transparent) 0 100% / 2px 45% no-repeat;
+  opacity: 0;
+}
+
+.raffle27-board-tab:hover,
+.raffle27-board-tab:focus-visible,
+.raffle27-board-tab.Mui-focusVisible,
 .raffle27-board-tab.is-active {
-  color: #070806;
-  background: #d8ff00;
+  color: #070806 !important;
+  background: #d8ff00 !important;
+  border-color: #070806;
+  box-shadow:
+    inset 0 0 0 4px rgba(7, 8, 6, 0.18),
+    inset 0 0 0 8px rgba(216, 255, 0, 0.9),
+    0 0 1.1rem rgba(216, 255, 0, 0.48);
+  transform: translateY(-1px);
+}
+
+.raffle27-board-tab:hover::before,
+.raffle27-board-tab:focus-visible::before,
+.raffle27-board-tab.Mui-focusVisible::before,
+.raffle27-board-tab.is-active::before {
+  border-color: rgba(7, 8, 6, 0.72);
+  animation: raffle27-board-frame-pulse 0.86s ease-in-out infinite;
+}
+
+.raffle27-board-tab:hover::after,
+.raffle27-board-tab:focus-visible::after,
+.raffle27-board-tab.Mui-focusVisible::after,
+.raffle27-board-tab.is-active::after {
+  opacity: 1;
+  animation: raffle27-board-frame-race 1s linear infinite;
 }
 
 .raffle27-board-modal-content {
+  flex: 1 1 auto;
   min-height: 0;
   padding: clamp(0.5rem, 1.4vw, 1rem);
   overflow: auto;
