@@ -5,6 +5,7 @@ import { Raffle27Experience } from "../../components/raffle27-experience";
 import { readFlashMessage } from "../../lib/flash";
 import {
   buildRaffle27WhatsAppHref,
+  getRaffle27NumbersBoard,
   getRaffle27PublicData
 } from "../../lib/raffle27";
 import { claimRaffle27LuckyNumberAction } from "./actions";
@@ -17,8 +18,14 @@ const FLASH_COOKIE = "raffle27-public-flash";
 export default async function Listado27Mayo2026Page() {
   const flash = readFlashMessage(FLASH_COOKIE);
   const deviceId = cookies().get(DEVICE_COOKIE)?.value || null;
-  const publicData = await getRaffle27PublicData(deviceId);
+  const [publicData, numberBoard] = await Promise.all([
+    getRaffle27PublicData(deviceId),
+    getRaffle27NumbersBoard()
+  ]);
   const luckyNumber = publicData.experience?.luckyNumber ?? null;
+  const soldNumbers = numberBoard.filter((row) => row.status === "sold").map((row) => row.number_value);
+  const heldNumbers = numberBoard.filter((row) => row.status === "held").map((row) => row.number_value);
+  const availableNumbers = numberBoard.filter((row) => row.status === "available").map((row) => row.number_value);
   const receiptHref = luckyNumber
     ? buildRaffle27WhatsAppHref({
         whatsappNumber: publicData.settings.whatsapp_number,
@@ -59,6 +66,11 @@ export default async function Listado27Mayo2026Page() {
             soldCount={publicData.stats.sold}
             totalCount={publicData.stats.total}
             transferInstructions={publicData.settings.transfer_instructions}
+            numberBoard={{
+              sold: soldNumbers,
+              held: heldNumbers,
+              available: availableNumbers
+            }}
           />
         </Box>
       </Box>

@@ -14,6 +14,11 @@ type Raffle27ExperienceProps = {
   totalCount?: number;
   receiptHref: string | null;
   transferInstructions: string;
+  numberBoard: {
+    sold: number[];
+    held: number[];
+    available: number[];
+  };
 };
 
 function padUnit(value: number) {
@@ -61,7 +66,8 @@ export function Raffle27Experience({
   luckyNumber,
   message,
   receiptHref,
-  transferInstructions
+  transferInstructions,
+  numberBoard
 }: Raffle27ExperienceProps) {
   const actionRowRef = useRef<HTMLDivElement | null>(null);
   const transferButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -69,6 +75,7 @@ export function Raffle27Experience({
   const [countdown, setCountdown] = useState(() => buildCountdown(countdownEndsAt));
   const [holdCountdown, setHoldCountdown] = useState(() => buildRemainingHold(holdExpiresAt));
   const [showTransferInfo, setShowTransferInfo] = useState(false);
+  const [boardModalOpen, setBoardModalOpen] = useState(false);
   const formattedTransferInstructions = useMemo(
     () => formatTransferInstructions(transferInstructions),
     [transferInstructions]
@@ -122,6 +129,21 @@ export function Raffle27Experience({
       window.clearTimeout(timeoutId);
     };
   }, [luckyNumber, showTransferInfo]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+    if (boardModalOpen) {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [boardModalOpen]);
 
   const formattedLuckyNumber = useMemo(() => {
     if (!luckyNumber) {
@@ -236,6 +258,48 @@ export function Raffle27Experience({
         </Box>
       </Collapse>
 
+      <Button className="raffle27-board-trigger" onClick={() => setBoardModalOpen(true)} variant="outlined">
+        Boletos vendidos
+      </Button>
+
+      {boardModalOpen ? (
+        <Box aria-label="Boletos vendidos" aria-modal="true" className="raffle27-board-modal" role="dialog">
+          <Box className="raffle27-board-modal-header">
+            <Typography variant="h2">Boletos vendidos</Typography>
+            <Button className="raffle27-board-close" onClick={() => setBoardModalOpen(false)} variant="contained">
+              Cerrar
+            </Button>
+          </Box>
+
+          <Box className="raffle27-board-modal-stats">
+            <span>{numberBoard.sold.length} vendidos</span>
+            <span>{numberBoard.held.length} apartados</span>
+            <span>{numberBoard.available.length} disponibles</span>
+          </Box>
+
+          <Box className="raffle27-board-modal-content">
+            <BoardSection
+              className="raffle27-board-sold"
+              emptyLabel="Todavia no hay numeros vendidos."
+              title="Vendidos"
+              values={numberBoard.sold}
+            />
+            <BoardSection
+              className="raffle27-board-held"
+              emptyLabel="No hay apartados activos en este momento."
+              title="Apartados"
+              values={numberBoard.held}
+            />
+            <BoardSection
+              className="raffle27-board-available"
+              emptyLabel="Ya no hay numeros disponibles."
+              title="Disponibles"
+              values={numberBoard.available}
+            />
+          </Box>
+        </Box>
+      ) : null}
+
       <Box className="raffle27-contact-strip">
         <a href="https://www.lodoland.mx" rel="noreferrer" target="_blank">
           lodoland.mx
@@ -248,6 +312,39 @@ export function Raffle27Experience({
           Aviso de privacidad
         </a>
       </Box>
+    </Box>
+  );
+}
+
+function formatNumberLabel(numberValue: number) {
+  return numberValue.toString().padStart(4, "0");
+}
+
+function BoardSection({
+  title,
+  values,
+  emptyLabel,
+  className
+}: {
+  title: string;
+  values: number[];
+  emptyLabel: string;
+  className: string;
+}) {
+  return (
+    <Box className="raffle27-board-modal-section">
+      <Typography variant="h3">{title}</Typography>
+      {values.length ? (
+        <Box className={`raffle27-number-board ${className}`}>
+          {values.map((numberValue) => (
+            <Box className="raffle27-number-pill" key={`${title}-${numberValue}`}>
+              <Typography variant="body2">{formatNumberLabel(numberValue)}</Typography>
+            </Box>
+          ))}
+        </Box>
+      ) : (
+        <Typography color="text.secondary">{emptyLabel}</Typography>
+      )}
     </Box>
   );
 }

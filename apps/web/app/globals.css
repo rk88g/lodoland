@@ -994,6 +994,108 @@ main {
   white-space: pre-line;
 }
 
+.raffle27-board-trigger {
+  position: absolute;
+  right: clamp(1rem, 3vw, 3rem);
+  bottom: clamp(2.4rem, 4vw, 3.2rem);
+  z-index: 8;
+  min-height: 2.8rem;
+  border-color: rgba(216, 255, 0, 0.72);
+  color: #f8f5e8;
+  background: rgba(0, 0, 0, 0.55);
+  font-weight: 1000;
+  text-transform: uppercase;
+  transform: skew(-7deg);
+}
+
+.raffle27-board-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+  color: #f8f5e8;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(216, 255, 0, 0.13), transparent 20rem),
+    radial-gradient(circle at 12% 74%, rgba(216, 19, 22, 0.2), transparent 24rem),
+    #050607;
+  overflow: hidden;
+}
+
+.raffle27-board-modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: clamp(1rem, 2.4vw, 2rem);
+  background: rgba(5, 6, 7, 0.94);
+  border-bottom: 1px solid rgba(216, 255, 0, 0.22);
+}
+
+.raffle27-board-modal-header h2 {
+  margin: 0;
+  color: #d8ff00;
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(2rem, 7vw, 5rem);
+  text-transform: uppercase;
+}
+
+.raffle27-board-close {
+  background: #d8ff00;
+  color: #070806;
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.raffle27-board-modal-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: rgba(216, 255, 0, 0.2);
+}
+
+.raffle27-board-modal-stats span {
+  display: grid;
+  place-items: center;
+  min-height: 3.2rem;
+  padding: 0.75rem;
+  color: #070806;
+  background: #d8ff00;
+  font-size: clamp(0.8rem, 1.6vw, 1rem);
+  font-weight: 1000;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.raffle27-board-modal-content {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.75rem, 1.8vw, 1.5rem);
+  min-height: 0;
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+  overflow: auto;
+}
+
+.raffle27-board-modal-section {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 0.8rem;
+}
+
+.raffle27-board-modal-section h3 {
+  margin: 0;
+  color: #f8f5e8;
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(1.4rem, 3vw, 2.5rem);
+  text-transform: uppercase;
+}
+
 .raffle27-limited-copy {
   position: absolute;
   left: clamp(1.2rem, 4vw, 4rem);
@@ -1536,6 +1638,37 @@ main {
   .raffle27-action-guide .raffle27-focus-arrow {
     width: clamp(4.1rem, 18vw, 5.4rem);
     height: clamp(2.25rem, 10vw, 3rem);
+  }
+
+  .raffle27-board-trigger {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    margin-top: 1rem;
+    width: 100%;
+    transform: none;
+  }
+
+  .raffle27-board-modal {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .raffle27-board-modal-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .raffle27-board-close {
+    width: 100%;
+  }
+
+  .raffle27-board-modal-stats,
+  .raffle27-board-modal-content {
+    grid-template-columns: 1fr;
+  }
+
+  .raffle27-board-modal-content {
+    padding-bottom: 6rem;
   }
 
   .raffle27-number-board {
