@@ -161,8 +161,20 @@ export function Raffle27Experience({
       </Box>
 
       <Box className="raffle27-action-row">
+        {luckyNumber ? (
+          <span className="raffle27-action-guide">
+            <span className="raffle27-focus-arrow" aria-hidden="true">➜</span>
+            <span className="raffle27-focus-callout">
+              {showTransferInfo ? "Ahora manda tu comprobante" : "Abre transferencia y copia los datos"}
+            </span>
+          </span>
+        ) : null}
         <Button
-          className={luckyNumber ? "raffle27-primary-action raffle27-flow-action" : "raffle27-primary-action raffle27-flow-action is-locked"}
+          className={
+            luckyNumber
+              ? "raffle27-primary-action raffle27-flow-action raffle27-action-focus"
+              : "raffle27-primary-action raffle27-flow-action is-locked"
+          }
           disabled={!luckyNumber}
           onClick={() => setShowTransferInfo(true)}
           variant="contained"
@@ -173,7 +185,7 @@ export function Raffle27Experience({
           <Button
             className={
               showTransferInfo
-                ? "raffle27-secondary-action raffle27-paid-action"
+                ? "raffle27-secondary-action raffle27-paid-action raffle27-action-focus"
                 : "raffle27-secondary-action raffle27-paid-action is-locked"
             }
             component="a"
