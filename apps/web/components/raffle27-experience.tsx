@@ -117,12 +117,21 @@ export function Raffle27Experience({
     }
 
     const timeoutId = window.setTimeout(() => {
-      actionRowRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
+      const activeButton = showTransferInfo ? receiptButtonRef.current : transferButtonRef.current;
+      const targetElement = activeButton ?? actionRowRef.current;
+      if (!targetElement) {
+        return;
+      }
+
+      const targetTop = Math.max(
+        0,
+        targetElement.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.42
+      );
+      window.scrollTo({
+        top: targetTop,
+        behavior: "smooth"
       });
 
-      const activeButton = showTransferInfo ? receiptButtonRef.current : transferButtonRef.current;
       window.setTimeout(() => {
         activeButton?.focus({ preventScroll: true });
       }, 420);
@@ -256,12 +265,12 @@ export function Raffle27Experience({
           ) : null}
           {showTransferInfo && receiptHref ? (
             <Button
-            className="raffle27-primary-action raffle27-paid-action raffle27-action-focus"
-            component="a"
-            href={receiptHref}
-            ref={receiptButtonRef}
-            rel="noreferrer"
-            target="_blank"
+              className="raffle27-primary-action raffle27-paid-action raffle27-action-focus"
+              component="a"
+              href={receiptHref}
+              ref={receiptButtonRef}
+              rel="noreferrer"
+              target="_blank"
               variant="contained"
             >
               Ya pague
