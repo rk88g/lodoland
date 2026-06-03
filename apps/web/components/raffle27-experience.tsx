@@ -23,6 +23,33 @@ type Raffle27ExperienceProps = {
   };
 };
 
+const prizeItems = [
+  {
+    alt: "Camioneta Creta 2024 negra",
+    className: "raffle27-prize-card raffle27-prize-card--hero",
+    imageClassName: "raffle27-prize-image raffle27-prize-image--creta",
+    imageSrc: "/raffle-prizes/creta-2024-black.png",
+    label: "1er lugar",
+    title: "Creta 2024 negra"
+  },
+  {
+    alt: "Arenero deportivo",
+    className: "raffle27-prize-card",
+    imageClassName: "raffle27-prize-image",
+    imageSrc: "/raffle-prizes/arenero.png",
+    label: "2do lugar",
+    title: "Arenero"
+  },
+  {
+    alt: "Dinero en efectivo 50000 pesos",
+    className: "raffle27-prize-card",
+    imageClassName: "raffle27-prize-image raffle27-prize-image--money",
+    imageSrc: "/raffle-prizes/dinero-50000.png",
+    label: "3er lugar",
+    title: "$50,000 pesos"
+  }
+];
+
 function padUnit(value: number) {
   return value.toString().padStart(2, "0");
 }
@@ -223,6 +250,18 @@ export function Raffle27Experience({
       <Typography className="raffle27-limited-copy">
         Rifa limitada a solo 1,500 numeros.
       </Typography>
+
+      <Box className="raffle27-prize-showcase" aria-label="Premios de la rifa">
+        {prizeItems.map((prize) => (
+          <Box className={prize.className} key={prize.title}>
+            <Box className="raffle27-prize-copy">
+              <Typography className="raffle27-prize-label">{prize.label}</Typography>
+              <Typography className="raffle27-prize-title">{prize.title}</Typography>
+            </Box>
+            <img alt={prize.alt} className={prize.imageClassName} src={prize.imageSrc} />
+          </Box>
+        ))}
+      </Box>
 
       <Box className="raffle27-countdown">
         <Typography className="raffle27-countdown-label">{countdown.finished ? "Tombola cerrada" : "Termina en"}</Typography>

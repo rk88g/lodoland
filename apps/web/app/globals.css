@@ -1188,6 +1188,97 @@ main {
   box-shadow: 0.22rem 0.28rem 0 rgba(0, 0, 0, 0.72);
 }
 
+.raffle27-prize-showcase {
+  position: absolute;
+  right: clamp(1.2rem, 4vw, 4rem);
+  bottom: clamp(13.5rem, 18vw, 16.5rem);
+  z-index: 6;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.95fr);
+  gap: clamp(0.55rem, 1vw, 0.85rem);
+  width: min(46rem, 51vw);
+  pointer-events: none;
+}
+
+.raffle27-prize-card {
+  position: relative;
+  min-height: clamp(8rem, 12vw, 10rem);
+  overflow: hidden;
+  border: 1px solid rgba(216, 255, 0, 0.28);
+  background:
+    linear-gradient(135deg, rgba(7, 8, 6, 0.86), rgba(7, 8, 6, 0.48)),
+    radial-gradient(circle at 86% 30%, rgba(216, 255, 0, 0.18), transparent 9rem);
+  box-shadow: 0 0.55rem 0 rgba(0, 0, 0, 0.68);
+  transform: skew(-5deg);
+}
+
+.raffle27-prize-card--hero {
+  grid-row: span 2;
+  min-height: clamp(15.5rem, 25vw, 20.5rem);
+  background:
+    linear-gradient(135deg, rgba(216, 19, 22, 0.24), rgba(7, 8, 6, 0.82) 46%),
+    radial-gradient(circle at 72% 46%, rgba(216, 255, 0, 0.2), transparent 13rem);
+}
+
+.raffle27-prize-copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 0.1rem;
+  padding: clamp(0.75rem, 1.3vw, 1rem);
+  transform: skew(5deg);
+}
+
+.raffle27-prize-label {
+  width: fit-content;
+  padding: 0.18rem 0.45rem;
+  color: #070806;
+  background: #d8ff00;
+  font-size: clamp(0.65rem, 1vw, 0.8rem);
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.raffle27-prize-title {
+  max-width: 12rem;
+  color: #f8f5e8;
+  font-size: clamp(1.15rem, 2vw, 1.8rem);
+  line-height: 0.92;
+  font-weight: 1000;
+  text-transform: uppercase;
+  text-shadow: 0.12rem 0.12rem 0 rgba(0, 0, 0, 0.82);
+}
+
+.raffle27-prize-card--hero .raffle27-prize-title {
+  max-width: 15rem;
+  font-size: clamp(1.65rem, 3.1vw, 2.8rem);
+}
+
+.raffle27-prize-image {
+  position: absolute;
+  right: -8%;
+  bottom: -18%;
+  z-index: 1;
+  width: 74%;
+  max-width: none;
+  height: auto;
+  object-fit: contain;
+  transform: skew(5deg);
+  filter: drop-shadow(0 0.95rem 0.8rem rgba(0, 0, 0, 0.56));
+}
+
+.raffle27-prize-image--creta {
+  right: -18%;
+  bottom: -10%;
+  width: 118%;
+}
+
+.raffle27-prize-image--money {
+  right: -2%;
+  bottom: -28%;
+  width: 62%;
+}
+
 .raffle27-contact-strip {
   position: absolute;
   left: 0;
@@ -1557,6 +1648,7 @@ main {
   .raffle27-countdown,
   .raffle27-hold-ribbon,
   .raffle27-limited-copy,
+  .raffle27-prize-showcase,
   .raffle27-action-row,
   .raffle27-transfer-collapse {
     position: relative;
@@ -1570,6 +1662,12 @@ main {
   .raffle27-countdown {
     width: fit-content;
     max-width: 100%;
+  }
+
+  .raffle27-prize-showcase {
+    bottom: auto;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.9fr);
+    width: min(100%, 46rem);
   }
 
   .raffle27-claim-dock {
@@ -1730,6 +1828,45 @@ main {
     text-align: center;
     transform: none;
     order: -1;
+  }
+
+  .raffle27-prize-showcase {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    width: 100%;
+    pointer-events: none;
+  }
+
+  .raffle27-prize-card,
+  .raffle27-prize-card--hero {
+    min-height: 8.4rem;
+    transform: none;
+  }
+
+  .raffle27-prize-copy,
+  .raffle27-prize-image {
+    transform: none;
+  }
+
+  .raffle27-prize-card--hero {
+    min-height: 13.5rem;
+  }
+
+  .raffle27-prize-image {
+    right: -9%;
+    bottom: -22%;
+    width: 66%;
+  }
+
+  .raffle27-prize-image--creta {
+    right: -24%;
+    bottom: -4%;
+    width: 112%;
+  }
+
+  .raffle27-prize-image--money {
+    right: -5%;
+    width: 56%;
   }
 
   .raffle27-action-row {
