@@ -233,9 +233,32 @@ export function Raffle27Experience({
         <Typography className="raffle27-title" variant="h1">
           Gran Rifa
         </Typography>
-        <Typography className="raffle27-red-slash">
-          3 premios que te cambian el juego
+
+        <Typography className="raffle27-limited-copy">
+          Rifa limitada a solo 1,500 numeros.
         </Typography>
+
+        <Box className="raffle27-prize-showcase" aria-label="Premios de la rifa">
+          {prizeItems.map((prize) => (
+            <Box className={prize.className} key={prize.title}>
+              <Box className="raffle27-prize-copy">
+                <Typography className="raffle27-prize-label">{prize.label}</Typography>
+                <Typography className="raffle27-prize-title">{prize.title}</Typography>
+              </Box>
+              <img alt={prize.alt} className={prize.imageClassName} src={prize.imageSrc} />
+            </Box>
+          ))}
+        </Box>
+
+        <Box className="raffle27-countdown">
+          <Typography className="raffle27-countdown-label">{countdown.finished ? "Tombola cerrada" : "Termina en"}</Typography>
+          <Box className="raffle27-countdown-grid">
+            <CountdownCell label="Dias" value={padUnit(countdown.days)} />
+            <CountdownCell label="Horas" value={padUnit(countdown.hours)} />
+            <CountdownCell label="Min" value={padUnit(countdown.minutes)} />
+            <CountdownCell label="Seg" value={padUnit(countdown.seconds)} />
+          </Box>
+        </Box>
       </Box>
 
       <Box className="raffle27-date-badge">
@@ -245,32 +268,6 @@ export function Raffle27Experience({
 
       <Box className="raffle27-machine" aria-label={`Numero asignado ${formattedLuckyNumber}`}>
         <Raffle27TombolaCanvas luckyNumber={luckyNumber} />
-      </Box>
-
-      <Typography className="raffle27-limited-copy">
-        Rifa limitada a solo 1,500 numeros.
-      </Typography>
-
-      <Box className="raffle27-prize-showcase" aria-label="Premios de la rifa">
-        {prizeItems.map((prize) => (
-          <Box className={prize.className} key={prize.title}>
-            <Box className="raffle27-prize-copy">
-              <Typography className="raffle27-prize-label">{prize.label}</Typography>
-              <Typography className="raffle27-prize-title">{prize.title}</Typography>
-            </Box>
-            <img alt={prize.alt} className={prize.imageClassName} src={prize.imageSrc} />
-          </Box>
-        ))}
-      </Box>
-
-      <Box className="raffle27-countdown">
-        <Typography className="raffle27-countdown-label">{countdown.finished ? "Tombola cerrada" : "Termina en"}</Typography>
-        <Box className="raffle27-countdown-grid">
-          <CountdownCell label="Dias" value={padUnit(countdown.days)} />
-          <CountdownCell label="Horas" value={padUnit(countdown.hours)} />
-          <CountdownCell label="Min" value={padUnit(countdown.minutes)} />
-          <CountdownCell label="Seg" value={padUnit(countdown.seconds)} />
-        </Box>
       </Box>
 
       <Box className="raffle27-hold-ribbon">

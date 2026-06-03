@@ -454,7 +454,7 @@ main {
 .raffle27-poster-copy {
   position: relative;
   z-index: 3;
-  width: min(44rem, 52vw);
+  width: min(50rem, 56vw);
   padding-top: 0.2rem;
   text-transform: uppercase;
 }
@@ -529,7 +529,7 @@ main {
 .raffle27-title {
   margin-top: clamp(0.6rem, 1.4vw, 1.2rem);
   color: #d8ff00;
-  font-size: clamp(4.8rem, 14vw, 12rem);
+  font-size: clamp(4.4rem, 11vw, 9.8rem);
   line-height: 0.72;
   font-weight: 1000;
   letter-spacing: -0.09em;
@@ -835,12 +835,17 @@ main {
 }
 
 .raffle27-countdown {
-  position: absolute;
-  left: clamp(1.2rem, 4vw, 4rem);
-  top: clamp(16rem, 31vh, 20rem);
+  position: relative;
   z-index: 5;
   display: grid;
-  gap: 0.3rem;
+  gap: 0.45rem;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: clamp(0.75rem, 1.4vw, 1.1rem);
+  padding: 0.65rem 0.85rem 0.85rem;
+  background: rgba(0, 0, 0, 0.66);
+  border: 1px solid rgba(216, 255, 0, 0.36);
+  box-shadow: 0 0.45rem 0 rgba(0, 0, 0, 0.72);
 }
 
 .raffle27-countdown-label {
@@ -1172,11 +1177,10 @@ main {
 }
 
 .raffle27-limited-copy {
-  position: absolute;
-  left: clamp(1.2rem, 4vw, 4rem);
-  top: clamp(13.1rem, 27vh, 16.9rem);
+  position: relative;
   z-index: 6;
   width: fit-content;
+  margin-top: clamp(0.55rem, 1vw, 0.9rem);
   padding: 0.28rem 0.7rem;
   color: #070806;
   background: #d8ff00;
@@ -1189,14 +1193,13 @@ main {
 }
 
 .raffle27-prize-showcase {
-  position: absolute;
-  right: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(13.5rem, 18vw, 16.5rem);
+  position: relative;
   z-index: 6;
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.95fr);
   gap: clamp(0.55rem, 1vw, 0.85rem);
-  width: min(46rem, 51vw);
+  width: min(100%, 46rem);
+  margin-top: clamp(0.85rem, 1.6vw, 1.3rem);
   pointer-events: none;
 }
 
@@ -1214,7 +1217,7 @@ main {
 
 .raffle27-prize-card--hero {
   grid-row: span 2;
-  min-height: clamp(15.5rem, 25vw, 20.5rem);
+  min-height: clamp(13rem, 20vw, 17rem);
   background:
     linear-gradient(135deg, rgba(216, 19, 22, 0.24), rgba(7, 8, 6, 0.82) 46%),
     radial-gradient(circle at 72% 46%, rgba(216, 255, 0, 0.2), transparent 13rem);
