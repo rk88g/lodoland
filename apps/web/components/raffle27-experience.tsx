@@ -250,15 +250,6 @@ export function Raffle27Experience({
           ))}
         </Box>
 
-        <Box className="raffle27-countdown">
-          <Typography className="raffle27-countdown-label">{countdown.finished ? "Tombola cerrada" : "Termina en"}</Typography>
-          <Box className="raffle27-countdown-grid">
-            <CountdownCell label="Dias" value={padUnit(countdown.days)} />
-            <CountdownCell label="Horas" value={padUnit(countdown.hours)} />
-            <CountdownCell label="Min" value={padUnit(countdown.minutes)} />
-            <CountdownCell label="Seg" value={padUnit(countdown.seconds)} />
-          </Box>
-        </Box>
       </Box>
 
       <Box className="raffle27-date-badge">
@@ -268,6 +259,16 @@ export function Raffle27Experience({
 
       <Box className="raffle27-machine" aria-label={`Numero asignado ${formattedLuckyNumber}`}>
         <Raffle27TombolaCanvas luckyNumber={luckyNumber} />
+      </Box>
+
+      <Box className="raffle27-countdown">
+        <Typography className="raffle27-countdown-label">{countdown.finished ? "Tombola cerrada" : "Termina en"}</Typography>
+        <Box className="raffle27-countdown-grid">
+          <CountdownCell label="Dias" value={padUnit(countdown.days)} />
+          <CountdownCell label="Horas" value={padUnit(countdown.hours)} />
+          <CountdownCell label="Min" value={padUnit(countdown.minutes)} />
+          <CountdownCell label="Seg" value={padUnit(countdown.seconds)} />
+        </Box>
       </Box>
 
       <Box className="raffle27-hold-ribbon">
