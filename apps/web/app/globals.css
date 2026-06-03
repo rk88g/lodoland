@@ -321,10 +321,9 @@ main {
   left: 50%;
   bottom: clamp(1.1rem, 2vw, 1.75rem);
   z-index: 20;
-  display: grid;
-  grid-template-columns: clamp(3.6rem, 5.2vw, 4.8rem) minmax(15rem, 24rem);
+  display: flex;
   align-items: center;
-  gap: clamp(0.55rem, 1vw, 0.9rem);
+  gap: clamp(0.75rem, 1.6vw, 1.35rem);
   transform: translateX(-50%);
 }
 
@@ -340,8 +339,8 @@ main {
   --arrow-y-end: 0;
   position: relative;
   display: inline-block;
-  width: clamp(3.6rem, 5.2vw, 4.8rem);
-  height: clamp(2rem, 3vw, 2.8rem);
+  width: clamp(5.4rem, 10vw, 8.8rem);
+  height: clamp(3rem, 5.4vw, 4.8rem);
   flex: 0 0 auto;
   filter: drop-shadow(0.35rem 0.3rem 0 #111) drop-shadow(0 0 1.25rem rgba(216, 255, 0, 0.9));
   animation: raffle27-point-at-action 0.85s ease-in-out infinite;
@@ -369,16 +368,15 @@ main {
   right: 0;
   width: 0;
   height: 0;
-  border-top: clamp(1rem, 1.5vw, 1.4rem) solid transparent;
-  border-bottom: clamp(1rem, 1.5vw, 1.4rem) solid transparent;
-  border-left: clamp(1.7rem, 2.6vw, 2.4rem) solid #d8ff00;
+  border-top: clamp(1.5rem, 2.7vw, 2.4rem) solid transparent;
+  border-bottom: clamp(1.5rem, 2.7vw, 2.4rem) solid transparent;
+  border-left: clamp(2.4rem, 4.6vw, 4rem) solid #d8ff00;
 }
 
 .raffle27-claim-dock .MuiButton-root {
   position: relative;
-  min-height: clamp(2.75rem, 5vh, 3.25rem);
-  width: 100%;
-  padding-inline: clamp(1rem, 2vw, 1.6rem);
+  min-height: 3.65rem;
+  padding-inline: 2rem;
   border: 0;
   border-radius: 0.5rem;
   background: #d8ff00;
@@ -940,8 +938,8 @@ main {
   bottom: clamp(0.95rem, 1.8vw, 1.45rem);
   z-index: 9;
   display: grid;
-  grid-template-columns: clamp(3.6rem, 5.2vw, 4.8rem) minmax(15rem, 24rem);
-  gap: clamp(0.55rem, 1vw, 0.9rem);
+  grid-template-columns: clamp(3.8rem, 6.4vw, 5.8rem) minmax(14rem, 23rem);
+  gap: clamp(0.85rem, 1.7vw, 1.35rem);
   align-items: center;
   transform: translateX(-50%);
   scroll-margin-block: 22vh;
@@ -951,17 +949,17 @@ main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: clamp(3.6rem, 5.2vw, 4.8rem);
-  min-width: clamp(3.6rem, 5.2vw, 4.8rem);
+  width: clamp(3.8rem, 6.4vw, 5.8rem);
+  min-width: clamp(3.8rem, 6.4vw, 5.8rem);
   pointer-events: none;
 }
 
 .raffle27-primary-action,
 .raffle27-secondary-action {
   position: relative;
-  min-height: clamp(2.75rem, 5vh, 3.25rem);
+  min-height: clamp(2.55rem, 4.5vh, 3.2rem);
   border-radius: 0.35rem;
-  padding-inline: clamp(1rem, 2vw, 1.6rem);
+  padding-inline: 1.1rem;
   font-weight: 1000;
   text-transform: uppercase;
   transform: skew(-7deg);
@@ -1023,8 +1021,6 @@ main {
   bottom: clamp(0.95rem, 1.8vw, 1.45rem);
   z-index: 18;
   min-height: clamp(2.55rem, 4.5vh, 3.2rem);
-  width: min(15rem, 19vw);
-  padding-inline: clamp(0.8rem, 1.3vw, 1.1rem);
   border-color: rgba(216, 255, 0, 0.72);
   color: #f8f5e8;
   background: rgba(0, 0, 0, 0.76);
@@ -1938,7 +1934,7 @@ main {
     left: 0.72rem;
     right: 0.72rem;
     bottom: max(0.72rem, env(safe-area-inset-bottom));
-    grid-template-columns: minmax(2.35rem, 3rem) minmax(0, 1fr);
+    grid-template-columns: minmax(2.9rem, 3.6rem) minmax(0, 1fr);
     gap: 0.42rem;
     align-items: center;
     justify-content: stretch;
@@ -1961,7 +1957,7 @@ main {
     right: 0.72rem;
     bottom: max(0.72rem, env(safe-area-inset-bottom));
     display: grid;
-    grid-template-columns: minmax(2.35rem, 3rem) minmax(0, 1fr);
+    grid-template-columns: minmax(2.9rem, 3.6rem) minmax(0, 1fr);
     gap: 0.42rem;
     width: auto;
     transform: none;
@@ -1971,10 +1967,10 @@ main {
   .raffle27-secondary-action,
   .raffle27-claim-dock .MuiButton-root {
     min-width: 0;
-    min-height: clamp(2.45rem, 6.8svh, 2.9rem);
+    min-height: clamp(2.55rem, 7svh, 3rem);
     width: 100%;
-    padding-inline: 0.45rem;
-    font-size: clamp(0.72rem, 3.1vw, 0.88rem);
+    padding-inline: 0.55rem;
+    font-size: clamp(0.76rem, 3.3vw, 0.92rem);
     line-height: 1.05;
     transform: none;
   }
@@ -1989,8 +1985,8 @@ main {
 
   .raffle27-claim-dock--pending .raffle27-focus-arrow,
   .raffle27-action-guide .raffle27-focus-arrow {
-    width: clamp(2.35rem, 10vw, 3rem);
-    height: clamp(1.42rem, 6.3vw, 1.85rem);
+    width: clamp(2.9rem, 12vw, 3.6rem);
+    height: clamp(1.7rem, 7.5vw, 2.2rem);
   }
 
   .raffle27-board-trigger {
@@ -1999,10 +1995,7 @@ main {
     right: 0.72rem;
     top: auto;
     bottom: clamp(3.55rem, 10svh, 4.25rem);
-    width: min(46vw, 10.4rem);
-    min-height: clamp(2.25rem, 6svh, 2.65rem);
-    padding-inline: 0.45rem;
-    font-size: clamp(0.64rem, 2.8vw, 0.78rem);
+    width: min(46vw, 11rem);
     transform: none;
   }
 
