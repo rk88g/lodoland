@@ -839,13 +839,15 @@ main {
   z-index: 5;
   display: grid;
   gap: 0.45rem;
-  width: fit-content;
+  width: min(100%, 32rem);
   max-width: 100%;
   margin-top: clamp(0.75rem, 1.4vw, 1.1rem);
+  margin-inline: auto;
   padding: 0.65rem 0.85rem 0.85rem;
   background: rgba(0, 0, 0, 0.66);
   border: 1px solid rgba(216, 255, 0, 0.36);
   box-shadow: 0 0.45rem 0 rgba(0, 0, 0, 0.72);
+  text-align: center;
 }
 
 .raffle27-countdown-label {
@@ -857,15 +859,15 @@ main {
 }
 
 .raffle27-countdown-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.45rem;
-  flex-wrap: wrap;
 }
 
 .raffle27-countdown-cell {
   display: grid;
   place-items: center;
-  min-width: 4.2rem;
+  min-width: 0;
   padding: 0.55rem 0.65rem;
   background: #f8f5e8;
   color: #070806;
@@ -890,18 +892,18 @@ main {
 
 .raffle27-hold-ribbon {
   position: absolute;
-  left: clamp(1.2rem, 4vw, 4rem);
-  right: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(10.8rem, 15.5vw, 12.2rem);
-  max-width: min(64rem, calc(100% - 8rem));
-  z-index: 5;
+  left: 50%;
+  bottom: clamp(9.8rem, 13.5vw, 11rem);
+  width: min(62rem, calc(100% - clamp(2rem, 8vw, 8rem)));
+  z-index: 8;
   display: flex;
   gap: 1rem;
   align-items: center;
+  justify-content: center;
   padding: 0.5rem 1rem;
   color: #fff;
   background: linear-gradient(90deg, #14140f, #d81316 45%, #14140f);
-  transform: rotate(-1deg);
+  transform: translateX(-50%) rotate(-1deg);
   box-shadow: 0 0.5rem 0 rgba(0, 0, 0, 0.7);
 }
 
@@ -924,13 +926,14 @@ main {
 
 .raffle27-action-row {
   position: absolute;
-  left: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(5.8rem, 8.5vw, 6.8rem);
-  z-index: 7;
+  left: 50%;
+  bottom: clamp(4.6rem, 6.5vw, 5.8rem);
+  z-index: 9;
   display: grid;
-  grid-template-columns: clamp(5.4rem, 10vw, 8.8rem) minmax(13rem, max-content);
+  grid-template-columns: clamp(4.6rem, 8vw, 7rem) minmax(14rem, 22rem);
   gap: clamp(0.85rem, 1.7vw, 1.35rem);
   align-items: center;
+  transform: translateX(-50%);
   scroll-margin-block: 22vh;
 }
 
@@ -978,10 +981,12 @@ main {
 
 .raffle27-transfer-collapse {
   position: absolute;
-  left: clamp(1.2rem, 4vw, 4rem);
-  right: clamp(1.2rem, 4vw, 4rem);
-  bottom: clamp(18.2rem, 27vw, 20rem);
+  left: 50%;
+  right: auto;
+  bottom: clamp(14.4rem, 20vw, 16.4rem);
+  width: min(56rem, calc(100% - clamp(2rem, 8vw, 8rem)));
   z-index: 9;
+  transform: translateX(-50%);
 }
 
 .raffle27-transfer-box {
@@ -1196,10 +1201,11 @@ main {
   position: relative;
   z-index: 6;
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.95fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(0.55rem, 1vw, 0.85rem);
-  width: min(100%, 46rem);
+  width: min(100%, 40rem);
   margin-top: clamp(0.85rem, 1.6vw, 1.3rem);
+  margin-inline: auto;
   pointer-events: none;
 }
 
@@ -1216,8 +1222,8 @@ main {
 }
 
 .raffle27-prize-card--hero {
-  grid-row: span 2;
-  min-height: clamp(13rem, 20vw, 17rem);
+  grid-column: 1 / -1;
+  min-height: clamp(10.2rem, 15vw, 13.2rem);
   background:
     linear-gradient(135deg, rgba(216, 19, 22, 0.24), rgba(7, 8, 6, 0.82) 46%),
     radial-gradient(circle at 72% 46%, rgba(216, 255, 0, 0.2), transparent 13rem);
@@ -1663,14 +1669,29 @@ main {
   }
 
   .raffle27-countdown {
-    width: fit-content;
+    width: min(100%, 32rem);
     max-width: 100%;
+  }
+
+  .raffle27-hold-ribbon,
+  .raffle27-action-row,
+  .raffle27-transfer-collapse {
+    width: 100%;
+    transform: none;
+  }
+
+  .raffle27-hold-ribbon {
+    justify-content: center;
+  }
+
+  .raffle27-action-row {
+    justify-content: center;
   }
 
   .raffle27-prize-showcase {
     bottom: auto;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.9fr);
-    width: min(100%, 46rem);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: min(100%, 40rem);
   }
 
   .raffle27-claim-dock {
@@ -1876,6 +1897,7 @@ main {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
+    justify-content: stretch;
     scroll-margin-block: 34vh 2rem;
   }
 
