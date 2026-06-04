@@ -1,0 +1,14 @@
+
+> @lodoland/web@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Experiments (use with caution):
+    · typedRoutes
+
+ ✓ Starting...
+ ✓ Ready in 1410ms
+ ✓ Compiled /middleware in 141ms (147 modules)
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 867ms (255 modules)
