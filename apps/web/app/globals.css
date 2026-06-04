@@ -1853,7 +1853,7 @@ main {
     gap: 0.2rem;
     left: 0.7rem;
     right: 0.7rem;
-    bottom: clamp(6.25rem, 16.7svh, 7.05rem);
+    bottom: clamp(8.8rem, 24svh, 10.4rem);
     width: auto;
     padding: 0.28rem 0.48rem;
     transform: none;
@@ -1870,9 +1870,9 @@ main {
 
   .raffle27-countdown {
     left: 0.72rem;
-    right: auto;
-    bottom: clamp(3.35rem, 9.2svh, 3.95rem);
-    width: calc(50% - 1rem);
+    right: 0.72rem;
+    bottom: clamp(5.7rem, 15.5svh, 6.7rem);
+    width: auto;
     padding: 0.34rem 0.38rem 0.4rem;
   }
 
@@ -2038,11 +2038,11 @@ main {
 
   .raffle27-board-trigger {
     position: absolute;
-    left: auto;
+    left: 0.72rem;
     right: 0.72rem;
     top: auto;
     bottom: clamp(3.35rem, 9.2svh, 3.95rem);
-    width: calc(50% - 1rem);
+    width: auto;
     min-width: 0;
     min-height: clamp(2.12rem, 5.8svh, 2.52rem);
     padding-inline: 0.38rem;
