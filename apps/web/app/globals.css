@@ -1736,28 +1736,28 @@ main {
     height: 100%;
     min-height: 0;
     overflow: hidden;
-    padding: clamp(0.48rem, 1.6vw, 0.75rem);
-    padding-bottom: clamp(5.1rem, 15svh, 6.2rem);
+    padding: clamp(0.46rem, 1.5vw, 0.72rem);
+    padding-bottom: clamp(6.6rem, 18svh, 7.8rem);
   }
 
   .raffle27-shell--winner {
-    padding-bottom: clamp(5.1rem, 15svh, 6.2rem);
+    padding-bottom: clamp(6.6rem, 18svh, 7.8rem);
   }
 
   .raffle27-poster-copy {
-    width: 100%;
+    width: min(58vw, 22rem);
     padding-top: 0;
   }
 
   .raffle27-brand {
-    max-width: 13rem;
+    max-width: 11rem;
     margin: 0;
-    font-size: clamp(1rem, 4.8vw, 1.45rem);
+    font-size: clamp(0.88rem, 4.2vw, 1.24rem);
   }
 
   .raffle27-title {
     margin-bottom: 0;
-    font-size: clamp(2.5rem, 15vw, 4rem);
+    font-size: clamp(2.1rem, 12vw, 3.35rem);
   }
 
   .raffle27-red-slash {
@@ -1787,15 +1787,26 @@ main {
   }
 
   .raffle27-date-badge {
-    transform: skew(-8deg) rotate(1deg) scale(0.74);
+    right: 0.55rem;
+    top: 0.55rem;
+    padding: 0.38rem 0.56rem 0.44rem;
+    transform: skew(-8deg) rotate(1deg);
     transform-origin: top right;
+  }
+
+  .raffle27-date-badge strong {
+    font-size: clamp(2.1rem, 13vw, 3.25rem);
+  }
+
+  .raffle27-date-badge span {
+    font-size: clamp(0.68rem, 4.4vw, 1rem);
   }
 
   .raffle27-machine {
     position: absolute;
     right: clamp(0.55rem, 2vw, 1rem);
-    top: clamp(13.1rem, 43svh, 18rem);
-    width: min(43vw, 12.8rem, 26svh);
+    top: clamp(9.6rem, 31svh, 13.4rem);
+    width: min(39vw, 11.6rem, 24svh);
     margin: 0;
     filter: none;
   }
@@ -1839,20 +1850,29 @@ main {
 
   .raffle27-hold-ribbon {
     display: grid;
-    gap: 0.35rem;
+    gap: 0.2rem;
     left: 0.7rem;
     right: 0.7rem;
-    bottom: clamp(6.65rem, 18svh, 8rem);
+    bottom: clamp(6.25rem, 16.7svh, 7.05rem);
     width: auto;
-    padding: 0.34rem 0.55rem;
+    padding: 0.28rem 0.48rem;
     transform: none;
+  }
+
+  .raffle27-hold-title {
+    font-size: clamp(0.68rem, 3.1vw, 0.86rem);
+  }
+
+  .raffle27-stage-hold {
+    font-size: clamp(0.58rem, 2.7vw, 0.72rem);
+    line-height: 1.08;
   }
 
   .raffle27-countdown {
     left: 0.72rem;
     right: auto;
-    bottom: clamp(3.55rem, 10svh, 4.25rem);
-    width: min(47vw, 11.6rem);
+    bottom: clamp(3.35rem, 9.2svh, 3.95rem);
+    width: calc(50% - 1rem);
     padding: 0.34rem 0.38rem 0.4rem;
   }
 
@@ -1883,23 +1903,25 @@ main {
   }
 
   .raffle27-limited-copy {
-    width: 100%;
+    width: fit-content;
     text-align: center;
     transform: none;
     order: -1;
+    font-size: clamp(0.48rem, 2.25vw, 0.62rem);
+    padding: 0.18rem 0.4rem;
   }
 
   .raffle27-prize-showcase {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(0.34rem, 1.4vw, 0.55rem);
-    width: min(58vw, 22rem);
+    gap: clamp(0.26rem, 1.1vw, 0.42rem);
+    width: 100%;
     margin-inline: 0;
     pointer-events: none;
   }
 
   .raffle27-prize-card,
   .raffle27-prize-card--hero {
-    min-height: clamp(4.4rem, 13svh, 6.2rem);
+    min-height: clamp(3.7rem, 10.5svh, 5.2rem);
     transform: none;
   }
 
@@ -1909,13 +1931,26 @@ main {
   }
 
   .raffle27-prize-card--hero {
-    min-height: clamp(6.3rem, 20svh, 9.4rem);
+    min-height: clamp(5.2rem, 15.2svh, 7.2rem);
+  }
+
+  .raffle27-prize-copy {
+    padding: clamp(0.34rem, 1.4vw, 0.52rem);
+  }
+
+  .raffle27-prize-label {
+    font-size: clamp(0.46rem, 2.2vw, 0.58rem);
+  }
+
+  .raffle27-prize-title,
+  .raffle27-prize-card--hero .raffle27-prize-title {
+    font-size: clamp(0.72rem, 4vw, 1.15rem);
   }
 
   .raffle27-prize-image {
     right: -9%;
     bottom: -22%;
-    width: 66%;
+    width: 68%;
   }
 
   .raffle27-prize-image--creta {
@@ -1934,8 +1969,8 @@ main {
     left: 0.72rem;
     right: 0.72rem;
     bottom: max(0.72rem, env(safe-area-inset-bottom));
-    grid-template-columns: minmax(2.9rem, 3.6rem) minmax(0, 1fr);
-    gap: 0.42rem;
+    grid-template-columns: minmax(2.15rem, 2.75rem) minmax(0, 1fr);
+    gap: 0.36rem;
     align-items: center;
     justify-content: stretch;
     width: auto;
@@ -1957,8 +1992,8 @@ main {
     right: 0.72rem;
     bottom: max(0.72rem, env(safe-area-inset-bottom));
     display: grid;
-    grid-template-columns: minmax(2.9rem, 3.6rem) minmax(0, 1fr);
-    gap: 0.42rem;
+    grid-template-columns: minmax(2.15rem, 2.75rem) minmax(0, 1fr);
+    gap: 0.36rem;
     width: auto;
     transform: none;
   }
@@ -1967,10 +2002,10 @@ main {
   .raffle27-secondary-action,
   .raffle27-claim-dock .MuiButton-root {
     min-width: 0;
-    min-height: clamp(2.55rem, 7svh, 3rem);
+    min-height: clamp(2.32rem, 6.4svh, 2.72rem);
     width: 100%;
-    padding-inline: 0.55rem;
-    font-size: clamp(0.76rem, 3.3vw, 0.92rem);
+    padding-inline: 0.38rem;
+    font-size: clamp(0.68rem, 2.95vw, 0.82rem);
     line-height: 1.05;
     transform: none;
   }
@@ -1985,8 +2020,20 @@ main {
 
   .raffle27-claim-dock--pending .raffle27-focus-arrow,
   .raffle27-action-guide .raffle27-focus-arrow {
-    width: clamp(2.9rem, 12vw, 3.6rem);
-    height: clamp(1.7rem, 7.5vw, 2.2rem);
+    width: clamp(2.15rem, 9vw, 2.75rem);
+    height: clamp(1.32rem, 5.8vw, 1.7rem);
+  }
+
+  .raffle27-claim-dock--pending .raffle27-focus-arrow::before,
+  .raffle27-action-guide .raffle27-focus-arrow::before {
+    height: 24%;
+  }
+
+  .raffle27-claim-dock--pending .raffle27-focus-arrow::after,
+  .raffle27-action-guide .raffle27-focus-arrow::after {
+    border-top-width: clamp(0.66rem, 2.9vw, 0.86rem);
+    border-bottom-width: clamp(0.66rem, 2.9vw, 0.86rem);
+    border-left-width: clamp(1rem, 4.2vw, 1.32rem);
   }
 
   .raffle27-board-trigger {
@@ -1994,8 +2041,12 @@ main {
     left: auto;
     right: 0.72rem;
     top: auto;
-    bottom: clamp(3.55rem, 10svh, 4.25rem);
-    width: min(46vw, 11rem);
+    bottom: clamp(3.35rem, 9.2svh, 3.95rem);
+    width: calc(50% - 1rem);
+    min-width: 0;
+    min-height: clamp(2.12rem, 5.8svh, 2.52rem);
+    padding-inline: 0.38rem;
+    font-size: clamp(0.58rem, 2.55vw, 0.72rem);
     transform: none;
   }
 
