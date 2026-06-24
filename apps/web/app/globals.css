@@ -1213,7 +1213,7 @@ main {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(0.42rem, 0.8vw, 0.7rem);
-  width: min(100%, 52rem);
+  width: min(100%, 34rem);
   margin-top: clamp(0.45rem, 0.8vw, 0.75rem);
   margin-inline: auto;
   pointer-events: none;
@@ -1221,7 +1221,8 @@ main {
 
 .raffle27-prize-card {
   position: relative;
-  min-height: clamp(5.9rem, 11.5vh, 7.2rem);
+  min-height: 0;
+  aspect-ratio: 1;
   overflow: hidden;
   border: 1px solid rgba(216, 255, 0, 0.28);
   background:
@@ -1232,16 +1233,15 @@ main {
 }
 
 .raffle27-prize-card--hero {
-  grid-column: 1 / -1;
-  min-height: clamp(9rem, 31vh, 17rem);
   background:
     linear-gradient(135deg, rgba(216, 19, 22, 0.24), rgba(7, 8, 6, 0.82) 46%),
     radial-gradient(circle at 72% 46%, rgba(216, 255, 0, 0.2), transparent 13rem);
 }
 
 .raffle27-prize-card--cash {
-  grid-column: 1 / -1;
-  min-height: clamp(6.6rem, 13vh, 8.6rem);
+  background:
+    linear-gradient(135deg, rgba(7, 8, 6, 0.76), rgba(7, 8, 6, 0.34)),
+    radial-gradient(circle at 58% 58%, rgba(216, 255, 0, 0.22), transparent 10rem);
 }
 
 .raffle27-prize-copy {
@@ -1274,8 +1274,8 @@ main {
 }
 
 .raffle27-prize-card--hero .raffle27-prize-title {
-  max-width: 15rem;
-  font-size: clamp(1.25rem, 2.6vw, 2.55rem);
+  max-width: 12rem;
+  font-size: clamp(1.15rem, 2.1vw, 2rem);
 }
 
 .raffle27-prize-image {
@@ -1292,15 +1292,15 @@ main {
 }
 
 .raffle27-prize-image--creta {
-  right: -9%;
-  bottom: -14%;
-  width: 88%;
+  right: -45%;
+  bottom: 3%;
+  width: 145%;
 }
 
 .raffle27-prize-image--money {
-  right: -2%;
-  bottom: -28%;
-  width: 62%;
+  right: -20%;
+  bottom: -14%;
+  width: 112%;
 }
 
 .raffle27-contact-strip {
@@ -1700,7 +1700,7 @@ main {
   .raffle27-prize-showcase {
     bottom: auto;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: min(100%, 40rem);
+    width: min(100%, 34rem);
   }
 
   .raffle27-claim-dock {
@@ -1926,14 +1926,15 @@ main {
   .raffle27-prize-showcase {
     grid-template-columns: 1fr;
     gap: 0.7rem;
-    width: 100%;
+    width: min(100%, 22rem);
     margin-inline: 0;
     pointer-events: none;
   }
 
   .raffle27-prize-card,
   .raffle27-prize-card--hero {
-    min-height: 8rem;
+    min-height: 0;
+    aspect-ratio: 1;
     transform: none;
   }
 
@@ -1943,11 +1944,11 @@ main {
   }
 
   .raffle27-prize-card--hero {
-    min-height: 12.5rem;
+    min-height: 0;
   }
 
   .raffle27-prize-card--cash {
-    min-height: 8rem;
+    min-height: 0;
   }
 
   .raffle27-prize-copy {
@@ -1970,14 +1971,15 @@ main {
   }
 
   .raffle27-prize-image--creta {
-    right: -24%;
-    bottom: -2%;
-    width: 112%;
+    right: -43%;
+    bottom: 4%;
+    width: 142%;
   }
 
   .raffle27-prize-image--money {
-    right: -5%;
-    width: 56%;
+    right: -20%;
+    bottom: -12%;
+    width: 112%;
   }
 
   .raffle27-action-row {

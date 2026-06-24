@@ -55,7 +55,6 @@ export default async function Rifa2026Page() {
 
           <Raffle27Experience
             availableCount={publicData.stats.available}
-            countdownEndsAt={publicData.settings.countdown_ends_at}
             holdExpiresAt={publicData.experience?.holdExpiresAt ?? null}
             luckyNumber={publicData.experience?.luckyNumber ?? null}
             message={

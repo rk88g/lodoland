@@ -7,7 +7,6 @@ import { Raffle27TombolaCanvas } from "./raffle27-tombola-canvas";
 type BoardSectionKey = "sold" | "held" | "available";
 
 type Raffle27ExperienceProps = {
-  countdownEndsAt: string;
   holdExpiresAt: string | null;
   luckyNumber: number | null;
   message: string;
@@ -46,22 +45,6 @@ function padUnit(value: number) {
   return value.toString().padStart(2, "0");
 }
 
-function buildCountdown(targetDate: string) {
-  const diff = Math.max(0, new Date(targetDate).getTime() - Date.now());
-  const days = Math.floor(diff / 86_400_000);
-  const hours = Math.floor((diff % 86_400_000) / 3_600_000);
-  const minutes = Math.floor((diff % 3_600_000) / 60_000);
-  const seconds = Math.floor((diff % 60_000) / 1_000);
-
-  return {
-    days,
-    hours,
-    minutes,
-    seconds,
-    finished: diff <= 0
-  };
-}
-
 function buildRemainingHold(targetDate: string | null) {
   if (!targetDate) {
     return null;
@@ -77,30 +60,11 @@ function buildRemainingHold(targetDate: string | null) {
   return `${padUnit(minutes)}:${padUnit(seconds)}`;
 }
 
-function buildDateBadge(targetDate: string) {
-  const date = new Date(targetDate);
-
-  if (Number.isNaN(date.getTime())) {
-    return {
-      day: "14",
-      month: "junio",
-      year: "2026"
-    };
-  }
-
-  return {
-    day: date.getDate().toString(),
-    month: date.toLocaleDateString("es-MX", { month: "long" }),
-    year: date.getFullYear().toString()
-  };
-}
-
 function formatTransferInstructions(value: string) {
   return value.replace(/\\n/g, "\n");
 }
 
 export function Raffle27Experience({
-  countdownEndsAt,
   holdExpiresAt,
   luckyNumber,
   message,
@@ -111,7 +75,6 @@ export function Raffle27Experience({
   const actionRowRef = useRef<HTMLDivElement | null>(null);
   const transferButtonRef = useRef<HTMLButtonElement | null>(null);
   const receiptButtonRef = useRef<HTMLAnchorElement | null>(null);
-  const [countdown, setCountdown] = useState(() => buildCountdown(countdownEndsAt));
   const [holdCountdown, setHoldCountdown] = useState(() => buildRemainingHold(holdExpiresAt));
   const [showTransferInfo, setShowTransferInfo] = useState(false);
   const [boardModalOpen, setBoardModalOpen] = useState(false);
@@ -120,16 +83,6 @@ export function Raffle27Experience({
     () => formatTransferInstructions(transferInstructions),
     [transferInstructions]
   );
-  const dateBadge = useMemo(() => buildDateBadge(countdownEndsAt), [countdownEndsAt]);
-
-  useEffect(() => {
-    setCountdown(buildCountdown(countdownEndsAt));
-    const intervalId = window.setInterval(() => {
-      setCountdown(buildCountdown(countdownEndsAt));
-    }, 1000);
-
-    return () => window.clearInterval(intervalId);
-  }, [countdownEndsAt]);
 
   useEffect(() => {
     setHoldCountdown(buildRemainingHold(holdExpiresAt));
@@ -263,23 +216,8 @@ export function Raffle27Experience({
 
       </Box>
 
-      <Box className="raffle27-date-badge">
-        <strong>{dateBadge.day}</strong>
-        <span>de {dateBadge.month}<br />{dateBadge.year}</span>
-      </Box>
-
       <Box className="raffle27-machine" aria-label={`Numero asignado ${formattedLuckyNumber}`}>
         <Raffle27TombolaCanvas luckyNumber={luckyNumber} />
-      </Box>
-
-      <Box className="raffle27-countdown">
-        <Typography className="raffle27-countdown-label">{countdown.finished ? "Tombola cerrada" : "Termina en"}</Typography>
-        <Box className="raffle27-countdown-grid">
-          <CountdownCell label="Dias" value={padUnit(countdown.days)} />
-          <CountdownCell label="Horas" value={padUnit(countdown.hours)} />
-          <CountdownCell label="Min" value={padUnit(countdown.minutes)} />
-          <CountdownCell label="Seg" value={padUnit(countdown.seconds)} />
-        </Box>
       </Box>
 
       <Box className="raffle27-hold-ribbon">
@@ -428,15 +366,6 @@ function BoardSection({
       ) : (
         <Typography color="text.secondary">{emptyLabel}</Typography>
       )}
-    </Box>
-  );
-}
-
-function CountdownCell({ label, value }: { label: string; value: string }) {
-  return (
-    <Box className="raffle27-countdown-cell">
-      <Typography className="raffle27-countdown-value">{value}</Typography>
-      <Typography className="raffle27-countdown-caption">{label}</Typography>
     </Box>
   );
 }
