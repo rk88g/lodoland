@@ -33,20 +33,12 @@ const prizeItems = [
     title: "Creta 2024 negra"
   },
   {
-    alt: "Arenero deportivo",
-    className: "raffle27-prize-card",
-    imageClassName: "raffle27-prize-image",
-    imageSrc: "/raffle-prizes/arenero.png",
-    label: "2do lugar",
-    title: "Arenero"
-  },
-  {
-    alt: "Dinero en efectivo 50000 pesos",
-    className: "raffle27-prize-card",
+    alt: "Dinero en efectivo 100000 pesos",
+    className: "raffle27-prize-card raffle27-prize-card--cash",
     imageClassName: "raffle27-prize-image raffle27-prize-image--money",
-    imageSrc: "/raffle-prizes/dinero-50000.png",
-    label: "3er lugar",
-    title: "$50,000 pesos"
+    imageSrc: "/raffle-prizes/dinero-100000.png",
+    label: "2do lugar",
+    title: "$100,000 pesos"
   }
 ];
 
@@ -85,6 +77,24 @@ function buildRemainingHold(targetDate: string | null) {
   return `${padUnit(minutes)}:${padUnit(seconds)}`;
 }
 
+function buildDateBadge(targetDate: string) {
+  const date = new Date(targetDate);
+
+  if (Number.isNaN(date.getTime())) {
+    return {
+      day: "14",
+      month: "junio",
+      year: "2026"
+    };
+  }
+
+  return {
+    day: date.getDate().toString(),
+    month: date.toLocaleDateString("es-MX", { month: "long" }),
+    year: date.getFullYear().toString()
+  };
+}
+
 function formatTransferInstructions(value: string) {
   return value.replace(/\\n/g, "\n");
 }
@@ -110,6 +120,7 @@ export function Raffle27Experience({
     () => formatTransferInstructions(transferInstructions),
     [transferInstructions]
   );
+  const dateBadge = useMemo(() => buildDateBadge(countdownEndsAt), [countdownEndsAt]);
 
   useEffect(() => {
     setCountdown(buildCountdown(countdownEndsAt));
@@ -253,8 +264,8 @@ export function Raffle27Experience({
       </Box>
 
       <Box className="raffle27-date-badge">
-        <strong>14</strong>
-        <span>de junio<br />2026</span>
+        <strong>{dateBadge.day}</strong>
+        <span>de {dateBadge.month}<br />{dateBadge.year}</span>
       </Box>
 
       <Box className="raffle27-machine" aria-label={`Numero asignado ${formattedLuckyNumber}`}>

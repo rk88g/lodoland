@@ -8,6 +8,7 @@ import { syncRaffle27VisitorExperience } from "../../lib/raffle27";
 
 const DEVICE_COOKIE = "raffle27-device";
 const FLASH_COOKIE = "raffle27-public-flash";
+const PUBLIC_RAFFLE_PATH = "/rifa2026";
 
 function getOrCreateDeviceId() {
   const cookieStore = cookies();
@@ -53,5 +54,5 @@ export async function claimRaffle27LuckyNumberAction() {
     type: "success",
     message: experience.message
   });
-  redirect("/Lodonautas14Junio");
+  redirect(PUBLIC_RAFFLE_PATH);
 }

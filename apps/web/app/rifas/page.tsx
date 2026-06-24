@@ -160,7 +160,7 @@ export default async function RafflesPage() {
                   <Typography color="text.secondary">
                     Rifa especial de Lodonautas. Entra al micrositio para girar la tombola, apartar tu numero y pagar por WhatsApp.
                   </Typography>
-                  <Button component={Link} href="/Lodonautas14Junio" variant="contained">
+                  <Button component={Link} href="/rifa2026" variant="contained">
                     Ir al micrositio
                   </Button>
                 </Stack>

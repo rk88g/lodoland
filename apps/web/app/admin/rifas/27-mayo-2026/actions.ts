@@ -11,6 +11,7 @@ import { createClient } from "../../../../lib/supabase/server";
 
 const FLASH_COOKIE = "admin-raffle27-flash";
 const ADMIN_PATH = "/admin/rifas/27-mayo-2026";
+const PUBLIC_RAFFLE_PATHS = ["/rifa2026", "/rifa2026/boletos-vendidos", "/Lodonautas14Junio", "/Lodonautas14Junio/boletos-vendidos", "/listado27mayo2026", "/listado27mayo2026/boletos-vendidos"];
 
 function redirectWithMessage(type: "success" | "error", message: string): never {
   setFlashMessage(FLASH_COOKIE, { type, message });
@@ -48,7 +49,7 @@ export async function saveRaffle27SettingsAction(formData: FormData) {
       actorUserId: session.profile?.id,
       entityType: "special_raffle_27_settings",
       action: "update",
-      summary: "Actualizacion de configuracion de la rifa Lodonautas 14 Junio 2026",
+      summary: "Actualizacion de configuracion de la rifa 2026",
       payload: {
         title,
         whatsappNumber,
@@ -62,12 +63,9 @@ export async function saveRaffle27SettingsAction(formData: FormData) {
   }
 
   revalidatePath(ADMIN_PATH);
-  revalidatePath("/Lodonautas14Junio");
-  revalidatePath("/Lodonautas14Junio/boletos-vendidos");
+  PUBLIC_RAFFLE_PATHS.forEach((path) => revalidatePath(path));
   revalidatePath("/rifas");
   revalidatePath("/perfil");
-  revalidatePath("/listado27mayo2026");
-  revalidatePath("/listado27mayo2026/boletos-vendidos");
   redirectWithMessage("success", "Configuracion de la rifa actualizada.");
 }
 
@@ -104,7 +102,7 @@ export async function sellRaffle27NumberAction(formData: FormData) {
       actorUserId: session.profile?.id,
       entityType: "special_raffle_27_sale",
       action: "create",
-      summary: "Venta manual en la landing de la rifa Lodonautas 14 Junio 2026",
+      summary: "Venta manual en la landing de la rifa 2026",
       payload: {
         numberValue,
         buyerName,
@@ -120,10 +118,7 @@ export async function sellRaffle27NumberAction(formData: FormData) {
 
   revalidatePath(ADMIN_PATH);
   revalidatePath("/admin/finanzas");
-  revalidatePath("/Lodonautas14Junio");
-  revalidatePath("/Lodonautas14Junio/boletos-vendidos");
-  revalidatePath("/listado27mayo2026");
-  revalidatePath("/listado27mayo2026/boletos-vendidos");
+  PUBLIC_RAFFLE_PATHS.forEach((path) => revalidatePath(path));
   redirectWithMessage("success", "Numero vendido y reflejado en finanzas correctamente.");
 }
 
@@ -159,7 +154,7 @@ export async function quickPayRaffle27LogNumberAction(formData: FormData) {
       actorUserId: session.profile?.id,
       entityType: "special_raffle_27_sale",
       action: "quick_pay",
-      summary: "Pago rapido desde log de la rifa Lodonautas 14 Junio 2026",
+      summary: "Pago rapido desde log de la rifa 2026",
       payload: {
         numberValue,
         amount,
@@ -175,9 +170,6 @@ export async function quickPayRaffle27LogNumberAction(formData: FormData) {
 
   revalidatePath(ADMIN_PATH);
   revalidatePath("/admin/finanzas");
-  revalidatePath("/Lodonautas14Junio");
-  revalidatePath("/Lodonautas14Junio/boletos-vendidos");
-  revalidatePath("/listado27mayo2026");
-  revalidatePath("/listado27mayo2026/boletos-vendidos");
+  PUBLIC_RAFFLE_PATHS.forEach((path) => revalidatePath(path));
   redirectWithMessage("success", "Numero pagado desde log y reflejado en finanzas.");
 }

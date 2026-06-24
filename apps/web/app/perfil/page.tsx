@@ -329,7 +329,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                   <Chip label={`${specialRaffle.stats.available} disponibles`} size="small" />
                   <Chip label="Micrositio especial" size="small" />
                 </Stack>
-                <Link href="/Lodonautas14Junio" style={{ textDecoration: "none" }}>
+                <Link href="/rifa2026" style={{ textDecoration: "none" }}>
                   <Button disabled={!emailConfirmed} variant="contained">
                     Ir a la tombola
                   </Button>

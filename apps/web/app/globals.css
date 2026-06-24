@@ -1239,6 +1239,11 @@ main {
     radial-gradient(circle at 72% 46%, rgba(216, 255, 0, 0.2), transparent 13rem);
 }
 
+.raffle27-prize-card--cash {
+  grid-column: 1 / -1;
+  min-height: clamp(6.6rem, 13vh, 8.6rem);
+}
+
 .raffle27-prize-copy {
   position: relative;
   z-index: 2;
@@ -1939,6 +1944,10 @@ main {
 
   .raffle27-prize-card--hero {
     min-height: 12.5rem;
+  }
+
+  .raffle27-prize-card--cash {
+    min-height: 8rem;
   }
 
   .raffle27-prize-copy {
